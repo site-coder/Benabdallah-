@@ -142,6 +142,9 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 .wb-quiz .mq-q{font-size:clamp(16px,4.4vw,19px);margin-bottom:12px}
 .wb-qact{display:flex;justify-content:center;margin-top:14px}
 .wb-end{display:flex;justify-content:center;padding:6px 0}
+.wb-fs{position:absolute;top:8px;inset-inline-end:8px;z-index:2;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--g);font-size:18px;cursor:pointer}
+.wb:fullscreen,.wb:-webkit-full-screen{max-width:none;width:100%;height:100%;overflow:auto;background:var(--bg);padding:10px;box-sizing:border-box}
+.wb:fullscreen .wb-stage,.wb:-webkit-full-screen .wb-stage{width:auto;height:calc(100vh - 130px);aspect-ratio:16/9;margin-inline:auto}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -614,7 +617,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   }
   function wbMount(host){
     wbStop();
-    host.innerHTML='<div class="wb"><div class="wb-stage" id="wbstage"></div>'+
+    host.innerHTML='<div class="wb" id="wbwrap"><div class="wb-stage" id="wbstage"><button class="wb-fs" id="wbfs" type="button" aria-label="ملء الشاشة">⛶</button></div>'+
       '<div class="wb-ctrl"><button class="wb-btn" id="wbplay" type="button" aria-label="تشغيل">▶</button>'+
       '<button class="wb-btn" id="wbre" type="button" aria-label="إعادة التشغيل">↺</button>'+
       '<div class="wb-prog" id="wbprog" role="progressbar" aria-label="شريط التقدم"><i id="wbfill"></i></div>'+
@@ -635,6 +638,16 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     });
     $('wbplay').onclick=wbToggle;
     $('wbre').onclick=wbReset;
+    $('wbfs').onclick=function(){
+      var d=document,w=$('wbwrap');
+      if(d.fullscreenElement||d.webkitFullscreenElement){
+        (d.exitFullscreen||d.webkitExitFullscreen).call(d);
+      }else{
+        var rq=w.requestFullscreen||w.webkitRequestFullscreen;
+        if(rq)rq.call(w);
+        try{screen.orientation.lock('landscape')}catch(e){}
+      }
+    };
     $('wbprog').onclick=function(e){var r=this.getBoundingClientRect();wbSeek(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)))};
     wbGo(0,0);
   }
