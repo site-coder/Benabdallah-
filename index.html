@@ -123,8 +123,8 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 :root[data-theme="light"]{--wb-ink:#1A1030}
 .tabs.six{grid-template-columns:repeat(2,1fr)}
 @media(min-width:700px){.tabs.six{grid-template-columns:repeat(6,1fr)}}
-.wb{max-width:820px;margin-inline:auto}
-.wb-stage{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background-color:var(--card);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:36px 36px}
+.wb{max-width:1000px;margin-inline:auto}
+.wb-stage{position:relative;width:calc(100% + 24px);margin-inline:-12px;aspect-ratio:16/9;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background-color:var(--card);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:36px 36px}
 .wb-svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .5s}
 .wb-svg.on{opacity:1}
 .wb-ln{fill:none;stroke:var(--wb-ink);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
@@ -378,7 +378,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   }
 
   var WB_SCENES=[
-    {title:'التعريف',src:'scene1.wav',dur:19.97,
+    {title:'التعريف',src:'s1-l1-scene1.wav',dur:19.97,
      cam:[[0,FULL],[3.5,[20,130,460,259]],[12,FULL]],
      els:[
       wbT('الطب الرياضي',400,70,.6,40,WB_COL.gold),
@@ -392,14 +392,14 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
       wbP('M430 352L480 352L494 322L508 380L522 352L700 352',9.5,1.6),
       wbT('تعريف الطب الرياضي',400,420,12.5,22,null)
      ]},
-    {title:'التاريخ',src:'scene2.wav',dur:38.41,
+    {title:'التاريخ',src:'s1-l1-scene2.wav',dur:38.41,
      cam:[[0,FULL],[3,[-110,90,460,259]],[10,[70,90,460,259]],[17,[250,90,460,259]],[24,[430,90,460,259]],[33,FULL]],
      els:wbHistory()},
-    {title:'الأهداف',src:'scene3.wav',dur:33.97,
+    {title:'الأهداف',src:'s1-l1-scene3.wav',dur:33.97,
      cam:[[0,FULL],[5,[0,110,460,259]],[13,[340,110,460,259]],[24,FULL]],
      els:[wbT('أقسام الطب الرياضي',400,70,.4,28,WB_COL.gold),wbT('حسب Bent CARLLY',400,108,1,18,'var(--muted)')]
           .concat(wbCards(['الاختيار','التوجيه','المراقبة','العلاج'],['check','compass','pulse','plus'],2,5))},
-    {title:'الأهمية',src:'scene4.wav',dur:20.45,
+    {title:'الأهمية',src:'s1-l1-scene4.wav',dur:20.45,
      cam:[[0,FULL],[4,[50,103,400,225]],[9,[350,103,400,225]],[15,FULL]],
      els:[
       wbT('أهمية الطب الرياضي',400,70,.4,28,WB_COL.gold),
@@ -411,7 +411,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
       wbP('M340 215L450 215M435 200L450 215L435 230',11,1),
       wbT('الوقاية قبل العلاج',400,400,13,24,WB_COL.gold)
      ]},
-    {title:'الأقسام',src:'scene5.wav',dur:22.13,
+    {title:'الأقسام',src:'s1-l1-scene5.wav',dur:22.13,
      cam:[[0,FULL],[5,[0,110,460,259]],[12,[340,110,460,259]],[18,FULL]],
      els:[wbT('الأقسام المتخصصة',400,70,.4,28,WB_COL.gold)]
           .concat(wbCards(['التوجيهي','الوقائي','العلاجي','التأهيلي'],['target','shield','plus','rehab'],2,4))}
