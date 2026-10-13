@@ -336,8 +336,8 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
       }});
   }
 
-  /* ===== فيديو الوايت بورد: المحاضرة الأولى (المراقبة الطبية) ===== */
-  var WB_KEY='1-1',NS='http://www.w3.org/2000/svg',FULL=[0,0,800,450];
+  /* ===== فيديو الوايت بورد: المحاضرة الأولى والثانية (المراقبة الطبية) ===== */
+  var NS='http://www.w3.org/2000/svg',FULL=[0,0,800,450];
   var WB_COL={gold:'#F59E0B',purple:'#A855F7',green:'#34D399',pink:'#F472B6',blue:'#60A5FA'};
   var WB_S={host:null,phase:'idle',playing:false,raf:0,timer:0,sc:[],aud:[],dur:[],ans:{},quizEl:null,idx:0};
 
@@ -423,6 +423,78 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     2:{q:'أي هذه الأقسام لا تدخل ضمن أهداف الطب الرياضي حسب Bent CARLLY؟',o:['الاختيار','المراقبة','التسويق'],a:2},
     4:{q:'أي قسم يُعنى بإعادة المصاب إلى لياقته بعد الإصابة؟',o:['الوقائي','التأهيلي','التوجيهي'],a:1}
   };
+
+  /* ===== الوايت بورد: المحاضرة الثانية (مهام الطبيب وأدوار المراقبة الطبية) ===== */
+  var WB_L2_SCENES=[
+    {title:'المهام',src:'s1-l2-scene1.mp3',dur:30.48,
+     cam:[[0,FULL],[3,[150,80,460,259]],[13,[190,120,460,259]],[24,FULL]],
+     els:[
+      wbT('المراقبة الطبية',400,70,.4,40,WB_COL.gold),
+      wbP('M560 300C470 240 490 170 560 205C630 170 650 240 560 300Z',.8,1.6,WB_COL.pink,2.2),
+      wbP(wbCirc(250,170,26),2.6,1,WB_COL.gold,4.8),
+      wbP('M250 196L250 300',3.5,.8),
+      wbP('M250 230L210 280',4.0,.5),
+      wbP('M250 230L290 280',4.3,.5),
+      wbT('الفحص',140,370,3.0,22),
+      wbT('التشخيص',300,370,3.8,22),
+      wbT('العلاج',470,370,4.6,22),
+      wbT('المتابعة',630,370,5.4,22),
+      wbP('M330 330L420 290L480 305L640 240',7.5,2),
+      wbT('الأداء البدني',640,215,10,20,WB_COL.gold),
+      wbT('بكفاءة وأمان',400,425,24,26,WB_COL.gold)
+     ]},
+    {title:'الواجبات',src:'s1-l2-scene2.mp3',dur:40.94,
+     cam:[[0,FULL]],
+     els:[wbT('الواجبات التخصصية',400,70,.4,30,WB_COL.gold)]
+          .concat(wbCards(['ذوو الاحتياجات','الحالات الحادة','التغذية','السفر'],['target','pulse','check','compass'],.8,1))
+          .concat([
+      wbT('الحالات الطارئة',400,362,9.6,24,WB_COL.pink),
+      wbP('M120 400L260 400L280 380L300 420L320 400L680 400',12,2.5),
+      wbT('السكتة القلبية',250,440,18,20),
+      wbT('بلع اللسان',550,440,28,20)
+     ])},
+    {title:'الاختبارات',src:'s1-l2-scene3.mp3',dur:35.66,
+     cam:[[0,FULL]],
+     els:[
+      wbT('أنواع الاختبارات الطبية',400,70,.4,30,WB_COL.gold),
+      wbT('ثلاثة أنواع رئيسة',400,108,1,18,'var(--muted)'),
+      wbP(wbRR(60,130,220,180,16),3.4,1.2,WB_COL.purple,4.6,.2)
+    ].concat(wbIcon('check',170,210,4.6)).concat([
+      wbT('الأولي',170,300,5.2,22),
+      wbT('الكفاءة واللياقة',170,350,5.6,16,'var(--muted)'),
+      wbP(wbRR(290,130,220,180,16),6.1,1.2,WB_COL.gold,7.3,.2)
+    ]).concat(wbIcon('pulse',400,210,7.5)).concat([
+      wbT('المكرر',400,300,9.4,22),
+      wbT('تطور المراقبة',400,350,9.8,16,'var(--muted)'),
+      wbP(wbRR(520,130,220,180,16),13.0,1.2,WB_COL.green,14.2,.2)
+    ]).concat(wbIcon('target',630,210,14.5)).concat([
+      wbT('الإضافي',630,300,16.2,22),
+      wbT('التأهيل والعودة',630,350,24,16,'var(--muted)')
+    ])},
+    {title:'الأهداف',src:'s1-l2-scene4.mp3',dur:31.27,
+     cam:[[0,FULL]],
+     els:[
+      wbT('أهداف الاختبارات الطبية',400,70,.4,30,WB_COL.gold),
+      wbP(wbCirc(150,200,38),.8,1.4,WB_COL.blue,2.2,.2),
+      wbP('M180 230L220 270',2.0,.7),
+      wbT('الكشف المبكر',150,320,1.6,22),
+      wbT('العيوب الخلقية',150,362,2.6,16,'var(--muted)'),
+      wbP('M330 330L400 280L470 300L540 210',3.4,1.8),
+      wbT('النمو والتوازن',400,370,4.6,22),
+      wbP(wbShield(650,210,44),8.0,1.6,WB_COL.pink,9.2,.2),
+      wbT('الوقاية',650,320,9.6,22),
+      wbT('من المضاعفات',650,362,11,16,'var(--muted)'),
+      wbT('التوعية الصحية',400,420,14.5,26,WB_COL.gold),
+      wbP('M300 436L500 436',13.5,1.0)
+     ]}
+  ];
+  var WB_L2_QUIZ={
+    1:{q:'أي مما يلي ليس من مهام الطبيب الرياضي المذكورة في المشهد؟',o:['متابعة التغذية','تشخيص الإصابات','تصميم الملاعب'],a:2},
+    2:{q:'كم عدد أنواع الاختبارات الطبية الرياضية؟',o:['اثنان','ثلاثة','أربعة'],a:1},
+    3:{q:'أي هذه الأمور تكشفها الاختبارات الطبية الرياضية؟',o:['التشوهات الجسدية','نوع الملابس','لون الملعب'],a:0}
+  };
+  /* Lesson key -> whiteboard data. Player swaps WB_SCENES/WB_QUIZ on mount. */
+  var WB_DATA={'1-1':{scenes:WB_SCENES,quiz:WB_QUIZ},'1-2':{scenes:WB_L2_SCENES,quiz:WB_L2_QUIZ}};
 
   function wbFmt(s){s=Math.floor(s||0);var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r}
 
@@ -615,8 +687,9 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     clearTimeout(WB_S.timer);
     WB_S.host=null;WB_S.phase='idle';
   }
-  function wbMount(host){
+  function wbMount(host,key){
     wbStop();
+    WB_SCENES=WB_DATA[key].scenes;WB_QUIZ=WB_DATA[key].quiz;
     host.innerHTML='<div class="wb" id="wbwrap"><div class="wb-stage" id="wbstage"><button class="wb-fs" id="wbfs" type="button" aria-label="ملء الشاشة">⛶</button></div>'+
       '<div class="wb-ctrl"><button class="wb-btn" id="wbplay" type="button" aria-label="تشغيل">▶</button>'+
       '<button class="wb-btn" id="wbre" type="button" aria-label="إعادة التشغيل">↺</button>'+
@@ -657,7 +730,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     T=t;document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.t===t)});
     var p=$('panel'),html='',c=cur()||{},LS=c.lesson,SM=c.summary,FQ=c.faq,MQ=c.mcq,empty={read:'لم يتوفر الدرس بعد',sum:'لا يوجد ملخص',faq:'لا توجد أسئلة',mcq:'لا توجد أسئلة',map:'ستتوفر الخريطة الذهنية عند توفر الدرس'};
     if(!c.lesson){html='<p style="text-align:center;margin:30px auto">'+empty[t]+'</p>';p.innerHTML=html;return}
-    if(t==='wb'){if(WB_KEY===(S+1)+'-'+L)wbMount(p);else p.innerHTML='<p style="text-align:center;margin:30px auto">سيتم إضافة فيديو هذه المحاضرة لاحقاً</p>';return}
+    if(t==='wb'){var wk=(S+1)+'-'+L;if(WB_DATA[wk])wbMount(p,wk);else p.innerHTML='<p style="text-align:center;margin:30px auto">سيتم إضافة فيديو هذه المحاضرة لاحقاً</p>';return}
     if(t==='faq'){flashDeck(p,FQ||[]);return}
     if(t==='mcq'){mcqDeck(p,MQ||[]);return}
     if(t==='read'){
