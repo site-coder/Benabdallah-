@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mohamed Benabdallah | منصة تعليمية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08070C;--card:rgba(20,16,32,.62);--line:rgba(168,85,247,.22);--text:#fff;--muted:#B7AFCB;--p:#A855F7;--p2:#C084FC;--g:#F59E0B;--glow:0 0 22px rgba(192,132,252,.55),0 0 60px rgba(168,85,247,.3);--wave:.55;--r:16px}
+:root[data-theme="light"]{--bg:#F7F3FF;--card:rgba(255,255,255,.75);--line:rgba(126,34,206,.22);--text:#1A1030;--muted:#5E5378;--p:#7E22CE;--p2:#9333EA;--g:#D97706;--glow:0 0 18px rgba(168,85,247,.28);--wave:.2}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Alexandria',sans-serif;background:var(--bg);color:var(--text);line-height:1.9;font-size:16px;min-height:100vh;padding-top:env(safe-area-inset-top,0px);transition:background .3s,color .3s}
+:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:8px}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+.waves{position:fixed;inset:0;z-index:-1;opacity:var(--wave);pointer-events:none}
+.waves svg{width:100%;height:100%}
+.wrap{width:min(1040px,100% - 32px);margin-inline:auto}
+
+header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar{display:grid;grid-template-columns:64px 1fr 64px;align-items:center;min-height:68px;padding:8px 0}
+.brand{grid-column:2;text-align:center}
+.name{display:inline-flex;flex-direction:column;align-items:center;direction:ltr;font-weight:800;font-size:clamp(17px,4.8vw,24px);line-height:.95;text-shadow:0 0 18px rgba(192,132,252,.7),0 0 42px rgba(168,85,247,.4)}
+.name span{display:block;white-space:nowrap}
+.aff{margin-top:5px;font-weight:300;font-size:clamp(10.5px,2.9vw,13px);line-height:1.55;color:#D8C7FF;letter-spacing:.2px}
+.aff span{display:block}
+:root[data-theme="light"] .aff{color:var(--p)}
+.toggle{grid-column:3;justify-self:end;width:54px;height:30px;border-radius:99px;border:1px solid var(--line);background:var(--card);position:relative;cursor:pointer}
+.toggle::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--g),#FCD34D);transition:transform .3s;box-shadow:0 0 12px rgba(245,158,11,.6)}
+:root[data-theme="dark"] .toggle::after{transform:translateX(-24px);background:linear-gradient(135deg,var(--p2),var(--p));box-shadow:0 0 12px rgba(168,85,247,.7)}
+
+.hero{text-align:center;padding:64px 0 36px}
+h1{font-size:clamp(34px,9vw,68px);font-weight:800;line-height:1.35;text-shadow:var(--glow)}
+.lead{color:var(--muted);font-weight:300;font-size:clamp(16px,4vw,20px);max-width:34em;margin:20px auto 0}
+.lead b{color:var(--g);font-weight:600}
+
+.grid{display:grid;grid-template-columns:1fr;gap:16px;padding:20px 0 64px}
+.card{display:block;width:100%;padding:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .25s,border-color .25s,box-shadow .25s}
+.card img{display:block;width:100%;height:auto}
+.card:hover{transform:translateY(-4px);border-color:var(--p2);box-shadow:0 0 30px rgba(168,85,247,.4)}
+@media(min-width:700px){.grid{grid-template-columns:repeat(2,1fr);gap:20px}}
+@media(min-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+.back{margin:22px 0 8px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 18px;font-size:14px;color:var(--p2);cursor:pointer}
+.list{display:grid;gap:12px;padding:16px 0 64px;max-width:560px;margin-inline:auto}
+.lec{display:block;width:100%;text-align:center;font-size:18px;font-weight:600;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:.2s}
+.lec:hover{border-color:var(--g);box-shadow:0 0 24px rgba(245,158,11,.3)}
+.ptitle{text-align:center;font-size:clamp(24px,6vw,34px);font-weight:800;text-shadow:var(--glow);margin:8px 0 12px}
+
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0 16px}
+.tabs button{padding:10px 8px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;font-size:14px;transition:.2s}
+.tabs button[aria-selected="true"]{border-color:var(--g);color:var(--g);box-shadow:0 0 18px rgba(245,158,11,.3)}
+@media(min-width:700px){.tabs{grid-template-columns:repeat(4,1fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px 22px;margin-bottom:64px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.panel h3{color:var(--g);font-size:20px;font-weight:600;margin:18px 0 6px}
+.panel h3:first-child{margin-top:0}
+.panel p{color:var(--muted);font-weight:300;max-width:64ch;margin-bottom:12px}
+.panel li{color:var(--muted);font-weight:300;margin:0 20px 8px}
+.dl{display:inline-block;margin-top:14px;padding:12px 28px;border:1px solid var(--g);border-radius:12px;color:var(--g);text-decoration:none;transition:.2s}
+.dl:hover{background:var(--g);color:#1A1030}
+.tabs.five button:last-child{grid-column:1/-1}
+@media(min-width:700px){.tabs.five{grid-template-columns:repeat(5,1fr)}.tabs.five button:last-child{grid-column:auto}}
+button.dl{background:transparent;cursor:pointer;font:inherit;margin-inline-end:10px}
+.map{display:block;width:100%;max-width:760px;margin:0 auto 6px;border-radius:12px;background:#fff}
+details{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:12px 16px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0 0}
+/* ===== Quiz slider (shared) ===== */
+:root{--face:rgba(24,18,38,.94)}
+:root[data-theme="light"]{--face:rgba(255,255,255,.96)}
+.quiz{max-width:640px;margin-inline:auto}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;color:var(--muted);margin-bottom:8px;min-height:1.9em}
+.qcount{font-weight:600;color:var(--text)}.qextra{color:var(--g);font-weight:600}
+.pbar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:18px}
+.pbar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(to left,var(--p),var(--g));box-shadow:0 0 12px rgba(245,158,11,.6);transition:width .35s ease}
+.qstage.enter{animation:qin .35s ease}
+@keyframes qin{from{opacity:0;transform:translateX(var(--dx,0))}to{opacity:1;transform:none}}
+.qnav{display:flex;justify-content:space-between;gap:12px;margin-top:18px}
+.qbtn{flex:1;max-width:200px;min-height:48px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;font-size:15px;font-weight:600;transition:.2s}
+.qbtn.pri{border-color:var(--g);color:var(--g)}
+.qbtn:disabled{visibility:hidden}
+.quiz.fin .qnav{display:none}
+@media(hover:hover){.qbtn:hover{border-color:var(--g);box-shadow:0 0 18px rgba(245,158,11,.3)}.qbtn.pri:hover{background:var(--g);color:#1A1030}}
+
+/* ===== Flashcard (3D flip) ===== */
+.fc{perspective:1200px;height:clamp(270px,46vh,360px);cursor:pointer;border-radius:var(--r);-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+.fc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,.2,.2,1)}
+.fc.on .fc-in{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:16px 18px 14px;text-align:center;background:var(--face);border:1px solid var(--line);border-radius:var(--r);backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:border-color .25s}
+.fc-front{box-shadow:0 0 24px rgba(168,85,247,.18)}
+.fc-back{transform:rotateY(180deg);border-color:var(--g);box-shadow:0 0 28px rgba(245,158,11,.35)}
+@media(hover:hover){.fc:hover .fc-front{border-color:var(--p2)}}
+.fc-cat{font-size:12.5px;line-height:1.8;color:var(--p2);border:1px solid var(--line);border-radius:99px;padding:1px 12px}
+.fc-back .fc-cat{color:var(--g);border-color:var(--g)}
+.fc-txt{flex:1;min-height:0;width:100%;display:flex;overflow:auto;padding:8px 2px}
+.fc-txt>div{margin:auto}
+.fc-q{font-size:clamp(18px,5vw,24px);font-weight:600;line-height:1.8}
+.fc-a{font-size:clamp(16px,4.4vw,19px);line-height:1.95}
+.fc-hint{font-size:13px;color:var(--muted);font-weight:300}.fc-front .fc-hint{color:var(--g)}
+
+/* ===== MCQ ===== */
+.mq-q{font-size:clamp(17px,4.6vw,21px);font-weight:600;line-height:1.8;margin-bottom:16px}
+.mq-o{display:grid;gap:10px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:50px;text-align:start;font-size:16px;line-height:1.7;background:var(--face);border:1px solid var(--line);border-radius:12px;padding:12px 16px;cursor:pointer;transition:.2s}
+@media(hover:hover){.opt:hover:not(:disabled){border-color:var(--g);box-shadow:0 0 18px rgba(245,158,11,.3)}}
+.opt:disabled{cursor:default}.opt:disabled:not(.ok):not(.no){opacity:.55}
+.opt.ok{border-color:#34D399;background:rgba(52,211,153,.18);box-shadow:0 0 18px rgba(52,211,153,.35)}
+.opt.no{border-color:#F87171;background:rgba(159,18,57,.3);box-shadow:0 0 18px rgba(248,113,113,.25)}
+.opt.ok::after{content:"✓";color:#34D399;font-weight:800}.opt.no::after{content:"✗";color:#F87171;font-weight:800}
+.sum{text-align:center;padding:8px 0}
+.sum .big{font-size:clamp(40px,12vw,64px);font-weight:800;line-height:1.3;color:var(--g);text-shadow:0 0 24px rgba(245,158,11,.55)}
+.sum .st{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+.sum .st span{border:1px solid var(--line);border-radius:99px;padding:2px 14px;font-size:14px;color:var(--muted)}
+.sum .acts{display:flex;gap:10px;justify-content:center}
+footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+.fnote{color:var(--muted);font-weight:300;font-size:clamp(15px,4vw,18px)}
+.bye{margin-top:6px;font-weight:800;font-size:clamp(46px,14vw,92px);line-height:1.3;color:var(--g);text-shadow:0 0 24px rgba(245,158,11,.55),0 0 60px rgba(168,85,247,.35)}
+/* ===== Whiteboard video ===== */
+:root{--wb-ink:#F5F3FF}
+:root[data-theme="light"]{--wb-ink:#1A1030}
+.tabs.six{grid-template-columns:repeat(2,1fr)}
+@media(min-width:700px){.tabs.six{grid-template-columns:repeat(6,1fr)}}
+.wb{max-width:1000px;margin-inline:auto}
+.wb-stage{position:relative;width:calc(100% + 24px);margin-inline:-12px;aspect-ratio:16/9;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background-color:var(--card);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:36px 36px}
+.wb-svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .5s}
+.wb-svg.on{opacity:1}
+.wb-ln{fill:none;stroke:var(--wb-ink);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.wb-pen-b{stroke:var(--wb-ink);stroke-width:2;stroke-linejoin:round}
+.wb-tx{font-family:'Alexandria',sans-serif;font-weight:700;fill:var(--wb-ink);text-anchor:middle}
+.wb-ctrl{display:flex;align-items:center;gap:10px;margin-top:14px}
+.wb-btn{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--g);background:var(--card);color:var(--g);font-size:16px;cursor:pointer;display:grid;place-items:center;transition:.2s}
+.wb-prog{position:relative;flex:1;height:8px;border-radius:99px;background:var(--line);cursor:pointer;direction:ltr}
+.wb-prog i{position:absolute;top:0;left:0;bottom:0;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--p),var(--g));box-shadow:0 0 12px rgba(245,158,11,.5);pointer-events:none}
+.wb-time{font-size:13px;color:var(--muted);direction:ltr;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wb-info{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
+.wb-info b{color:var(--g)}
+#wbmsg{color:var(--g)}
+.wb-quiz{background:var(--card);border:1px solid var(--g);border-radius:var(--r);padding:18px 16px;margin-top:16px;box-shadow:0 0 22px rgba(245,158,11,.25);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.wb-quiz .mq-q{font-size:clamp(16px,4.4vw,19px);margin-bottom:12px}
+.wb-qact{display:flex;justify-content:center;margin-top:14px}
+.wb-end{display:flex;justify-content:center;padding:6px 0}
+.wb-fs{position:absolute;top:8px;inset-inline-end:8px;z-index:2;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--g);font-size:18px;cursor:pointer}
+.wb:fullscreen,.wb:-webkit-full-screen{max-width:none;width:100%;height:100%;overflow:auto;background:var(--bg);padding:10px;box-sizing:border-box}
+.wb:fullscreen .wb-stage,.wb:-webkit-full-screen .wb-stage{width:auto;height:calc(100vh - 130px);aspect-ratio:16/9;margin-inline:auto}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="waves" aria-hidden="true"><svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice" fill="none">
+<defs><linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#A855F7"/><stop offset=".6" stop-color="#C084FC"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs>
+<g stroke="url(#w)" stroke-width="1.2">
+<path d="M-50 220C150 120 250 360 450 260S700 120 860 240" opacity=".5"/><path d="M-50 250C150 150 250 390 450 290S700 150 860 270" opacity=".35"/><path d="M-50 280C150 180 250 420 450 320S700 180 860 300" opacity=".22"/>
+<path d="M-50 900C120 820 280 1050 460 950S720 840 860 930" opacity=".5"/><path d="M-50 930C120 850 280 1080 460 980S720 870 860 960" opacity=".32"/><path d="M-50 960C120 880 280 1110 460 1010S720 900 860 990" opacity=".2"/></g></svg></div>
+
+<header><div class="wrap bar">
+  <div class="brand">
+    <div class="name" aria-label="Mohamed Benabdallah"><span id="fn">Mohamed</span><span id="ln">Benabdallah</span></div>
+    <div class="aff"><span>ملحقة المدرسة العليا للأساتذة بالشلف</span><span>التربية البدنية والرياضية</span></div>
+  </div>
+  <button class="toggle" id="theme" aria-label="تبديل الوضع الداكن / الفاتح"></button>
+</div></header>
+
+<!-- 1. Home -->
+<main id="v-home">
+  <section class="hero wrap">
+    <h1>ابنِ مستقبلك بالعلم</h1>
+    <p class="lead">كل درس تتقنه اليوم خطوة نحو <b>الإنسان الذي تطمح أن تكونه</b>. ابدأ بثقة، واستمر بإصرار.</p>
+  </section>
+  <section class="wrap"><div class="grid" id="subjects"></div></section>
+</main>
+
+<!-- 2. Lectures list -->
+<main class="wrap" id="v-list" hidden>
+  <button class="back" data-go="home">العودة للمواد</button>
+  <h2 class="ptitle">المحاضرات</h2>
+  <div class="list" id="lectures"></div>
+</main>
+
+<!-- 3. Lecture -->
+<main class="wrap" id="v-lec" hidden>
+  <button class="back" id="backList">العودة للمحاضرات</button>
+  <h2 class="ptitle" id="ltitle"></h2>
+  <div class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-t="read">درس للقراءة</button>
+    <button role="tab" data-t="sum">ملخص</button>
+    <button role="tab" data-t="faq">أسئلة عادية</button>
+    <button role="tab" data-t="mcq">أسئلة اختيار من متعدد</button>
+    <button role="tab" data-t="map" id="tabmap">خرائط ذهنية قابلة للطباعة</button>
+    <button role="tab" data-t="wb">فيديو الوايت بورد</button>
+  </div>
+  <section class="panel" id="panel" role="tabpanel"></section>
+</main>
+
+<footer>
+  <p class="fnote">سيتم إدراج كل المحاضرات وكل الملخصات بانتظام مستمر</p>
+  <div class="bye">بالتوفيق</div>
+</footer>
+
+<script>
+/* ===== Editable content ===== */
+var SUBJECTS=[
+  {alt:'المراقبة الطبية الرياضية',img:'https://i.ibb.co/sXSj8yG/902727229-1790797197308525.jpg'},
+  {alt:'علم نفس نمو الطفل والمراهق',img:'https://i.ibb.co/F4p5f00M/579226496-1790797178349737.jpg'},
+  {alt:'المورفولوجيا الرياضية',img:'https://i.ibb.co/21BgTcKQ/855220876-1790796810408360.jpg'},
+  {alt:'النظريات التربوية',img:'https://i.ibb.co/RGv8R3T3/469790083-1790797184640664.jpg'},
+  {alt:'الذكاء الاصطناعي في التعلم',img:'https://i.ibb.co/QvbjjP1p/840231028-1790797162215566.jpg'},
+  {alt:'الإنجليزية',img:'https://i.ibb.co/Xr6h5ngH/186266371-1790797209319934.jpg'}
+];
+/* رابط ملف PDF لكل محاضرة: غيّره إلى مساراتك الفعلية */
+function pdfUrl(s,l){return 'subject'+(s+1)+'-lecture'+l+'.pdf'}
+var LESSON=[
+  ['مقدمة','يقدّم هذا الدرس نظرة عامة على المفاهيم الأساسية، ويمهّد لفهم الموضوعات اللاحقة بأسلوب واضح ومنظم. هذا نص تجريبي يمكن استبداله بمحتوى الدرس الفعلي.'],
+  ['المفاهيم الأساسية','عند دراسة أي مفهوم جديد، اسأل نفسك: ما تعريفه؟ وما مكوّناته؟ وأين يُطبَّق في الواقع العملي؟'],
+  ['التطبيقات العملية','لا يكتمل التعلّم دون تطبيق. جرّب الأمثلة بنفسك وقارن نتائجك بما ورد في الدرس.'],
+  ['الخلاصة','بعد هذا الدرس يصبح لديك أساس متين للانتقال إلى المحاضرة التالية.']
+];
+var SUMMARY=['يقدّم الدرس المفاهيم الأساسية ويمهّد لما بعده.','افهم كل مفهوم: تعريفه، مكوّناته، تطبيقاته.','التطبيق والمراجعة المنتظمة يثبّتان المعلومة.'];
+var FAQ=[['ما الفكرة الرئيسية لهذه المحاضرة؟','عرض المفاهيم الأساسية وربطها بالتطبيق العملي.'],['كيف أستعد للامتحان في هذه المحاضرة؟','اقرأ الدرس، راجع الملخص، ثم أجب عن أسئلة الاختيار من متعدد.'],['ماذا أفعل إذا لم أفهم نقطة ما؟','أعد قراءة الفقرة المعنية، ودوّن سؤالك لتناقشه لاحقًا.']];
+var MCQ=[
+  {q:'ما الخطوة الأولى لفهم أي مفهوم جديد؟',o:['حفظ النص كاملًا','معرفة تعريفه ومكوّناته','تخطّي المقدمة'],a:1},
+  {q:'كيف يتثبّت التعلّم بشكل أفضل؟',o:['بالقراءة مرة واحدة','بالتطبيق والمراجعة المنتظمة','بتأجيل الدراسة'],a:1},
+  {q:'ما فائدة الملخص؟',o:['استبدال الدرس','مراجعة الأفكار الرئيسية بسرعة','لا فائدة منه'],a:1}
+];
+/* محتوى كل محاضرة: المفتاح = رقم المادة-رقم المحاضرة (مثال "1-1") */
+var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أحد التخصصات الطبية الحديثة، وفيه يُهتم برجوع المصاب أو الرياضي بعد مرضه أو إصابته إلى حد لياقته البدنية العادية. وفيه يتم تحسين القوى الجسدية المحتومة على النشاط البدني."], ["", "ويهتم الطب الرياضي ببحث وعلاج التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية في جسم الإنسان نتيجة الجهد البدني في الظروف العادية والمختلفة، ويبحث العلاقات التطبيقية."], ["هدف الاختيار والتوجيه والمراقبة وملاحظة الرياضي", "مراقبة تأثير الرياضة على جسم الإنسان (جهاز اللياقة البدنية)."], ["تاريخ الطب الرياضي", ["<b>1896 م:</b> استُخدم هذا المصطلح لأول مرة خلال الألعاب الأولمبية في أثينا (اليونان) من خلال تطبيق بعض العلاجات الطبية على الرياضيين.", "<b>1913:</b> تحوّل خلال يوم طبي دراسي إلى فرع من فروع الطب، وتم تأهيل بعض الأطباء وتدريبهم على هذا الفرع.", "<b>1920:</b> تم إنشاء المعهد الرياضي الطبي خلال الألعاب الأولمبية الشتوية.", "<b>1928:</b> تم إقامة المؤتمر العام الأول للطب الرياضي في هولندا (أمستردام)."]], ["أهداف الطب الرياضي", "دور الطب الرياضي في الاختيار والتوجيه والمراقبة والعلاج. وحسب <b>Bent CARLLY</b> فإن الطب الرياضي يعمل على:"], ["", ["<b>الاختيار:</b> يختار الطب الرياضي الفرد الذي يستطيع ممارسة الرياضة من عدمها، وذلك من خلال تشخيص الأمراض التي تمنعه من ذلك.", "<b>التوجيه:</b> يقدم مجموعة من الفحوص الطبية والاختبارات والتمارين، ومن خلال النتائج ينصح الرياضي ويوجهه إلى ألعاب معينة (حسب البنية الجسدية، والقدرة البدنية، والوضعية، والإمكانيات المورفولوجية).", "<b>المراقبة:</b> فحص ومتابعة الرياضي بصفة مستمرة لتجنب الإصابات الرياضية.", "<b>العلاج:</b> علاج الإصابات (علاجات مختلفة وإعادة التأهيل)."]], ["أهمية ودور الطب الرياضي", ["تحسين الأداء البدني للرياضي.", "الوقاية من الإصابات (تحديد عوامل الخطر، برنامج الإحماء).", "العلاج والتأهيل.", "تعزيز الصحة العامة للرياضي."]], ["أقسام الطب الرياضي", ["<b>الطب الرياضي التوجيهي:</b> يتم توجيه الفرد انطلاقًا من الاختبارات والفحوص التشريحية والمورفولوجية والفيزيولوجية والسيكولوجية بما يناسب وإمكانياتهم.", "<b>الطب الرياضي الوقائي:</b> يقوم بالدراسة والبحث في مختلف التغيرات الفيزيولوجية والشريحية والنفسية والحيوية في جسم الرياضي وحالته الحركية البدنية والنفسية خارج وداخل الملعب. ويمكن للطب الرياضي أن يصدر بعض التعليمات إلى المدرب من خلال النصح ببعض التمارين الرياضية التعويضية.", "<b>الطب الرياضي العلاجي:</b> علاج الإصابات (الجراحة، التأهيل الطبي الصحي، الأخصائيين).", "<b>الطب الرياضي التأهيلي:</b> تحديد برنامج تدريبي للمصاب ومدة الشفاء للسماح للرياضي بالعودة إلى المنافسة في أحسن الظروف."]], ["تعريف الطب الرياضي", "الطب الرياضي هو طب مختص في الوقاية من الإصابات الرياضية وعلاجها وتحسين الأداء، كما يقوم بفحص ومتابعة الرياضي."], ["مهامه", ["التشخيص والعلاج.", "الوقاية والإرشاد.", "إعادة التأهيل."]]], "summary": [{"h": "مفهوم الطب الرياضي ومهامه", "l": ["تخصص طبي حديث يهتم بعودة المصاب أو الرياضي إلى لياقته العادية، ويبحث التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية الناتجة عن الجهد البدني.", "هو طب مختص في الوقاية من الإصابات وعلاجها وتحسين الأداء.", "المهام: التشخيص والعلاج، الوقاية والإرشاد، إعادة التأهيل."]}, {"h": "تاريخه", "l": ["1896: أول استخدام للمصطلح في أولمبياد أثينا. 1913: تحول إلى فرع طبي مع تأهيل الأطباء. 1920: إنشاء المعهد الرياضي الطبي (الألعاب الشتوية). 1928: أول مؤتمر عام في أمستردام."]}, {"h": "أهدافه (Bent CARLLY)", "l": ["<b>الاختيار:</b> تشخيص الأمراض لتحديد من يستطيع ممارسة الرياضة.", "<b>التوجيه:</b> فحوص واختبارات لتوجيه الرياضي إلى الألعاب المناسبة بحسب بنيته وقدرته.", "<b>المراقبة:</b> متابعة مستمرة لتجنب الإصابات. <b>العلاج:</b> علاج الإصابات وإعادة التأهيل."]}, {"h": "أهميته وأقسامه", "l": ["الأهمية: تحسين الأداء، الوقاية، العلاج والتأهيل، تعزيز الصحة العامة.", "<b>التوجيهي:</b> توجيه الفرد بحسب الفحوص. <b>الوقائي:</b> دراسة التغيرات داخل الملعب وخارجه ونصح المدرب بتمارين تعويضية. <b>العلاجي:</b> الجراحة والتأهيل الطبي والأخصائيون. <b>التأهيلي:</b> برنامج تدريبي ومدة شفاء للعودة إلى المنافسة."]}], "faq": [["الأسئلة المباشرة"], ["عرّف الطب الرياضي.", "هو طب مختص في الوقاية من الإصابات الرياضية وعلاجها وتحسين الأداء، كما يقوم بفحص ومتابعة الرياضي."], ["ما مهام الطب الرياضي؟", "التشخيص والعلاج، والوقاية والإرشاد، وإعادة التأهيل."], ["ما التغيرات التي يبحثها الطب الرياضي ويعالجها؟", "التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية في جسم الإنسان."], ["متى وأين استُخدم مصطلح «الطب الرياضي» لأول مرة؟", "في سنة 1896 خلال الألعاب الأولمبية في أثينا (اليونان)."], ["ماذا حدث سنة 1928؟", "أُقيم المؤتمر العام الأول للطب الرياضي في هولندا (أمستردام)."], ["ما الأدوار الأربعة التي يعمل عليها الطب الرياضي حسب Bent CARLLY؟", "الاختيار، والتوجيه، والمراقبة، والعلاج."], ["ما أقسام الطب الرياضي؟", "الطب الرياضي التوجيهي، والوقائي، والعلاجي، والتأهيلي."], ["ما هدف الاختيار والتوجيه والمراقبة وملاحظة الرياضي؟", "مراقبة تأثير الرياضة على جسم الإنسان (جهاز اللياقة البدنية)."], ["ماذا حدث سنة 1913؟", "تحوّل الطب الرياضي إلى فرع من فروع الطب بعد يوم طبي دراسي."], ["ماذا حدث سنة 1920؟", "تم إنشاء المعهد الرياضي الطبي خلال الألعاب الأولمبية الشتوية."], ["الأسئلة غير المباشرة"], ["كيف يحدد الطب الرياضي ما إذا كان الفرد يستطيع ممارسة الرياضة أم لا؟", "عن طريق تشخيص الأمراض التي تمنعه من ممارستها."], ["كيف تساهم المراقبة في تجنب الإصابات الرياضية؟", "بفحص الرياضي ومتابعته بصفة مستمرة."], ["ماذا يدرس الطب الرياضي الوقائي؟", "يدرس ويبحث في مختلف التغيرات الفيزيولوجية والشريحية والنفسية والحيوية في جسم الرياضي وحالته الحركية البدنية والنفسية خارج وداخل الملعب."], ["ماذا يحدد الطب الرياضي التأهيلي للمصاب؟", "يحدد له برنامجًا تدريبيًا ومدة الشفاء."], ["ما الذي يشمله الطب الرياضي العلاجي؟", "علاج الإصابات، ويشمل الجراحة والتأهيل الطبي الصحي والأخصائيين."], ["كيف يساهم الطب الرياضي في الوقاية من الإصابات؟", "بتحديد عوامل الخطر ووضع برنامج الإحماء."], ["ماذا يهتم به الطب الرياضي بالنسبة للمصاب أو الرياضي بعد مرضه أو إصابته؟", "يهتم برجوعه إلى حد لياقته البدنية العادية."], ["على أي أساس يوجَّه الفرد في الطب الرياضي التوجيهي؟", "انطلاقًا من الاختبارات والفحوص التشريحية والمورفولوجية والفيزيولوجية والسيكولوجية بما يناسب إمكانياته."], ["كيف يعالج الطب الرياضي الإصابات حسب أهدافه؟", "بعلاجات مختلفة وإعادة التأهيل."], ["في أي ظروف يبحث الطب الرياضي التغيرات الناتجة عن الجهد البدني؟", "في الظروف العادية والمختلفة."]], "mcq": [{"q": "الطب الرياضي هو أحد:", "o": ["العلوم الإنسانية القديمة", "العلوم الاجتماعية", "فروع الهندسة", "التخصصات الطبية الحديثة"], "a": 3}, {"q": "يتم في الطب الرياضي تحسين:", "o": ["الموارد المالية للأندية", "القوى الجسدية المحتومة على النشاط البدني", "أساليب التحكيم", "قوانين الألعاب"], "a": 1}, {"q": "يقدم الطب الرياضي في التوجيه:", "o": ["مجموعة من الفحوص الطبية والاختبارات والتمارين", "برامج غذائية فقط", "جداول المنافسات", "عقود اللاعبين"], "a": 0}, {"q": "من خلال نتائج الفحوص يقوم الطب الرياضي بـ:", "o": ["إيقاف الرياضي نهائيًا", "منع المدرب من التدريب", "تغيير قوانين اللعبة", "نصح الرياضي وتوجيهه إلى ألعاب معينة"], "a": 3}, {"q": "أي مجموعة تمثل معايير توجيه الرياضي إلى ألعاب معينة؟", "o": ["السن واللون والجنسية", "البنية الجسدية والقدرة البدنية والوضعية والإمكانيات المورفولوجية", "الدخل والمستوى الدراسي", "الطول فقط"], "a": 1}, {"q": "يمكن للطب الرياضي الوقائي أن يصدر إلى المدرب تعليمات بـ:", "o": ["تمارين رياضية تعويضية", "إلغاء المنافسة", "تغيير الحكم", "زيادة الأحمال دائمًا"], "a": 0}, {"q": "الغاية من برنامج الطب الرياضي التأهيلي أن يعود الرياضي إلى المنافسة:", "o": ["دون أي فحوص", "بأسرع وقت مهما كانت حالته", "بعد التوقف النهائي", "في أحسن الظروف"], "a": 3}, {"q": "من أدوار الطب الرياضي وأهميته:", "o": ["تحسين الأداء البدني للرياضي", "رفع تكلفة التدريب", "تقليل عدد المنافسات", "الحد من عدد الرياضيين"], "a": 0}, {"q": "من أهمية الطب الرياضي، إلى جانب العلاج:", "o": ["الإعلان", "التحكيم", "التسويق", "التأهيل"], "a": 3}, {"q": "من أهمية الطب الرياضي الأخيرة المذكورة في المحاضرة:", "o": ["تعزيز الصحة العامة للرياضي", "تنظيم البطولات", "بناء الملاعب", "تدريب الحكام"], "a": 0}, {"q": "القسم الذي يشمل الجراحة والتأهيل الطبي الصحي والأخصائيين:", "o": ["الطب الرياضي التوجيهي", "الطب الرياضي الوقائي", "الطب الرياضي العلاجي", "الطب الرياضي التأهيلي"], "a": 2}, {"q": "ماذا طُبّق على الرياضيين خلال الألعاب الأولمبية في أثينا عند أول استخدام للمصطلح؟", "o": ["قوانين التحكيم", "اختبارات القبول المدرسية", "برامج التغذية الحديثة", "بعض العلاجات الطبية"], "a": 3}, {"q": "في سنة 1913 تم أيضًا:", "o": ["بناء ملعب أولمبي", "تأهيل بعض الأطباء وتدريبهم على فرع الطب الرياضي", "إلغاء الألعاب الأولمبية", "تأسيس اتحاد لكرة القدم"], "a": 1}, {"q": "إضافة إلى بحث التغيرات وعلاجها، يبحث الطب الرياضي:", "o": ["أسعار المعدات", "العلاقات التطبيقية", "نتائج المباريات", "قوانين الاحتراف"], "a": 1}, {"q": "تحوّل الطب الرياضي إلى فرع من فروع الطب خلال:", "o": ["مؤتمر عام في هولندا", "الألعاب الأولمبية الشتوية", "يوم طبي دراسي", "أولمبياد أثينا"], "a": 2}, {"q": "التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية التي يبحثها الطب الرياضي تنتج عن:", "o": ["الجهد البدني", "الراحة التامة فقط", "التغذية فقط", "العوامل الجوية فقط"], "a": 0}, {"q": "القسم الذي يدرس التغيرات في جسم الرياضي وحالته الحركية البدنية والنفسية خارج وداخل الملعب:", "o": ["الطب الرياضي الوقائي", "الطب الرياضي التأهيلي", "الطب الرياضي العلاجي", "الطب الرياضي التوجيهي"], "a": 0}, {"q": "أي مما يلي ليس من أقسام الطب الرياضي؟", "o": ["التوجيهي", "الوقائي", "التجميلي", "التأهيلي"], "a": 2}, {"q": "أي مما يلي ليس من مهام الطب الرياضي؟", "o": ["التشخيص والعلاج", "الوقاية والإرشاد", "إعادة التأهيل", "التدريب على كرة القدم"], "a": 3}, {"q": "أي مما يلي ليس من الأدوار الأربعة وفق Bent CARLLY؟", "o": ["الاختيار", "التوجيه", "التسويق", "المراقبة"], "a": 2}], "pdf": "1-1.pdf", "pdfName": "1-1.pdf", "map": {"img": "https://i.ibb.co/nsNV9SXQ/5-1-map.jpg", "pdf": "1-1-map.pdf", "pdfName": "1-1-map.pdf"}}, "1-2": {"lesson": [["المهام والدور الذي يقوم به الطبيب الرياضي", "يقوم الطبيب الرياضي بفحص وتشخيص إصابة الرياضي وتحسين أدائه، ومن مهامه:"], ["", ["الفحص والتشخيص والعلاج.", "المتابعة الدورية للرياضي.", "تحسين الأداء (رفع مستوى المجهود البدني)."]], ["مهام وواجبات الطب الرياضي", ["تشخيص الأعراض المرضية بمختلف أعمارهم وجنسياتهم.", "القراءة الصحيحة للاختبارات الرياضية.", "التعامل مع الأعراض المرضية لدى ذوي الاحتياجات الخاصة.", "التعامل مع الأعراض المرضية في حالة الإصابة بمرض حاد أو مزمن.", "متابعة تغذية الرياضي خلال التحضير البدني أو المنافسة.", "متابعة الرياضي خلال السفرات الرياضية.", "استعمال المناسب والملائم من الجبيرة واللفائف والرباط.", "معرفة مقاييس ومعايير الوقاية والأمن خلال الممارسة الرياضية.", "التعامل مع الإصابات داخل الملاعب مثل: السكتة القلبية وبلع اللسان."]], ["الاختبارات الطبية الرياضية", ["<b>اختبار طبي أولي:</b> يقرر من خلاله الطبيب كفاءة ولياقة الشخص الراغب في ممارسة الرياضة، ومدى قدرته على تحمل التدريب والتكيف معه.", "<b>اختبار طبي مكرر:</b> يحدد مدى تأثير الممارسة الرياضية العامة على الفرد، ويحدد مستوى التطور والنمو البدني.", "<b>اختبار طبي إضافي:</b> اختبار لتأهيل الرياضي في منافسة معينة، وكذلك تقرير عودة الرياضي من عدمها إلى التدريبات بعد إصابة رياضية أو بعد توقف طويل عن التدريب."]], ["أهداف الاختبارات الطبية الرياضية", ["الكشف عن العيوب الخلقية والتشوهات الموجودة في جسم الرياضي.", "الكشف عن مشاكل النمو وعدم التوازن في النشاط البدني.", "الكشف عن مدى تعرض الرياضي للمرض.", "الكشف عن علامات التدريب الزائد.", "الكشف عن اضطرابات التغذية.", "توعية الرياضي وتحسين ثقافته حول أهمية الاختبارات الرياضية."]]], "summary": [{"h": "مهام الطبيب الرياضي", "l": ["يفحص ويشخص إصابة الرياضي ويحسّن أدائه.", "المهام: الفحص، التشخيص، العلاج، المتابعة الدورية للرياضي، وتحسين الأداء (رفع مستوى المجهود البدني)."]}, {"h": "مهام وواجبات الطب الرياضي", "l": ["تشخيص الأعراض المرضية لمختلف الأعمار والجنسيات، والقراءة الصحيحة للاختبارات الرياضية.", "التعامل مع الأعراض لدى ذوي الاحتياجات الخاصة وفي حالات المرض الحاد أو المزمن.", "متابعة تغذية الرياضي خلال التحضير البدني أو المنافسة وخلال السفرات الرياضية.", "استعمال الجبيرة واللفائف والرباط، ومعرفة مقاييس الوقاية والأمن.", "التعامل مع الإصابات داخل الملاعب مثل السكتة القلبية وبلع اللسان."]}, {"h": "الاختبارات الطبية الرياضية", "l": ["<b>الأولي:</b> تقرير كفاءة ولياقة الراغب في ممارسة الرياضة وقدرته على تحمل التدريب.", "<b>المكرر:</b> تحديد تأثير الممارسة الرياضية العامة ومستوى التطور والنمو البدني.", "<b>الإضافي:</b> تأهيل الرياضي لمنافسة معينة وتقرير عودته إلى التدريب بعد الإصابة أو التوقف الطويل."]}, {"h": "أهداف الاختبارات", "l": ["الكشف عن العيوب الخلقية والتشوهات، ومشاكل النمو وعدم التوازن، ومدى التعرض للمرض.", "الكشف عن علامات التدريب الزائد واضطرابات التغذية.", "توعية الرياضي وتحسين ثقافته حول أهمية الاختبارات."]}], "faq": [["الأسئلة المباشرة"], ["ما مهام الطبيب الرياضي؟", "الفحص، التشخيص، العلاج، المتابعة الدورية للرياضي، وتحسين الأداء."], ["ماذا يقصد بتحسين الأداء؟", "رفع مستوى المجهود البدني."], ["ما أنواع الاختبارات الطبية الرياضية؟", "الاختبار الأولي، والمكرر، والإضافي."], ["ما الاختبار الطبي الأولي؟", "اختبار يقرر من خلاله الطبيب كفاءة ولياقة الشخص الراغب في ممارسة الرياضة ومدى قدرته على تحمل التدريب والتكيف معه."], ["ما الاختبار الطبي المكرر؟", "اختبار يحدد مدى تأثير الممارسة الرياضية العامة على الفرد ومستوى التطور والنمو البدني."], ["ما الاختبار الطبي الإضافي؟", "اختبار لتأهيل الرياضي في منافسة معينة، ولتقرير عودته من عدمها إلى التدريبات بعد إصابة أو توقف طويل."], ["اذكر أهداف الاختبارات الطبية الرياضية.", "الكشف عن العيوب الخلقية والتشوهات، ومشاكل النمو وعدم التوازن، ومدى التعرض للمرض، وعلامات التدريب الزائد، واضطرابات التغذية، وتوعية الرياضي وتحسين ثقافته."], ["ما الإصابات التي يتعامل معها الطبيب داخل الملاعب؟", "مثل السكتة القلبية وبلع اللسان."], ["ما الذي يستعمله الطبيب الرياضي من وسائل الإسعاف؟", "الجبيرة واللفائف والرباط."], ["ماذا يتابع الطبيب الرياضي خلال التحضير البدني أو المنافسة؟", "تغذية الرياضي."], ["الأسئلة غير المباشرة"], ["متى يلجأ الطبيب إلى الاختبار الأولي؟", "عندما يرغب شخص في ممارسة الرياضة، لتقرير كفاءته ولياقته وقدرته على تحمل التدريب."], ["أي اختبار يُجرى لتقرير عودة الرياضي إلى التدريب بعد الإصابة؟", "الاختبار الطبي الإضافي."], ["لماذا يُجرى الاختبار الطبي المكرر؟", "لتحديد تأثير الممارسة الرياضية العامة ومستوى التطور والنمو البدني."], ["ما علاقة الاختبارات الطبية بالتدريب الزائد؟", "تكشف الاختبارات عن علامات التدريب الزائد."], ["كيف يساهم الطبيب في رفع وعي الرياضي؟", "بتوعيته وتحسين ثقافته حول أهمية الاختبارات الرياضية."], ["مع من يتعامل الطبيب الرياضي من حيث الأعمار والحالات؟", "مع مختلف الأعمار والجنسيات، ومع ذوي الاحتياجات الخاصة، وفي حالات المرض الحاد أو المزمن."], ["ماذا يتابع الطبيب الرياضي خلال السفرات الرياضية؟", "يتابع الرياضي."], ["ما المعارف التي يجب أن يمتلكها الطبيب بخصوص الوقاية؟", "مقاييس ومعايير الوقاية والأمن خلال الممارسة الرياضية."], ["ما الذي تكشفه الاختبارات عن جسم الرياضي؟", "العيوب الخلقية والتشوهات الموجودة فيه."]], "mcq": [{"q": "يقوم الطبيب الرياضي بفحص وتشخيص إصابة الرياضي و:", "o": ["تحكيم مبارياته", "تحسين أدائه", "تحديد أجره", "اختيار فريقه"], "a": 1}, {"q": "تحسين الأداء يعني:", "o": ["خفض مستوى المجهود البدني", "إيقاف التدريب", "تقليل عدد المنافسات", "رفع مستوى المجهود البدني"], "a": 3}, {"q": "من مهام الطبيب الرياضي المتابعة الدورية:", "o": ["للرياضي", "للحكام", "للجمهور", "للمدرب فقط"], "a": 0}, {"q": "من واجبات الطب الرياضي القراءة الصحيحة لـ:", "o": ["قوانين اللعبة", "عقود اللاعبين", "الاختبارات الرياضية", "جداول المنافسات"], "a": 2}, {"q": "يتابع الطبيب تغذية الرياضي خلال:", "o": ["العطلة فقط", "التحضير البدني أو المنافسة", "الدراسة", "النوم"], "a": 1}, {"q": "من الوسائل التي يجب أن يحسن الطبيب استعمالها:", "o": ["الجبيرة واللفائف والرباط", "الكرات", "الصافرات", "الشباك"], "a": 0}, {"q": "من الإصابات التي يتعامل معها الطبيب داخل الملاعب:", "o": ["الزكام", "السكتة القلبية", "الصداع الخفيف", "الأرق"], "a": 1}, {"q": "من إصابات الملاعب أيضًا:", "o": ["فقدان الشهية", "بلع اللسان", "ضعف البصر", "حساسية الجلد"], "a": 1}, {"q": "الاختبار الذي يقرر من خلاله الطبيب كفاءة ولياقة الشخص الراغب في ممارسة الرياضة:", "o": ["الإضافي", "المكرر", "الأولي", "العام"], "a": 2}, {"q": "الاختبار الذي يحدد تأثير الممارسة الرياضية العامة ومستوى التطور والنمو البدني:", "o": ["الأولي", "المكرر", "الإضافي", "الوقائي"], "a": 1}, {"q": "الاختبار الذي يؤهل الرياضي لمنافسة معينة:", "o": ["الأولي", "المكرر", "الوقائي", "الإضافي"], "a": 3}, {"q": "يُستعمل الاختبار الإضافي أيضًا لتقرير:", "o": ["سعر التذكرة", "عودة الرياضي من عدمها إلى التدريب بعد الإصابة", "نتيجة المباراة", "اختيار المدرب"], "a": 1}, {"q": "أي مما يلي من أهداف الاختبارات الطبية الرياضية؟", "o": ["الكشف عن العيوب الخلقية والتشوهات", "بيع المعدات", "تنظيم البطولات", "تعيين الحكام"], "a": 0}, {"q": "تكشف الاختبارات الطبية الرياضية عن مشاكل:", "o": ["الملعب", "النمو وعدم التوازن في النشاط البدني", "الإعلام", "التمويل"], "a": 1}, {"q": "من الأمور التي تكشف عنها الاختبارات:", "o": ["علامات التدريب الزائد", "أخطاء التحكيم", "سوء الإضاءة", "غياب الجمهور"], "a": 0}, {"q": "تكشف الاختبارات الطبية الرياضية عن اضطرابات:", "o": ["النوم فقط", "اللغة", "التغذية", "الحساب"], "a": 2}, {"q": "من أهداف الاختبارات توعية الرياضي وتحسين:", "o": ["مهاراته التسويقية", "ثقافته حول أهمية الاختبارات", "سرعة جريه", "أجره"], "a": 1}, {"q": "أي مما يلي ليس من أنواع الاختبارات الطبية الرياضية؟", "o": ["الأولي", "المكرر", "الإضافي", "التسويقي"], "a": 3}, {"q": "أي مما يلي ليس من مهام الطبيب الرياضي؟", "o": ["الفحص", "التشخيص", "العلاج", "وضع الخطط التكتيكية للفريق"], "a": 3}, {"q": "يتعامل الطبيب الرياضي مع الأعراض المرضية لدى:", "o": ["ذوي الاحتياجات الخاصة", "الحكام فقط", "المشجعين فقط", "الإداريين فقط"], "a": 0}], "pdf": "1-2.pdf", "pdfName": "1-2.pdf", "map": {"img": "https://i.ibb.co/n8QqF4LP/543637062-1791729744128813.jpg", "pdf": "1-2-map.pdf", "pdfName": "1-2-map.pdf"}}};
+
+/* ===== App ===== */
+(function(){
+  var $=function(i){return document.getElementById(i)},root=document.documentElement;
+  var views={home:$('v-home'),list:$('v-list'),lec:$('v-lec')},S=0,L=1,T='read';
+  function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  var th=get('theme');if(th)root.setAttribute('data-theme',th);
+  $('theme').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);set('theme',n)};
+
+  function go(v){wbStop();for(var k in views)views[k].hidden=k!==v;scrollTo(0,0)}
+
+  $('subjects').innerHTML=SUBJECTS.map(function(s,i){return '<button class="card" data-s="'+i+'"><img src="'+s.img+'" alt="'+s.alt+'" loading="lazy"></button>'}).join('');
+  function cur(){return CONTENT[(S+1)+'-'+L]}
+  function updTabs(){$('tabmap').hidden=false;$('tabs').classList.add('six')}
+  function renderLecs(){var c=10;if(S===0){c=Object.keys(CONTENT).filter(function(k){return k.indexOf('1-')===0}).length}
+    var h='';for(var n=1;n<=c;n++)h+='<button class="lec" data-l="'+n+'">محاضرة '+n+'</button>';$('lectures').innerHTML=h}
+  renderLecs();
+
+  $('subjects').onclick=function(e){var c=e.target.closest('.card');if(!c)return;S=+c.dataset.s;renderLecs();go('list')};
+  $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec')};
+  document.querySelector('[data-go="home"]').onclick=function(){go('home')};
+  $('backList').onclick=function(){go('list')};
+
+  /* ===== Slider: one item at a time (used by flashcards + MCQ) ===== */
+  function slider(host,cfg){
+    var n=cfg.count,i=0;
+    host.innerHTML='<div class="quiz"><div class="qhead"><span class="qcount"></span><span class="qextra"></span></div>'+
+      '<div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+n+'"><i></i></div><div class="qstage"></div>'+
+      '<div class="qnav"><button class="qbtn qprev" type="button">→ السابق</button><button class="qbtn pri qnext" type="button"></button></div></div>';
+    var box=host.firstChild,stage=box.querySelector('.qstage'),cnt=box.querySelector('.qcount'),ext=box.querySelector('.qextra'),
+        bar=box.querySelector('.pbar'),fill=bar.firstChild,prev=box.querySelector('.qprev'),next=box.querySelector('.qnext');
+    function head(){ext.textContent=cfg.extra?cfg.extra():''}
+    function paint(node,dir){ /* dir: -1 = forward (enters from left in RTL), 1 = back */
+      stage.innerHTML='';stage.appendChild(node);
+      stage.style.setProperty('--dx',(dir*28)+'px');
+      stage.classList.remove('enter');void stage.offsetWidth;stage.classList.add('enter');
+    }
+    function show(k,dir){
+      i=Math.max(0,Math.min(n-1,k));box.classList.remove('fin');
+      cnt.textContent='سؤال '+(i+1)+' من '+n;
+      fill.style.width=((i+1)/n*100)+'%';bar.setAttribute('aria-valuenow',i+1);
+      prev.disabled=i===0;
+      next.textContent=i===n-1?cfg.lastLabel:'التالي ←';
+      head();paint(cfg.render(i),dir||0);
+    }
+    function finish(){
+      box.classList.add('fin');cnt.textContent='النتيجة';fill.style.width='100%';
+      paint(cfg.summary({review:function(){show(0,1)},restart:function(){cfg.reset();show(0,1)}}),-1);
+    }
+    next.onclick=function(){
+      if(i<n-1)show(i+1,-1);
+      else if(cfg.summary)finish();
+      else{cfg.reset&&cfg.reset();show(0,1)}
+    };
+    prev.onclick=function(){show(i-1,1)};
+    show(0,0);
+    return {refresh:head};
+  }
+
+  /* ===== "أسئلة عادية": flashcards ===== */
+  function flashDeck(host,raw){
+    var cards=[],cat='';
+    raw.forEach(function(f){if(f.length===1)cat=f[0];else cards.push({q:f[0],a:f[1],cat:cat})});
+    if(!cards.length){host.innerHTML='<p style="text-align:center;margin:30px auto">لا توجد أسئلة</p>';return}
+    slider(host,{count:cards.length,lastLabel:'إعادة المراجعة ↺',render:function(i){
+      var f=cards[i],el=document.createElement('div');
+      el.className='fc';el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-pressed','false');
+      el.innerHTML='<div class="fc-in"><div class="fc-face fc-front"><span class="fc-cat">'+(f.cat||'سؤال')+'</span><div class="fc-txt"><div class="fc-q">'+f.q+'</div></div><span class="fc-hint">اضغط لإظهار الإجابة</span></div>'+
+        '<div class="fc-face fc-back" aria-hidden="true"><span class="fc-cat">الإجابة</span><div class="fc-txt"><div class="fc-a">'+f.a+'</div></div><span class="fc-hint">اضغط للعودة إلى السؤال</span></div></div>';
+      var front=el.querySelector('.fc-front'),back=el.querySelector('.fc-back');
+      function flip(){var on=el.classList.toggle('on');el.setAttribute('aria-pressed',on);front.setAttribute('aria-hidden',on);back.setAttribute('aria-hidden',!on)}
+      el.onclick=flip;
+      el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}};
+      return el;
+    }});
+  }
+
+  /* ===== "أسئلة اختيار من متعدد": one question per screen ===== */
+  function mcqDeck(host,Q){
+    if(!Q.length){host.innerHTML='<p style="text-align:center;margin:30px auto">لا توجد أسئلة</p>';return}
+    var ans,sl;
+    function clear(){ans=Q.map(function(){return null})}clear();
+    function right(){return ans.filter(function(a,i){return a===Q[i].a}).length}
+    function done(){return ans.filter(function(a){return a!==null}).length}
+    sl=slider(host,{count:Q.length,lastLabel:'إنهاء الاختبار',reset:clear,
+      extra:function(){return done()?'الصحيحة: '+right():''},
+      render:function(i){
+        var x=Q[i],el=document.createElement('div');
+        el.innerHTML='<div class="mq-q">'+x.q+'</div><div class="mq-o">'+x.o.map(function(o,j){return '<button class="opt" type="button" data-j="'+j+'">'+o+'</button>'}).join('')+'</div>';
+        var btns=el.querySelectorAll('.opt');
+        function mark(){
+          var a=ans[i];if(a===null)return;
+          btns.forEach(function(b){b.disabled=true});
+          btns[x.a].classList.add('ok');if(a!==x.a)btns[a].classList.add('no');
+        }
+        btns.forEach(function(b){b.onclick=function(){ans[i]=+b.dataset.j;mark();sl.refresh()}});
+        mark();return el;
+      },
+      summary:function(act){
+        var r=right(),n=Q.length,pc=r/n*100,el=document.createElement('div');el.className='sum';
+        el.innerHTML='<div class="big">'+r+' / '+n+'</div><div>'+(pc>=80?'ممتاز! أداء رائع':pc>=50?'جيد، واصل المراجعة':'راجع الدرس وأعد المحاولة')+'</div>'+
+          '<div class="st"><span>صحيحة: '+r+'</span><span>خاطئة: '+(done()-r)+'</span><span>دون إجابة: '+(n-done())+'</span></div>'+
+          '<div class="acts"><button class="qbtn" type="button" data-a="review">مراجعة الأسئلة</button><button class="qbtn pri" type="button" data-a="restart">إعادة الاختبار</button></div>';
+        el.querySelector('[data-a=review]').onclick=act.review;
+        el.querySelector('[data-a=restart]').onclick=act.restart;
+        return el;
+      }});
+  }
+
+  /* ===== فيديو الوايت بورد: المحاضرة الأولى والثانية (المراقبة الطبية) ===== */
+  var NS='http://www.w3.org/2000/svg',FULL=[0,0,800,450];
+  var WB_COL={gold:'#F59E0B',purple:'#A855F7',green:'#34D399',pink:'#F472B6',blue:'#60A5FA'};
+  var WB_S={host:null,phase:'idle',playing:false,raf:0,timer:0,sc:[],aud:[],dur:[],ans:{},quizEl:null,idx:0};
+
+  function wbP(d,at,dur,fc,fat,fo){return {k:'p',d:d,at:at,dur:dur,fc:fc||null,fat:fat||0,fo:fo||.85}}
+  function wbT(t,x,y,at,s,c){return {k:'t',t:t,x:x,y:y,at:at,s:s||22,c:c||null}}
+  function wbCirc(cx,cy,r){return 'M'+(cx-r)+' '+cy+'a'+r+' '+r+' 0 1 0 '+(2*r)+' 0a'+r+' '+r+' 0 1 0 '+(-2*r)+' 0Z'}
+  function wbRR(x,y,w,h,r){return 'M'+(x+r)+' '+y+'H'+(x+w-r)+'Q'+(x+w)+' '+y+' '+(x+w)+' '+(y+r)+'V'+(y+h-r)+'Q'+(x+w)+' '+(y+h)+' '+(x+w-r)+' '+(y+h)+'H'+(x+r)+'Q'+x+' '+(y+h)+' '+x+' '+(y+h-r)+'V'+(y+r)+'Q'+x+' '+y+' '+(x+r)+' '+y+'Z'}
+  function wbPlus(cx,cy,s){var a=s*.3,b=s;return 'M'+(cx-a)+' '+(cy-b)+'H'+(cx+a)+'V'+(cy-a)+'H'+(cx+b)+'V'+(cy+a)+'H'+(cx+a)+'V'+(cy+b)+'H'+(cx-a)+'V'+(cy+a)+'H'+(cx-b)+'V'+(cy-a)+'H'+(cx-a)+'Z'}
+  function wbShield(cx,cy,s){return 'M'+cx+' '+(cy-s)+'L'+(cx+s*.85)+' '+(cy-s*.5)+'V'+(cy+s*.1)+'C'+(cx+s*.85)+' '+(cy+s*.7)+' '+(cx+s*.4)+' '+(cy+s*.92)+' '+cx+' '+(cy+s)+'C'+(cx-s*.4)+' '+(cy+s*.92)+' '+(cx-s*.85)+' '+(cy+s*.7)+' '+(cx-s*.85)+' '+(cy+s*.1)+'V'+(cy-s*.5)+'Z'}
+  function wbRehab(cx,cy){return 'M'+(cx+20)+' '+(cy-12)+'A22 22 0 1 0 '+(cx+22)+' '+(cy+8)+'M'+(cx+22)+' '+(cy+8)+'L'+(cx+10)+' '+(cy+14)+'M'+(cx+22)+' '+(cy+8)+'L'+(cx+24)+' '+(cy-6)}
+
+  function wbIcon(kind,c,cy,at){
+    if(kind==='check')return [wbP('M'+(c-26)+' '+cy+'L'+(c-8)+' '+(cy+18)+'L'+(c+26)+' '+(cy-20),at,.9)];
+    if(kind==='compass')return [wbP(wbCirc(c,cy,26),at,1.2),wbP('M'+(c-10)+' '+(cy+10)+'L'+(c+10)+' '+(cy-10)+'M'+(c+10)+' '+(cy-10)+'L'+(c+2)+' '+(cy-9)+'M'+(c+10)+' '+(cy-10)+'L'+(c+9)+' '+(cy-2),at+1.2,.8)];
+    if(kind==='pulse')return [wbP('M'+(c-30)+' '+cy+'L'+(c-12)+' '+cy+'L'+(c-5)+' '+(cy-20)+'L'+(c+4)+' '+(cy+20)+'L'+(c+11)+' '+cy+'L'+(c+30)+' '+cy,at,1.6)];
+    if(kind==='plus')return [wbP(wbPlus(c,cy,24),at,1.5)];
+    if(kind==='target')return [wbP(wbCirc(c,cy,26),at,1),wbP(wbCirc(c,cy,14),at+1,.7),wbP(wbCirc(c,cy,3),at+1.7,.4)];
+    if(kind==='shield')return [wbP(wbShield(c,cy,28),at,1.4)];
+    return [wbP(wbRehab(c,cy),at,1.6)];
+  }
+  function wbCards(labels,icons,start,step){
+    var cols=[WB_COL.purple,WB_COL.gold,WB_COL.green,WB_COL.pink],out=[];
+    labels.forEach(function(lb,i){
+      var cx=[140,320,500,680][i],at=start+i*step;
+      out.push(wbP(wbRR(cx-75,130,150,190,16),at,1.4,cols[i],at+1.4,.2));
+      out=out.concat(wbIcon(icons[i],cx,210,at+1.6));
+      out.push(wbT(lb,cx,300,at+3.2,20,null));
+    });
+    return out;
+  }
+  function wbHistory(){
+    var out=[wbT('تاريخ الطب الرياضي',400,70,.5,28,WB_COL.gold),wbP('M60 262L740 262',1,2.5)];
+    [['1896','أولمبياد أثينا',120,WB_COL.purple],['1913','يوم طبي دراسي',300,WB_COL.gold],['1920','معهد طبي رياضي',480,WB_COL.green],['1928','مؤتمر أمستردام',660,WB_COL.pink]].forEach(function(n,i){
+      var at=5+i*7;
+      out.push(wbP(wbCirc(n[2],262,14),at,.8,n[3],at+.8,.9),wbT(n[0],n[2],212,at+.8,30,n[3]),wbT(n[1],n[2],310,at+1.4,18,null));
+    });
+    return out;
+  }
+
+  var WB_SCENES=[
+    {title:'التعريف',src:'s1-l1-scene1.mp3',dur:19.97,
+     cam:[[0,FULL],[3.5,[20,130,460,259]],[12,FULL]],
+     els:[
+      wbT('الطب الرياضي',400,70,.6,40,WB_COL.gold),
+      wbP(wbCirc(250,190,28),1.5,1,WB_COL.gold,6),
+      wbP('M250 218L250 330',2.5,.8),
+      wbP('M250 245L205 282',3.3,.6),
+      wbP('M250 245L300 215',3.6,.6),
+      wbP('M250 330L215 398',4.2,.7),
+      wbP('M250 330L290 398',4.5,.7),
+      wbP('M560 300C470 240 490 170 560 205C630 170 650 240 560 300Z',6.5,1.8,WB_COL.pink,9),
+      wbP('M430 352L480 352L494 322L508 380L522 352L700 352',9.5,1.6),
+      wbT('تعريف الطب الرياضي',400,420,12.5,22,null)
+     ]},
+    {title:'التاريخ',src:'s1-l1-scene2.mp3',dur:38.41,
+     cam:[[0,FULL],[3,[-110,90,460,259]],[10,[70,90,460,259]],[17,[250,90,460,259]],[24,[430,90,460,259]],[33,FULL]],
+     els:wbHistory()},
+    {title:'الأهداف',src:'s1-l1-scene3.mp3',dur:33.97,
+     cam:[[0,FULL],[5,[0,110,460,259]],[13,[340,110,460,259]],[24,FULL]],
+     els:[wbT('أقسام الطب الرياضي',400,70,.4,28,WB_COL.gold),wbT('حسب Bent CARLLY',400,108,1,18,'var(--muted)')]
+          .concat(wbCards(['الاختيار','التوجيه','المراقبة','العلاج'],['check','compass','pulse','plus'],2,5))},
+    {title:'الأهمية',src:'s1-l1-scene4.mp3',dur:20.45,
+     cam:[[0,FULL],[4,[50,103,400,225]],[9,[350,103,400,225]],[15,FULL]],
+     els:[
+      wbT('أهمية الطب الرياضي',400,70,.4,28,WB_COL.gold),
+      wbP(wbShield(250,215,70),1.5,2.2,WB_COL.blue,3.8),
+      wbP('M220 215L242 240L290 190',4.2,.9),
+      wbT('الوقاية',250,318,4.8,26,null),
+      wbP(wbPlus(550,215,60),6.5,2,WB_COL.pink,8.5),
+      wbT('العلاج',550,318,9,26,null),
+      wbP('M340 215L450 215M435 200L450 215L435 230',11,1),
+      wbT('الوقاية قبل العلاج',400,400,13,24,WB_COL.gold)
+     ]},
+    {title:'الأقسام',src:'s1-l1-scene5.mp3',dur:22.13,
+     cam:[[0,FULL],[5,[0,110,460,259]],[12,[340,110,460,259]],[18,FULL]],
+     els:[wbT('الأقسام المتخصصة',400,70,.4,28,WB_COL.gold)]
+          .concat(wbCards(['التوجيهي','الوقائي','العلاجي','التأهيلي'],['target','shield','plus','rehab'],2,4))}
+  ];
+
+  /* Quiz after scene index: pauses the film, then continues */
+  var WB_QUIZ={
+    1:{q:'في أي سنة استُخدم مصطلح "الطب الرياضي" لأول مرة؟',o:['1896','1913','1928'],a:0},
+    2:{q:'أي هذه الأقسام لا تدخل ضمن أهداف الطب الرياضي حسب Bent CARLLY؟',o:['الاختيار','المراقبة','التسويق'],a:2},
+    4:{q:'أي قسم يُعنى بإعادة المصاب إلى لياقته بعد الإصابة؟',o:['الوقائي','التأهيلي','التوجيهي'],a:1}
+  };
+
+  /* ===== الوايت بورد: المحاضرة الثانية (مهام الطبيب وأدوار المراقبة الطبية) ===== */
+  var WB_L2_SCENES=[
+    {title:'المهام',src:'s1-l2-scene1.mp3',dur:30.48,
+     cam:[[0,FULL],[3,[150,80,460,259]],[13,[190,120,460,259]],[24,FULL]],
+     els:[
+      wbT('المراقبة الطبية',400,70,.4,40,WB_COL.gold),
+      wbP('M560 300C470 240 490 170 560 205C630 170 650 240 560 300Z',.8,1.6,WB_COL.pink,2.2),
+      wbP(wbCirc(250,170,26),2.6,1,WB_COL.gold,4.8),
+      wbP('M250 196L250 300',3.5,.8),
+      wbP('M250 230L210 280',4.0,.5),
+      wbP('M250 230L290 280',4.3,.5),
+      wbT('الفحص',140,370,3.0,22),
+      wbT('التشخيص',300,370,3.8,22),
+      wbT('العلاج',470,370,4.6,22),
+      wbT('المتابعة',630,370,5.4,22),
+      wbP('M330 330L420 290L480 305L640 240',7.5,2),
+      wbT('الأداء البدني',640,215,10,20,WB_COL.gold),
+      wbT('بكفاءة وأمان',400,425,24,26,WB_COL.gold)
+     ]},
+    {title:'الواجبات',src:'s1-l2-scene2.mp3',dur:40.94,
+     cam:[[0,FULL]],
+     els:[wbT('الواجبات التخصصية',400,70,.4,30,WB_COL.gold)]
+          .concat(wbCards(['ذوو الاحتياجات','الحالات الحادة','التغذية','السفر'],['target','pulse','check','compass'],.8,1))
+          .concat([
+      wbT('الحالات الطارئة',400,362,9.6,24,WB_COL.pink),
+      wbP('M120 400L260 400L280 380L300 420L320 400L680 400',12,2.5),
+      wbT('السكتة القلبية',250,440,18,20),
+      wbT('بلع اللسان',550,440,28,20)
+     ])},
+    {title:'الاختبارات',src:'s1-l2-scene3.mp3',dur:35.66,
+     cam:[[0,FULL]],
+     els:[
+      wbT('أنواع الاختبارات الطبية',400,70,.4,30,WB_COL.gold),
+      wbT('ثلاثة أنواع رئيسة',400,108,1,18,'var(--muted)'),
+      wbP(wbRR(60,130,220,180,16),3.4,1.2,WB_COL.purple,4.6,.2)
+    ].concat(wbIcon('check',170,210,4.6)).concat([
+      wbT('الأولي',170,300,5.2,22),
+      wbT('الكفاءة واللياقة',170,350,5.6,16,'var(--muted)'),
+      wbP(wbRR(290,130,220,180,16),6.1,1.2,WB_COL.gold,7.3,.2)
+    ]).concat(wbIcon('pulse',400,210,7.5)).concat([
+      wbT('المكرر',400,300,9.4,22),
+      wbT('تطور المراقبة',400,350,9.8,16,'var(--muted)'),
+      wbP(wbRR(520,130,220,180,16),13.0,1.2,WB_COL.green,14.2,.2)
+    ]).concat(wbIcon('target',630,210,14.5)).concat([
+      wbT('الإضافي',630,300,16.2,22),
+      wbT('التأهيل والعودة',630,350,24,16,'var(--muted)')
+    ])},
+    {title:'الأهداف',src:'s1-l2-scene4.mp3',dur:31.27,
+     cam:[[0,FULL]],
+     els:[
+      wbT('أهداف الاختبارات الطبية',400,70,.4,30,WB_COL.gold),
+      wbP(wbCirc(150,200,38),.8,1.4,WB_COL.blue,2.2,.2),
+      wbP('M180 230L220 270',2.0,.7),
+      wbT('الكشف المبكر',150,320,1.6,22),
+      wbT('العيوب الخلقية',150,362,2.6,16,'var(--muted)'),
+      wbP('M330 330L400 280L470 300L540 210',3.4,1.8),
+      wbT('النمو والتوازن',400,370,4.6,22),
+      wbP(wbShield(650,210,44),8.0,1.6,WB_COL.pink,9.2,.2),
+      wbT('الوقاية',650,320,9.6,22),
+      wbT('من المضاعفات',650,362,11,16,'var(--muted)'),
+      wbT('التوعية الصحية',400,420,14.5,26,WB_COL.gold),
+      wbP('M300 436L500 436',13.5,1.0)
+     ]}
+  ];
+  var WB_L2_QUIZ={
+    1:{q:'أي مما يلي ليس من مهام الطبيب الرياضي المذكورة في المشهد؟',o:['متابعة التغذية','تشخيص الإصابات','تصميم الملاعب'],a:2},
+    2:{q:'كم عدد أنواع الاختبارات الطبية الرياضية؟',o:['اثنان','ثلاثة','أربعة'],a:1},
+    3:{q:'أي هذه الأمور تكشفها الاختبارات الطبية الرياضية؟',o:['التشوهات الجسدية','نوع الملابس','لون الملعب'],a:0}
+  };
+  /* Lesson key -> whiteboard data. Player swaps WB_SCENES/WB_QUIZ on mount. */
+  var WB_DATA={'1-1':{scenes:WB_SCENES,quiz:WB_QUIZ},'1-2':{scenes:WB_L2_SCENES,quiz:WB_L2_QUIZ}};
+
+  function wbFmt(s){s=Math.floor(s||0);var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r}
+
+  function wbBuild(stage){
+    WB_S.sc=WB_SCENES.map(function(sc){
+      var svg=document.createElementNS(NS,'svg');
+      svg.setAttribute('class','wb-svg');svg.setAttribute('viewBox',FULL.join(' '));svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+      var nodes=sc.els.map(function(e){
+        var n;
+        if(e.k==='p'){
+          n=document.createElementNS(NS,'path');n.setAttribute('d',e.d);n.setAttribute('pathLength','1');n.setAttribute('class','wb-ln');
+          n.setAttribute('fill',e.fc||'none');if(e.fc)n.setAttribute('fill-opacity','0');
+        }else{
+          n=document.createElementNS(NS,'text');n.setAttribute('class','wb-tx');n.setAttribute('x',e.x);n.setAttribute('y',e.y);
+          n.setAttribute('font-size',e.s);n.setAttribute('opacity','0');n.textContent=e.t;
+          if(e.c)n.style.fill=e.c;
+        }
+        svg.appendChild(n);return n;
+      });
+      var pen=document.createElementNS(NS,'g');pen.setAttribute('class','wb-pen');pen.setAttribute('opacity','0');
+      var pb=document.createElementNS(NS,'path');pb.setAttribute('d','M0 0L12 -10H74V10H12Z');pb.setAttribute('fill',WB_COL.gold);pb.setAttribute('class','wb-pen-b');
+      pen.appendChild(pb);svg.appendChild(pen);
+      stage.appendChild(svg);
+      return {svg:svg,nodes:nodes,pen:pen};
+    });
+  }
+
+  /* Render scene k at local time t (seconds). Pure function of t, so seek/restart are exact. */
+  function wbDraw(k,t){
+    var sc=WB_SCENES[k],b=WB_S.sc[k],cam=sc.cam,i=-1,v,j,p;
+    for(j=0;j<cam.length;j++)if(cam[j][0]<=t)i=j;
+    if(i<0)v=cam[0][1];
+    else{
+      var from=i>0?cam[i-1][1]:cam[i][1],to=cam[i][1];
+      p=Math.min(1,(t-cam[i][0])/1.8);p=p*p*(3-2*p);
+      v=to.map(function(x,z){return from[z]+(x-from[z])*p});
+    }
+    b.svg.setAttribute('viewBox',v.map(function(x){return x.toFixed(2)}).join(' '));
+    var act=null;
+    sc.els.forEach(function(e,z){
+      var n=b.nodes[z];
+      if(e.k==='p'){
+        var pr=Math.max(0,Math.min(1,(t-e.at)/e.dur));
+        n.setAttribute('stroke-dasharray','1 3');
+        n.setAttribute('stroke-dashoffset',(1-pr).toFixed(4));
+        if(e.fc)n.setAttribute('fill-opacity',(Math.max(0,Math.min(1,(t-e.fat)/.9))*e.fo).toFixed(3));
+        if(pr>0&&pr<1)act=[n,pr];
+      }else{
+        n.setAttribute('opacity',Math.max(0,Math.min(1,(t-e.at)/.6)).toFixed(3));
+      }
+    });
+    if(act){
+      var len=act[0]._len||(act[0]._len=act[0].getTotalLength());
+      var pt=act[0].getPointAtLength(act[1]*len);
+      b.pen.setAttribute('transform','translate('+pt.x.toFixed(1)+' '+pt.y.toFixed(1)+') rotate(-38)');
+      b.pen.setAttribute('opacity','1');
+    }else b.pen.setAttribute('opacity','0');
+  }
+
+  function wbTotal(){return WB_S.dur.reduce(function(a,b){return a+b},0)}
+  function wbBtn(){
+    var b=$('wbplay');if(!b)return;
+    b.textContent=WB_S.phase==='end'?'↺':(WB_S.playing?'❚❚':'▶');
+    b.setAttribute('aria-label',WB_S.phase==='end'?'إعادة المشاهدة':(WB_S.playing?'إيقاف مؤقت':'تشغيل'));
+  }
+  function wbUI(){
+    if(!WB_S.host)return;
+    var k=WB_S.idx,tot=wbTotal(),bef=0,i;
+    for(i=0;i<k;i++)bef+=WB_S.dur[i];
+    var a=WB_S.aud[k],cur=bef+((a&&a.currentTime)||0);
+    if(WB_S.phase==='end')cur=tot;
+    $('wbfill').style.width=Math.min(100,cur/tot*100).toFixed(2)+'%';
+    $('wbtime').textContent=wbFmt(cur)+' / '+wbFmt(tot);
+    $('wbscene').innerHTML='المشهد <b>'+(k+1)+'</b> من '+WB_SCENES.length+' · '+WB_SCENES[k].title;
+    wbBtn();
+  }
+
+  function wbLoop(){
+    WB_S.raf=0;
+    if(!WB_S.playing)return;
+    var a=WB_S.aud[WB_S.idx];
+    wbDraw(WB_S.idx,a.currentTime);
+    wbUI();
+    WB_S.raf=requestAnimationFrame(wbLoop);
+  }
+  function wbPlay(){
+    if(!WB_S.host)return;
+    if(WB_S.phase!=='play')return;
+    var a=WB_S.aud[WB_S.idx],pr=a.play();
+    if(pr&&pr.catch)pr.catch(function(){WB_S.playing=false;wbBtn()});
+    WB_S.playing=true;wbBtn();
+    if(!WB_S.raf)WB_S.raf=requestAnimationFrame(wbLoop);
+  }
+  function wbPause(){
+    WB_S.playing=false;
+    var a=WB_S.aud[WB_S.idx];if(a)a.pause();
+    if(WB_S.raf){cancelAnimationFrame(WB_S.raf);WB_S.raf=0}
+    wbUI();
+  }
+  function wbClearQuiz(){
+    clearTimeout(WB_S.timer);
+    if(WB_S.quizEl){WB_S.quizEl.innerHTML='';WB_S.quizEl.hidden=true}
+  }
+  function wbGo(k,t){
+    WB_S.aud.forEach(function(a,i){if(i!==k)a.pause()});
+    WB_S.idx=k;
+    WB_S.sc.forEach(function(b,i){b.svg.classList.toggle('on',i===k)});
+    try{WB_S.aud[k].currentTime=t||0}catch(e){}
+    wbDraw(k,t||0);
+    wbUI();
+  }
+  function wbNext(i){
+    if(i<WB_SCENES.length-1){wbGo(i+1,0);wbPlay()}
+    else{
+      WB_S.phase='end';WB_S.playing=false;
+      wbDraw(i,WB_S.dur[i]);
+      wbUI();
+      var box=WB_S.quizEl;
+      box.innerHTML='<div class="wb-end"><button class="qbtn pri" type="button" id="wbagain">إعادة المشاهدة</button></div>';
+      box.hidden=false;
+      $('wbagain').onclick=wbReset;
+    }
+  }
+  function wbQuiz(i){
+    var Q=WB_QUIZ[i],box=WB_S.quizEl,done=false;
+    WB_S.phase='quiz';WB_S.playing=false;wbBtn();
+    box.innerHTML='<div class="wb-quiz"><div class="mq-q">'+Q.q+'</div><div class="mq-o">'+
+      Q.o.map(function(o,j){return '<button class="opt" type="button" data-j="'+j+'">'+o+'</button>'}).join('')+
+      '</div><div class="wb-qact"><button class="qbtn" type="button" data-skip>تخطي</button></div></div>';
+    box.hidden=false;
+    function finish(){
+      if(done)return;done=true;
+      wbClearQuiz();
+      WB_S.phase='play';
+      wbNext(i);
+    }
+    var btns=box.querySelectorAll('.opt');
+    btns.forEach(function(b){
+      b.onclick=function(){
+        if(WB_S.ans[i])return;
+        WB_S.ans[i]=true;
+        var j=+b.getAttribute('data-j');
+        btns.forEach(function(x){x.disabled=true});
+        if(j===Q.a)b.classList.add('ok');
+        else{b.classList.add('no');btns[Q.a].classList.add('ok')}
+        WB_S.timer=setTimeout(finish,1800);
+      };
+    });
+    box.querySelector('[data-skip]').onclick=function(){WB_S.ans[i]=true;finish()};
+  }
+  function wbEnded(i){
+    if(WB_S.idx!==i||WB_S.phase!=='play')return;
+    wbPause();
+    wbDraw(i,WB_S.aud[i].duration||WB_S.dur[i]);
+    if(WB_QUIZ[i]&&!WB_S.ans[i]){wbQuiz(i);return}
+    wbNext(i);
+  }
+  function wbReset(){
+    wbClearQuiz();
+    WB_S.ans={};
+    WB_S.phase='play';
+    wbGo(0,0);
+    wbPlay();
+  }
+  function wbToggle(){
+    if(WB_S.phase==='end'){wbReset();return}
+    if(WB_S.phase==='quiz')return;
+    if(WB_S.playing)wbPause();else wbPlay();
+  }
+  function wbSeek(frac){
+    var target=frac*wbTotal(),acc=0,k=0,t=0,wasPlaying=WB_S.playing;
+    for(k=0;k<WB_SCENES.length;k++){
+      var d=WB_S.dur[k];
+      if(target<acc+d||k===WB_SCENES.length-1){t=target-acc;break}
+      acc+=d;
+    }
+    WB_S.playing=false;
+    if(WB_S.raf){cancelAnimationFrame(WB_S.raf);WB_S.raf=0}
+    WB_S.aud.forEach(function(a){a.pause()});
+    wbClearQuiz();
+    WB_S.phase='play';
+    wbGo(k,Math.max(0,Math.min(t,WB_S.dur[k]-.05)));
+    if(wasPlaying)wbPlay();
+  }
+  function wbStop(){
+    if(!WB_S.host)return;
+    WB_S.playing=false;
+    if(WB_S.raf){cancelAnimationFrame(WB_S.raf);WB_S.raf=0}
+    WB_S.aud.forEach(function(a){a.pause()});
+    clearTimeout(WB_S.timer);
+    WB_S.host=null;WB_S.phase='idle';
+  }
+  function wbMount(host,key){
+    wbStop();
+    WB_SCENES=WB_DATA[key].scenes;WB_QUIZ=WB_DATA[key].quiz;
+    host.innerHTML='<div class="wb" id="wbwrap"><div class="wb-stage" id="wbstage"><button class="wb-fs" id="wbfs" type="button" aria-label="ملء الشاشة">⛶</button></div>'+
+      '<div class="wb-ctrl"><button class="wb-btn" id="wbplay" type="button" aria-label="تشغيل">▶</button>'+
+      '<button class="wb-btn" id="wbre" type="button" aria-label="إعادة التشغيل">↺</button>'+
+      '<div class="wb-prog" id="wbprog" role="progressbar" aria-label="شريط التقدم"><i id="wbfill"></i></div>'+
+      '<span class="wb-time" id="wbtime"></span></div>'+
+      '<div class="wb-info"><span id="wbscene"></span><span id="wbmsg"></span></div>'+
+      '<div id="wbquiz" hidden></div></div>';
+    WB_S.host=host;WB_S.phase='play';WB_S.playing=false;WB_S.raf=0;WB_S.ans={};WB_S.idx=0;
+    WB_S.quizEl=$('wbquiz');
+    wbBuild($('wbstage'));
+    WB_S.dur=WB_SCENES.map(function(s){return s.dur});
+    WB_S.aud=WB_SCENES.map(function(sc,i){
+      var a=new Audio(encodeURI(sc.src));
+      a.preload='auto';
+      a.addEventListener('loadedmetadata',function(){if(isFinite(a.duration))WB_S.dur[i]=a.duration;wbUI()});
+      a.addEventListener('ended',function(){wbEnded(i)});
+      a.addEventListener('error',function(){$('wbmsg').textContent='تعذّر تحميل الصوت: ضع ملفات WAV بجانب index.html'});
+      return a;
+    });
+    $('wbplay').onclick=wbToggle;
+    $('wbre').onclick=wbReset;
+    $('wbfs').onclick=function(){
+      var d=document,w=$('wbwrap');
+      if(d.fullscreenElement||d.webkitFullscreenElement){
+        (d.exitFullscreen||d.webkitExitFullscreen).call(d);
+      }else{
+        var rq=w.requestFullscreen||w.webkitRequestFullscreen;
+        if(rq)rq.call(w);
+        try{screen.orientation.lock('landscape')}catch(e){}
+      }
+    };
+    $('wbprog').onclick=function(e){var r=this.getBoundingClientRect();wbSeek(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)))};
+    wbGo(0,0);
+  }
+
+  function tab(t){
+    wbStop();
+    T=t;document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.t===t)});
+    var p=$('panel'),html='',c=cur()||{},LS=c.lesson,SM=c.summary,FQ=c.faq,MQ=c.mcq,empty={read:'لم يتوفر الدرس بعد',sum:'لا يوجد ملخص',faq:'لا توجد أسئلة',mcq:'لا توجد أسئلة',map:'ستتوفر الخريطة الذهنية عند توفر الدرس'};
+    if(!c.lesson){html='<p style="text-align:center;margin:30px auto">'+empty[t]+'</p>';p.innerHTML=html;return}
+    if(t==='wb'){var wk=(S+1)+'-'+L;if(WB_DATA[wk])wbMount(p,wk);else p.innerHTML='<p style="text-align:center;margin:30px auto">سيتم إضافة فيديو هذه المحاضرة لاحقاً</p>';return}
+    if(t==='faq'){flashDeck(p,FQ||[]);return}
+    if(t==='mcq'){mcqDeck(p,MQ||[]);return}
+    if(t==='read'){
+      html=LS.map(function(x){return (x[0]?'<h3>'+x[0]+'</h3>':'')+(Array.isArray(x[1])?'<ul>'+x[1].map(function(i){return '<li>'+i+'</li>'}).join('')+'</ul>':'<p>'+x[1]+'</p>')}).join('')+'<a class="dl" href="'+(c.pdf||pdfUrl(S,L))+'" download="'+(c.pdfName||'')+'">تحميل PDF</a>';
+    }else if(t==='sum'){
+      html='<ul>'+SM.filter(function(x){return typeof x==='string'}).map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'+SM.filter(function(x){return typeof x!=='string'}).map(function(x){return '<h3>'+x.h+'</h3><ul>'+x.l.map(function(i){return '<li>'+i+'</li>'}).join('')+'</ul>'}).join('');
+    }else if(t==='map'&&c.map){
+      html='<img class="map" src="'+c.map.img+'" alt="خريطة ذهنية"><p style="text-align:center;margin-top:14px"><button class="dl" id="mapprint">طباعة</button></p>';
+    }else{
+      html='<p style="text-align:center;margin:30px auto">'+empty.map+'</p>';
+    }
+    p.innerHTML=html;
+    if(t==='map'&&c.map){
+      $('mapprint').onclick=function(){
+        var u=new URL(c.map.img,location.href).href,f=document.createElement('iframe');f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0';document.body.appendChild(f);
+        var d=f.contentWindow.document;d.open();d.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>@page{size:A4;margin:8mm}html,body{margin:0;background:#fff}img{display:block;width:100%;max-height:277mm;object-fit:contain}</style></head><body><img id="i" src="'+u+'"></body></html>');d.close();
+        var go=function(){f.contentWindow.focus();f.contentWindow.print();setTimeout(function(){f.remove()},60000)},im=d.getElementById('i');
+        if(im.complete)go();else im.onload=go;
+      };
+    }
+  }
+  document.querySelector('.tabs').onclick=function(e){var b=e.target.closest('button');if(b)tab(b.dataset.t)};
+
+  /* Make both name lines equal in width using letter-spacing on the narrower one */
+  function fitName(){
+    var a=$('fn'),b=$('ln');
+    [a,b].forEach(function(x){x.style.letterSpacing='0';x.style.transform='none'});
+    var d=b.getBoundingClientRect().width-a.getBoundingClientRect().width,t=d>0?a:b,n=t.textContent.length;
+    if(d!==0){var ls=Math.abs(d)/n;t.style.letterSpacing=ls+'px';t.style.transform='translateX('+(ls/2)+'px)'}
+  }
+  fitName();addEventListener('resize',fitName);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitName);
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').then(function(registration) {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
