@@ -532,14 +532,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 
   /* Render scene k at local time t (seconds). Pure function of t, so seek/restart are exact. */
   function wbDraw(k,t){
-    var sc=WB_SCENES[k],b=WB_S.sc[k],cam=sc.cam,i=-1,v,j,p;
-    for(j=0;j<cam.length;j++)if(cam[j][0]<=t)i=j;
-    if(i<0)v=cam[0][1];
-    else{
-      var from=i>0?cam[i-1][1]:cam[i][1],to=cam[i][1];
-      p=Math.min(1,(t-cam[i][0])/1.8);p=p*p*(3-2*p);
-      v=to.map(function(x,z){return from[z]+(x-from[z])*p});
-    }
+    var sc=WB_SCENES[k],b=WB_S.sc[k],v=FULL;/* camera zoom disabled: always full frame */
     b.svg.setAttribute('viewBox',v.map(function(x){return x.toFixed(2)}).join(' '));
     var act=null;
     sc.els.forEach(function(e,z){
