@@ -5,14 +5,17 @@
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "lang": "ar",
   "dir": "rtl",
   "background_color": "#082860",
   "theme_color": "#082860",
   "categories": [
-    "education"
+    "books",
+    "developer",
+    "education",
+    "sports"
   ],
   "icons": [
     {
