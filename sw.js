@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.0.1';
+const VERSION = 'v1.0.2';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -296,6 +296,11 @@ self.addEventListener('activate', function (event) {
       if (name.indexOf(PREFIX + '-') === 0 && KEEP.indexOf(name) === -1) return caches.delete(name);
       return null;
     }));
+    /* حذف صورة منتهية الصلاحية من الذاكرة (تم استبدالها برابط جديد) */
+    try {
+      const imgCache = await caches.open(CACHE_IMAGES);
+      await imgCache.delete('https://i.ibb.co/sXSj8yG/902727229-1790797197308525.jpg');
+    } catch (e) { /* ignore */ }
     if (self.registration.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (e) { /* ignore */ }
     }

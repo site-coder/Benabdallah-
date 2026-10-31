@@ -210,7 +210,7 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 <script>
 /* ===== Editable content ===== */
 var SUBJECTS=[
-  {alt:'المراقبة الطبية الرياضية',img:'https://i.ibb.co/sXSj8yG/902727229-1790797197308525.jpg'},
+  {alt:'المراقبة الطبية الرياضية',img:'https://i.ibb.co/Jj844Qkn/902727229-1790797197308525.jpg'},
   {alt:'علم نفس نمو الطفل والمراهق',img:'https://i.ibb.co/F4p5f00M/579226496-1790797178349737.jpg'},
   {alt:'المورفولوجيا الرياضية',img:'https://i.ibb.co/21BgTcKQ/855220876-1790796810408360.jpg'},
   {alt:'النظريات التربوية',img:'https://i.ibb.co/RGv8R3T3/469790083-1790797184640664.jpg'},
@@ -703,11 +703,22 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     wbBuild($('wbstage'));
     WB_S.dur=WB_SCENES.map(function(s){return s.dur});
     WB_S.aud=WB_SCENES.map(function(sc,i){
-      var a=new Audio(encodeURI(sc.src));
+      /* يجرّب الامتداد المكتوب أولاً ثم بقية الامتدادات (mp3/wav/ogg/m4a) قبل إظهار الخطأ */
+      var m=/\.([A-Za-z0-9]+)$/.exec(sc.src),
+          base=m?sc.src.slice(0,-m[0].length):sc.src,
+          first=m?m[1].toLowerCase():'mp3',
+          exts=[first].concat(['mp3','wav','ogg','m4a'].filter(function(x){return x!==first})),
+          k=0,
+          a=new Audio();
       a.preload='auto';
-      a.addEventListener('loadedmetadata',function(){if(isFinite(a.duration))WB_S.dur[i]=a.duration;wbUI()});
+      a.addEventListener('loadedmetadata',function(){if(isFinite(a.duration))WB_S.dur[i]=a.duration;$('wbmsg').textContent='';wbUI()});
       a.addEventListener('ended',function(){wbEnded(i)});
-      a.addEventListener('error',function(){$('wbmsg').textContent='تعذّر تحميل الصوت: ضع ملفات WAV بجانب index.html'});
+      a.addEventListener('error',function(){
+        k++;
+        if(k<exts.length){a.src=encodeURI(base+'.'+exts[k]);}
+        else{$('wbmsg').textContent='تعذّر تحميل الصوت: '+sc.src+' — تأكد أن الملف في نفس مجلد index.html وبنفس الاسم تماماً (الحروف الصغيرة)'}
+      });
+      a.src=encodeURI(base+'.'+exts[0]);
       return a;
     });
     $('wbplay').onclick=wbToggle;
