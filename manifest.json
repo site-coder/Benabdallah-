@@ -1,46 +1,20 @@
 {
+  "id": "./",
   "name": "EPS Chlef Hub",
   "short_name": "EPS Chlef Hub",
-  "description": "تطبيق محمد بن عبد الله للتربية البدنية والرياضية هو رفيقك الأكاديمي المصمم خصيصاً لطلبة ملحقة المدرسة العليا للأساتذة بالشلف. وصول سريع للمحاضرات والدروس والملخصات، تحديثات مستمرة، وواجهة بسيطة ومنظمة.",
-  "id": "./",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "fullscreen",
-  "orientation": "portrait",
+  "description": "تطبيق محمد بن عبد الله للتربية البدنية والرياضية هو رفيقك الأكاديمي المصمم خصيصاً لطلبة ملحقة المدرسة العليا للأساتذة بالشلف. يهدف التطبيق إلى تسهيل الوصول إلى كافة المحاضرات والدروس والملخصات العلمية الخاصة بالمادة بشكل منظم ومستمر.",
   "lang": "ar",
   "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
   "background_color": "#082860",
   "theme_color": "#082860",
-  "categories": [
-    "books",
-    "developer",
-    "education",
-    "sports"
-  ],
+  "categories": ["education"],
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

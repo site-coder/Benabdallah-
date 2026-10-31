@@ -767,10 +767,32 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 })();
 </script>
 <script>
-/* ===== PWA: Service Worker ===== */
-if ('serviceWorker' in navigator) {
+/* ===== PWA: Service Worker (Offline-First) ===== */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  /* يرسل للـ SW كل الموارد التي حُمّلت قبل سيطرته (صور، خطوط، CSS...) ليحفظها للعمل أوفلاين */
+  function warmCache(reg) {
+    var sw = reg.active || navigator.serviceWorker.controller;
+    if (!sw) return;
+    var urls = [location.href];
+    try {
+      performance.getEntriesByType('resource').forEach(function (e) {
+        if (/^https?:/i.test(e.name)) urls.push(e.name);
+      });
+    } catch (e) {}
+    try {
+      if (typeof SUBJECTS !== 'undefined') SUBJECTS.forEach(function (s) { if (s && s.img) urls.push(s.img); });
+      if (typeof CONTENT !== 'undefined') Object.keys(CONTENT).forEach(function (k) {
+        var c = CONTENT[k];
+        if (c && c.map && c.map.img) urls.push(c.map.img);
+      });
+    } catch (e) {}
+    sw.postMessage({ type: 'CACHE_URLS', urls: urls });
+  }
+
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').then(function (reg) {
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (reg) {
       reg.addEventListener('updatefound', function () {
         var nw = reg.installing;
         if (!nw) return;
@@ -778,9 +800,14 @@ if ('serviceWorker' in navigator) {
           if (nw.state === 'installed' && navigator.serviceWorker.controller) nw.postMessage('SKIP_WAITING');
         });
       });
+      navigator.serviceWorker.ready.then(function (r) {
+        warmCache(r);
+        setTimeout(function () { warmCache(r); }, 5000);
+      });
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
     }).catch(function (err) { console.warn('SW registration failed:', err); });
   });
-}
+})();
 </script>
 </body>
 </html>
