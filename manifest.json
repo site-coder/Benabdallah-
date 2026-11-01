@@ -9,13 +9,16 @@
 "scope": "./",
 "display": "standalone",
 "display_override": [
+"window-controls-overlay",
 "standalone",
-"fullscreen",
-"minimal-ui"
+"fullscreen"
 ],
-"orientation": "any",
-"background_color": "#0b0d17",
-"theme_color": "#0b0d17",
+"launch_handler": {
+"client_mode": "focus-existing"
+},
+"orientation": "portrait",
+"background_color": "#05070f",
+"theme_color": "#05070f",
 "categories": [
 "education"
 ],
