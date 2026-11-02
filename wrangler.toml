@@ -1,0 +1,7 @@
+name = "lecture-ai"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://site-coder.github.io"
+LECTURES_URL = "https://site-coder.github.io/Benabdallah-/lectures.json"

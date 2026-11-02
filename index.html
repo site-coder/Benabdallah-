@@ -29,14 +29,18 @@ button{font:inherit;color:inherit}
 .wrap{width:min(1040px,100% - 32px);margin-inline:auto}
 
 header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.bar{display:grid;grid-template-columns:64px 1fr 64px;align-items:center;min-height:68px;padding:8px 0}
-.brand{grid-column:2;text-align:center}
+.bar{display:grid;grid-template-columns:1fr 54px;gap:6px;width:min(1040px,100% - 20px);align-items:center;min-height:68px;padding:8px 0}
+.brand{grid-column:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;text-align:center;min-width:0}
+.brand .aff{margin-top:0;padding-inline-start:8px;font-size:clamp(8px,2.5vw,13px);line-height:1.7;border-inline-start:1px solid var(--line);text-align:start;min-width:0}
+.brand .name{flex:none;font-size:clamp(15px,4.2vw,24px)}
+.brand .aff span{white-space:nowrap}
+.toggle{flex:none;min-width:54px;min-height:30px}
 .name{display:inline-flex;flex-direction:column;align-items:center;direction:ltr;font-weight:800;font-size:clamp(17px,4.8vw,24px);line-height:.95;text-shadow:0 0 18px rgba(192,132,252,.7),0 0 42px rgba(168,85,247,.4)}
 .name span{display:block;white-space:nowrap}
 .aff{margin-top:5px;font-weight:300;font-size:clamp(10.5px,2.9vw,13px);line-height:1.55;color:#D8C7FF;letter-spacing:.2px}
 .aff span{display:block}
 :root[data-theme="light"] .aff{color:var(--p)}
-.toggle{grid-column:3;justify-self:end;width:54px;height:30px;border-radius:99px;border:1px solid var(--line);background:var(--card);position:relative;cursor:pointer}
+.toggle{grid-column:2;justify-self:end;width:54px;height:30px;border-radius:99px;border:1px solid var(--line);background:var(--card);position:relative;cursor:pointer}
 .toggle::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--g),#FCD34D);transition:transform .3s;box-shadow:0 0 12px rgba(245,158,11,.6)}
 :root[data-theme="dark"] .toggle::after{transform:translateX(-24px);background:linear-gradient(135deg,var(--p2),var(--p));box-shadow:0 0 12px rgba(168,85,247,.7)}
 
@@ -126,11 +130,65 @@ details p{margin:8px 0 0}
 footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc(40px + env(safe-area-inset-bottom,0px))}
 .fnote{color:var(--muted);font-weight:300;font-size:clamp(15px,4vw,18px)}
 .bye{margin-top:6px;font-weight:800;font-size:clamp(46px,14vw,92px);line-height:1.3;color:var(--g);text-shadow:0 0 24px rgba(245,158,11,.55),0 0 60px rgba(168,85,247,.35)}
+
+/* ===== Notification bell + lectures sheet ===== */
+.bell{position:fixed;z-index:60;top:84px;left:14px;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--g);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s}
+.bell:active{transform:scale(.94)}
+.bell svg{width:20px;height:20px;transform-origin:50% 10%}
+.bell.ring svg{animation:ring 1.6s ease-in-out 1}
+@keyframes ring{0%,100%{transform:rotate(0)}10%{transform:rotate(16deg)}20%{transform:rotate(-14deg)}30%{transform:rotate(10deg)}40%{transform:rotate(-8deg)}50%{transform:rotate(4deg)}60%{transform:rotate(0)}}
+@media(hover:hover){.bell:hover{box-shadow:0 0 18px rgba(245,158,11,.4);border-color:var(--g)}}
+.badge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:#EF4444;color:#fff;font-size:11px;font-weight:700;line-height:19px;text-align:center;box-shadow:0 0 0 2px var(--bg),0 0 12px rgba(239,68,68,.6);font-variant-numeric:tabular-nums}
+.sheet-bg{position:fixed;inset:0;z-index:100;background:rgba(5,3,12,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.sheet-bg.open{opacity:1;pointer-events:auto}
+.sheet{width:min(560px,100%);max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;box-shadow:0 -10px 50px rgba(168,85,247,.25);transform:translateY(40px);transition:transform .3s}
+.sheet-bg.open .sheet{transform:none}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.sheet-h h2{font-size:18px;font-weight:700;color:var(--g)}
+.sheet-h small{display:block;font-size:12px;font-weight:300;color:var(--muted);margin-top:2px}
+.sheet-x{width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--line);background:var(--card);color:inherit;font-size:18px;cursor:pointer}
+.nlist{list-style:none;margin:0;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;display:grid;gap:10px}
+.nitem{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:inherit;cursor:pointer;font:inherit;transition:.2s}
+@media(hover:hover){.nitem:hover{border-color:var(--g);box-shadow:0 0 18px rgba(245,158,11,.25)}}
+.nnum{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--p2),var(--p));color:#fff;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+.nbody{flex:1;min-width:0}
+.ntitle{font-size:15px;font-weight:600;line-height:1.5}
+.nmeta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12.5px;font-weight:300;color:var(--muted);margin-top:2px}
+.nmeta b{color:var(--g);font-weight:600}
+.nnew{flex:none;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(239,68,68,.15);color:#F87171;border:1px solid rgba(239,68,68,.4)}
+.nempty{text-align:center;color:var(--muted);padding:30px 10px}
+@media(min-width:700px){.sheet-bg{align-items:center}.sheet{border-bottom:1px solid var(--line);border-radius:22px}}
+@media(prefers-reduced-motion:reduce){.bell.ring svg{animation:none}}
+
+/* ===== PWA install button ===== */
+.pwa{position:fixed;z-index:70;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);max-width:calc(100% - 24px);display:flex;align-items:center;gap:4px;padding:5px 5px 5px 8px;border-radius:99px;background:linear-gradient(135deg,var(--p2),var(--p));color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 26px rgba(168,85,247,.55);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .3s}
+.pwa[hidden]{display:none}
+.pwa.show{transform:translate(-50%,0);opacity:1}
+.pwa-btn{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px 6px 10px;border:0;border-radius:99px;background:transparent;color:inherit;font:inherit;font-size:14.5px;font-weight:600;line-height:1.35;cursor:pointer;text-align:start}
+.pwa-ic{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.2);animation:pwabob 2s ease-in-out infinite}
+.pwa-ic svg{width:19px;height:19px}
+@keyframes pwabob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.pwa-x{flex:none;width:32px;height:32px;border:0;border-radius:50%;background:rgba(0,0,0,.22);color:#fff;font-size:14px;cursor:pointer}
+.ios-bg{position:fixed;inset:0;z-index:110;background:rgba(5,3,12,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.ios-bg.open{opacity:1;pointer-events:auto}
+.ios-box{width:min(480px,100%);background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 50px rgba(168,85,247,.25)}
+.ios-box h2{font-size:18px;font-weight:700;color:var(--g);margin-bottom:4px}
+.ios-box>p{font-size:13.5px;font-weight:300;color:var(--muted);margin-bottom:14px}
+.ios-box ol{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:st}
+.ios-box li{counter-increment:st;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);font-size:15px;line-height:1.6}
+.ios-box li::before{content:counter(st);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--p2),var(--p));color:#fff;font-weight:800;font-size:14px}
+.ios-box li svg{display:inline-block;vertical-align:middle;width:20px;height:20px;margin:0 3px;color:var(--g)}
+.ios-ok{width:100%;margin-top:14px;min-height:48px;border:1px solid var(--g);border-radius:12px;background:transparent;color:var(--g);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+@media(min-width:700px){.ios-bg{align-items:center}.ios-box{border-bottom:1px solid var(--line);border-radius:22px}}
+@media(prefers-reduced-motion:reduce){.pwa-ic{animation:none}}
 /* ===== Whiteboard video ===== */
 :root{--wb-ink:#F5F3FF}
 :root[data-theme="light"]{--wb-ink:#1A1030}
 .tabs.six{grid-template-columns:repeat(2,1fr)}
-@media(min-width:700px){.tabs.six{grid-template-columns:repeat(6,1fr)}}
+.tabs.six{display:flex;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs.six::-webkit-scrollbar{display:none}
+.tabs.six button{flex:0 0 auto;white-space:nowrap;padding:10px 16px}
+@media(min-width:700px){.tabs.six button{flex:1 1 0;white-space:normal}}
 .wb{max-width:1000px;margin-inline:auto}
 .wb-stage{position:relative;width:calc(100% + 24px);margin-inline:-12px;aspect-ratio:16/9;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background-color:var(--card);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:36px 36px}
 .wb-svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .5s}
@@ -200,12 +258,22 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
     <button role="tab" data-t="wb">فيديو الوايت بورد</button>
   </div>
   <section class="panel" id="panel" role="tabpanel"></section>
+  <div class="ai-ask-wrap"><button class="ai-ask" id="askAI" type="button" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+    <span>اسأل الذكاء الاصطناعي عن هذه المحاضرة</span></button></div>
 </main>
 
 <footer>
   <p class="fnote">سيتم إدراج كل المحاضرات وكل الملخصات بانتظام مستمر</p>
   <div class="bye">بالتوفيق</div>
 </footer>
+
+<button class="bell" id="bell" type="button" aria-label="الإشعارات: قائمة المحاضرات" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="badge">0</span></button>
+
+<div class="sheet-bg" id="nsheet" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ntt">
+  <div class="sheet-h"><div><h2 id="ntt">🔔 المحاضرات المتاحة</h2><small id="nsub"></small></div><button class="sheet-x" id="nclose" type="button" aria-label="إغلاق">✕</button></div>
+  <ul class="nlist" id="nlist"></ul>
+</div></div>
 
 <script>
 /* ===== Editable content ===== */
@@ -232,6 +300,9 @@ var MCQ=[
   {q:'كيف يتثبّت التعلّم بشكل أفضل؟',o:['بالقراءة مرة واحدة','بالتطبيق والمراجعة المنتظمة','بتأجيل الدراسة'],a:1},
   {q:'ما فائدة الملخص؟',o:['استبدال الدرس','مراجعة الأفكار الرئيسية بسرعة','لا فائدة منه'],a:1}
 ];
+/* تاريخ تنزيل كل محاضرة (YYYY-MM-DD). المفتاح = رقم المادة-رقم المحاضرة.
+   عند إضافة محاضرة جديدة في CONTENT أضف تاريخها هنا، وستظهر في الجرس تلقائيًا في الأعلى. */
+var DATES={"1-1":"2026-10-20","1-2":"2026-10-24"};
 /* محتوى كل محاضرة: المفتاح = رقم المادة-رقم المحاضرة (مثال "1-1") */
 var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أحد التخصصات الطبية الحديثة، وفيه يُهتم برجوع المصاب أو الرياضي بعد مرضه أو إصابته إلى حد لياقته البدنية العادية. وفيه يتم تحسين القوى الجسدية المحتومة على النشاط البدني."], ["", "ويهتم الطب الرياضي ببحث وعلاج التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية في جسم الإنسان نتيجة الجهد البدني في الظروف العادية والمختلفة، ويبحث العلاقات التطبيقية."], ["هدف الاختيار والتوجيه والمراقبة وملاحظة الرياضي", "مراقبة تأثير الرياضة على جسم الإنسان (جهاز اللياقة البدنية)."], ["تاريخ الطب الرياضي", ["<b>1896 م:</b> استُخدم هذا المصطلح لأول مرة خلال الألعاب الأولمبية في أثينا (اليونان) من خلال تطبيق بعض العلاجات الطبية على الرياضيين.", "<b>1913:</b> تحوّل خلال يوم طبي دراسي إلى فرع من فروع الطب، وتم تأهيل بعض الأطباء وتدريبهم على هذا الفرع.", "<b>1920:</b> تم إنشاء المعهد الرياضي الطبي خلال الألعاب الأولمبية الشتوية.", "<b>1928:</b> تم إقامة المؤتمر العام الأول للطب الرياضي في هولندا (أمستردام)."]], ["أهداف الطب الرياضي", "دور الطب الرياضي في الاختيار والتوجيه والمراقبة والعلاج. وحسب <b>Bent CARLLY</b> فإن الطب الرياضي يعمل على:"], ["", ["<b>الاختيار:</b> يختار الطب الرياضي الفرد الذي يستطيع ممارسة الرياضة من عدمها، وذلك من خلال تشخيص الأمراض التي تمنعه من ذلك.", "<b>التوجيه:</b> يقدم مجموعة من الفحوص الطبية والاختبارات والتمارين، ومن خلال النتائج ينصح الرياضي ويوجهه إلى ألعاب معينة (حسب البنية الجسدية، والقدرة البدنية، والوضعية، والإمكانيات المورفولوجية).", "<b>المراقبة:</b> فحص ومتابعة الرياضي بصفة مستمرة لتجنب الإصابات الرياضية.", "<b>العلاج:</b> علاج الإصابات (علاجات مختلفة وإعادة التأهيل)."]], ["أهمية ودور الطب الرياضي", ["تحسين الأداء البدني للرياضي.", "الوقاية من الإصابات (تحديد عوامل الخطر، برنامج الإحماء).", "العلاج والتأهيل.", "تعزيز الصحة العامة للرياضي."]], ["أقسام الطب الرياضي", ["<b>الطب الرياضي التوجيهي:</b> يتم توجيه الفرد انطلاقًا من الاختبارات والفحوص التشريحية والمورفولوجية والفيزيولوجية والسيكولوجية بما يناسب وإمكانياتهم.", "<b>الطب الرياضي الوقائي:</b> يقوم بالدراسة والبحث في مختلف التغيرات الفيزيولوجية والشريحية والنفسية والحيوية في جسم الرياضي وحالته الحركية البدنية والنفسية خارج وداخل الملعب. ويمكن للطب الرياضي أن يصدر بعض التعليمات إلى المدرب من خلال النصح ببعض التمارين الرياضية التعويضية.", "<b>الطب الرياضي العلاجي:</b> علاج الإصابات (الجراحة، التأهيل الطبي الصحي، الأخصائيين).", "<b>الطب الرياضي التأهيلي:</b> تحديد برنامج تدريبي للمصاب ومدة الشفاء للسماح للرياضي بالعودة إلى المنافسة في أحسن الظروف."]], ["تعريف الطب الرياضي", "الطب الرياضي هو طب مختص في الوقاية من الإصابات الرياضية وعلاجها وتحسين الأداء، كما يقوم بفحص ومتابعة الرياضي."], ["مهامه", ["التشخيص والعلاج.", "الوقاية والإرشاد.", "إعادة التأهيل."]]], "summary": [{"h": "مفهوم الطب الرياضي ومهامه", "l": ["تخصص طبي حديث يهتم بعودة المصاب أو الرياضي إلى لياقته العادية، ويبحث التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية الناتجة عن الجهد البدني.", "هو طب مختص في الوقاية من الإصابات وعلاجها وتحسين الأداء.", "المهام: التشخيص والعلاج، الوقاية والإرشاد، إعادة التأهيل."]}, {"h": "تاريخه", "l": ["1896: أول استخدام للمصطلح في أولمبياد أثينا. 1913: تحول إلى فرع طبي مع تأهيل الأطباء. 1920: إنشاء المعهد الرياضي الطبي (الألعاب الشتوية). 1928: أول مؤتمر عام في أمستردام."]}, {"h": "أهدافه (Bent CARLLY)", "l": ["<b>الاختيار:</b> تشخيص الأمراض لتحديد من يستطيع ممارسة الرياضة.", "<b>التوجيه:</b> فحوص واختبارات لتوجيه الرياضي إلى الألعاب المناسبة بحسب بنيته وقدرته.", "<b>المراقبة:</b> متابعة مستمرة لتجنب الإصابات. <b>العلاج:</b> علاج الإصابات وإعادة التأهيل."]}, {"h": "أهميته وأقسامه", "l": ["الأهمية: تحسين الأداء، الوقاية، العلاج والتأهيل، تعزيز الصحة العامة.", "<b>التوجيهي:</b> توجيه الفرد بحسب الفحوص. <b>الوقائي:</b> دراسة التغيرات داخل الملعب وخارجه ونصح المدرب بتمارين تعويضية. <b>العلاجي:</b> الجراحة والتأهيل الطبي والأخصائيون. <b>التأهيلي:</b> برنامج تدريبي ومدة شفاء للعودة إلى المنافسة."]}], "faq": [["الأسئلة المباشرة"], ["عرّف الطب الرياضي.", "هو طب مختص في الوقاية من الإصابات الرياضية وعلاجها وتحسين الأداء، كما يقوم بفحص ومتابعة الرياضي."], ["ما مهام الطب الرياضي؟", "التشخيص والعلاج، والوقاية والإرشاد، وإعادة التأهيل."], ["ما التغيرات التي يبحثها الطب الرياضي ويعالجها؟", "التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية في جسم الإنسان."], ["متى وأين استُخدم مصطلح «الطب الرياضي» لأول مرة؟", "في سنة 1896 خلال الألعاب الأولمبية في أثينا (اليونان)."], ["ماذا حدث سنة 1928؟", "أُقيم المؤتمر العام الأول للطب الرياضي في هولندا (أمستردام)."], ["ما الأدوار الأربعة التي يعمل عليها الطب الرياضي حسب Bent CARLLY؟", "الاختيار، والتوجيه، والمراقبة، والعلاج."], ["ما أقسام الطب الرياضي؟", "الطب الرياضي التوجيهي، والوقائي، والعلاجي، والتأهيلي."], ["ما هدف الاختيار والتوجيه والمراقبة وملاحظة الرياضي؟", "مراقبة تأثير الرياضة على جسم الإنسان (جهاز اللياقة البدنية)."], ["ماذا حدث سنة 1913؟", "تحوّل الطب الرياضي إلى فرع من فروع الطب بعد يوم طبي دراسي."], ["ماذا حدث سنة 1920؟", "تم إنشاء المعهد الرياضي الطبي خلال الألعاب الأولمبية الشتوية."], ["الأسئلة غير المباشرة"], ["كيف يحدد الطب الرياضي ما إذا كان الفرد يستطيع ممارسة الرياضة أم لا؟", "عن طريق تشخيص الأمراض التي تمنعه من ممارستها."], ["كيف تساهم المراقبة في تجنب الإصابات الرياضية؟", "بفحص الرياضي ومتابعته بصفة مستمرة."], ["ماذا يدرس الطب الرياضي الوقائي؟", "يدرس ويبحث في مختلف التغيرات الفيزيولوجية والشريحية والنفسية والحيوية في جسم الرياضي وحالته الحركية البدنية والنفسية خارج وداخل الملعب."], ["ماذا يحدد الطب الرياضي التأهيلي للمصاب؟", "يحدد له برنامجًا تدريبيًا ومدة الشفاء."], ["ما الذي يشمله الطب الرياضي العلاجي؟", "علاج الإصابات، ويشمل الجراحة والتأهيل الطبي الصحي والأخصائيين."], ["كيف يساهم الطب الرياضي في الوقاية من الإصابات؟", "بتحديد عوامل الخطر ووضع برنامج الإحماء."], ["ماذا يهتم به الطب الرياضي بالنسبة للمصاب أو الرياضي بعد مرضه أو إصابته؟", "يهتم برجوعه إلى حد لياقته البدنية العادية."], ["على أي أساس يوجَّه الفرد في الطب الرياضي التوجيهي؟", "انطلاقًا من الاختبارات والفحوص التشريحية والمورفولوجية والفيزيولوجية والسيكولوجية بما يناسب إمكانياته."], ["كيف يعالج الطب الرياضي الإصابات حسب أهدافه؟", "بعلاجات مختلفة وإعادة التأهيل."], ["في أي ظروف يبحث الطب الرياضي التغيرات الناتجة عن الجهد البدني؟", "في الظروف العادية والمختلفة."]], "mcq": [{"q": "الطب الرياضي هو أحد:", "o": ["العلوم الإنسانية القديمة", "العلوم الاجتماعية", "فروع الهندسة", "التخصصات الطبية الحديثة"], "a": 3}, {"q": "يتم في الطب الرياضي تحسين:", "o": ["الموارد المالية للأندية", "القوى الجسدية المحتومة على النشاط البدني", "أساليب التحكيم", "قوانين الألعاب"], "a": 1}, {"q": "يقدم الطب الرياضي في التوجيه:", "o": ["مجموعة من الفحوص الطبية والاختبارات والتمارين", "برامج غذائية فقط", "جداول المنافسات", "عقود اللاعبين"], "a": 0}, {"q": "من خلال نتائج الفحوص يقوم الطب الرياضي بـ:", "o": ["إيقاف الرياضي نهائيًا", "منع المدرب من التدريب", "تغيير قوانين اللعبة", "نصح الرياضي وتوجيهه إلى ألعاب معينة"], "a": 3}, {"q": "أي مجموعة تمثل معايير توجيه الرياضي إلى ألعاب معينة؟", "o": ["السن واللون والجنسية", "البنية الجسدية والقدرة البدنية والوضعية والإمكانيات المورفولوجية", "الدخل والمستوى الدراسي", "الطول فقط"], "a": 1}, {"q": "يمكن للطب الرياضي الوقائي أن يصدر إلى المدرب تعليمات بـ:", "o": ["تمارين رياضية تعويضية", "إلغاء المنافسة", "تغيير الحكم", "زيادة الأحمال دائمًا"], "a": 0}, {"q": "الغاية من برنامج الطب الرياضي التأهيلي أن يعود الرياضي إلى المنافسة:", "o": ["دون أي فحوص", "بأسرع وقت مهما كانت حالته", "بعد التوقف النهائي", "في أحسن الظروف"], "a": 3}, {"q": "من أدوار الطب الرياضي وأهميته:", "o": ["تحسين الأداء البدني للرياضي", "رفع تكلفة التدريب", "تقليل عدد المنافسات", "الحد من عدد الرياضيين"], "a": 0}, {"q": "من أهمية الطب الرياضي، إلى جانب العلاج:", "o": ["الإعلان", "التحكيم", "التسويق", "التأهيل"], "a": 3}, {"q": "من أهمية الطب الرياضي الأخيرة المذكورة في المحاضرة:", "o": ["تعزيز الصحة العامة للرياضي", "تنظيم البطولات", "بناء الملاعب", "تدريب الحكام"], "a": 0}, {"q": "القسم الذي يشمل الجراحة والتأهيل الطبي الصحي والأخصائيين:", "o": ["الطب الرياضي التوجيهي", "الطب الرياضي الوقائي", "الطب الرياضي العلاجي", "الطب الرياضي التأهيلي"], "a": 2}, {"q": "ماذا طُبّق على الرياضيين خلال الألعاب الأولمبية في أثينا عند أول استخدام للمصطلح؟", "o": ["قوانين التحكيم", "اختبارات القبول المدرسية", "برامج التغذية الحديثة", "بعض العلاجات الطبية"], "a": 3}, {"q": "في سنة 1913 تم أيضًا:", "o": ["بناء ملعب أولمبي", "تأهيل بعض الأطباء وتدريبهم على فرع الطب الرياضي", "إلغاء الألعاب الأولمبية", "تأسيس اتحاد لكرة القدم"], "a": 1}, {"q": "إضافة إلى بحث التغيرات وعلاجها، يبحث الطب الرياضي:", "o": ["أسعار المعدات", "العلاقات التطبيقية", "نتائج المباريات", "قوانين الاحتراف"], "a": 1}, {"q": "تحوّل الطب الرياضي إلى فرع من فروع الطب خلال:", "o": ["مؤتمر عام في هولندا", "الألعاب الأولمبية الشتوية", "يوم طبي دراسي", "أولمبياد أثينا"], "a": 2}, {"q": "التغيرات الفسيولوجية والمورفولوجية والشريحية المرضية التي يبحثها الطب الرياضي تنتج عن:", "o": ["الجهد البدني", "الراحة التامة فقط", "التغذية فقط", "العوامل الجوية فقط"], "a": 0}, {"q": "القسم الذي يدرس التغيرات في جسم الرياضي وحالته الحركية البدنية والنفسية خارج وداخل الملعب:", "o": ["الطب الرياضي الوقائي", "الطب الرياضي التأهيلي", "الطب الرياضي العلاجي", "الطب الرياضي التوجيهي"], "a": 0}, {"q": "أي مما يلي ليس من أقسام الطب الرياضي؟", "o": ["التوجيهي", "الوقائي", "التجميلي", "التأهيلي"], "a": 2}, {"q": "أي مما يلي ليس من مهام الطب الرياضي؟", "o": ["التشخيص والعلاج", "الوقاية والإرشاد", "إعادة التأهيل", "التدريب على كرة القدم"], "a": 3}, {"q": "أي مما يلي ليس من الأدوار الأربعة وفق Bent CARLLY؟", "o": ["الاختيار", "التوجيه", "التسويق", "المراقبة"], "a": 2}], "pdf": "1-1.pdf", "pdfName": "1-1.pdf", "map": {"img": "https://i.ibb.co/nsNV9SXQ/5-1-map.jpg", "pdf": "1-1-map.pdf", "pdfName": "1-1-map.pdf"}}, "1-2": {"lesson": [["المهام والدور الذي يقوم به الطبيب الرياضي", "يقوم الطبيب الرياضي بفحص وتشخيص إصابة الرياضي وتحسين أدائه، ومن مهامه:"], ["", ["الفحص والتشخيص والعلاج.", "المتابعة الدورية للرياضي.", "تحسين الأداء (رفع مستوى المجهود البدني)."]], ["مهام وواجبات الطب الرياضي", ["تشخيص الأعراض المرضية بمختلف أعمارهم وجنسياتهم.", "القراءة الصحيحة للاختبارات الرياضية.", "التعامل مع الأعراض المرضية لدى ذوي الاحتياجات الخاصة.", "التعامل مع الأعراض المرضية في حالة الإصابة بمرض حاد أو مزمن.", "متابعة تغذية الرياضي خلال التحضير البدني أو المنافسة.", "متابعة الرياضي خلال السفرات الرياضية.", "استعمال المناسب والملائم من الجبيرة واللفائف والرباط.", "معرفة مقاييس ومعايير الوقاية والأمن خلال الممارسة الرياضية.", "التعامل مع الإصابات داخل الملاعب مثل: السكتة القلبية وبلع اللسان."]], ["الاختبارات الطبية الرياضية", ["<b>اختبار طبي أولي:</b> يقرر من خلاله الطبيب كفاءة ولياقة الشخص الراغب في ممارسة الرياضة، ومدى قدرته على تحمل التدريب والتكيف معه.", "<b>اختبار طبي مكرر:</b> يحدد مدى تأثير الممارسة الرياضية العامة على الفرد، ويحدد مستوى التطور والنمو البدني.", "<b>اختبار طبي إضافي:</b> اختبار لتأهيل الرياضي في منافسة معينة، وكذلك تقرير عودة الرياضي من عدمها إلى التدريبات بعد إصابة رياضية أو بعد توقف طويل عن التدريب."]], ["أهداف الاختبارات الطبية الرياضية", ["الكشف عن العيوب الخلقية والتشوهات الموجودة في جسم الرياضي.", "الكشف عن مشاكل النمو وعدم التوازن في النشاط البدني.", "الكشف عن مدى تعرض الرياضي للمرض.", "الكشف عن علامات التدريب الزائد.", "الكشف عن اضطرابات التغذية.", "توعية الرياضي وتحسين ثقافته حول أهمية الاختبارات الرياضية."]]], "summary": [{"h": "مهام الطبيب الرياضي", "l": ["يفحص ويشخص إصابة الرياضي ويحسّن أدائه.", "المهام: الفحص، التشخيص، العلاج، المتابعة الدورية للرياضي، وتحسين الأداء (رفع مستوى المجهود البدني)."]}, {"h": "مهام وواجبات الطب الرياضي", "l": ["تشخيص الأعراض المرضية لمختلف الأعمار والجنسيات، والقراءة الصحيحة للاختبارات الرياضية.", "التعامل مع الأعراض لدى ذوي الاحتياجات الخاصة وفي حالات المرض الحاد أو المزمن.", "متابعة تغذية الرياضي خلال التحضير البدني أو المنافسة وخلال السفرات الرياضية.", "استعمال الجبيرة واللفائف والرباط، ومعرفة مقاييس الوقاية والأمن.", "التعامل مع الإصابات داخل الملاعب مثل السكتة القلبية وبلع اللسان."]}, {"h": "الاختبارات الطبية الرياضية", "l": ["<b>الأولي:</b> تقرير كفاءة ولياقة الراغب في ممارسة الرياضة وقدرته على تحمل التدريب.", "<b>المكرر:</b> تحديد تأثير الممارسة الرياضية العامة ومستوى التطور والنمو البدني.", "<b>الإضافي:</b> تأهيل الرياضي لمنافسة معينة وتقرير عودته إلى التدريب بعد الإصابة أو التوقف الطويل."]}, {"h": "أهداف الاختبارات", "l": ["الكشف عن العيوب الخلقية والتشوهات، ومشاكل النمو وعدم التوازن، ومدى التعرض للمرض.", "الكشف عن علامات التدريب الزائد واضطرابات التغذية.", "توعية الرياضي وتحسين ثقافته حول أهمية الاختبارات."]}], "faq": [["الأسئلة المباشرة"], ["ما مهام الطبيب الرياضي؟", "الفحص، التشخيص، العلاج، المتابعة الدورية للرياضي، وتحسين الأداء."], ["ماذا يقصد بتحسين الأداء؟", "رفع مستوى المجهود البدني."], ["ما أنواع الاختبارات الطبية الرياضية؟", "الاختبار الأولي، والمكرر، والإضافي."], ["ما الاختبار الطبي الأولي؟", "اختبار يقرر من خلاله الطبيب كفاءة ولياقة الشخص الراغب في ممارسة الرياضة ومدى قدرته على تحمل التدريب والتكيف معه."], ["ما الاختبار الطبي المكرر؟", "اختبار يحدد مدى تأثير الممارسة الرياضية العامة على الفرد ومستوى التطور والنمو البدني."], ["ما الاختبار الطبي الإضافي؟", "اختبار لتأهيل الرياضي في منافسة معينة، ولتقرير عودته من عدمها إلى التدريبات بعد إصابة أو توقف طويل."], ["اذكر أهداف الاختبارات الطبية الرياضية.", "الكشف عن العيوب الخلقية والتشوهات، ومشاكل النمو وعدم التوازن، ومدى التعرض للمرض، وعلامات التدريب الزائد، واضطرابات التغذية، وتوعية الرياضي وتحسين ثقافته."], ["ما الإصابات التي يتعامل معها الطبيب داخل الملاعب؟", "مثل السكتة القلبية وبلع اللسان."], ["ما الذي يستعمله الطبيب الرياضي من وسائل الإسعاف؟", "الجبيرة واللفائف والرباط."], ["ماذا يتابع الطبيب الرياضي خلال التحضير البدني أو المنافسة؟", "تغذية الرياضي."], ["الأسئلة غير المباشرة"], ["متى يلجأ الطبيب إلى الاختبار الأولي؟", "عندما يرغب شخص في ممارسة الرياضة، لتقرير كفاءته ولياقته وقدرته على تحمل التدريب."], ["أي اختبار يُجرى لتقرير عودة الرياضي إلى التدريب بعد الإصابة؟", "الاختبار الطبي الإضافي."], ["لماذا يُجرى الاختبار الطبي المكرر؟", "لتحديد تأثير الممارسة الرياضية العامة ومستوى التطور والنمو البدني."], ["ما علاقة الاختبارات الطبية بالتدريب الزائد؟", "تكشف الاختبارات عن علامات التدريب الزائد."], ["كيف يساهم الطبيب في رفع وعي الرياضي؟", "بتوعيته وتحسين ثقافته حول أهمية الاختبارات الرياضية."], ["مع من يتعامل الطبيب الرياضي من حيث الأعمار والحالات؟", "مع مختلف الأعمار والجنسيات، ومع ذوي الاحتياجات الخاصة، وفي حالات المرض الحاد أو المزمن."], ["ماذا يتابع الطبيب الرياضي خلال السفرات الرياضية؟", "يتابع الرياضي."], ["ما المعارف التي يجب أن يمتلكها الطبيب بخصوص الوقاية؟", "مقاييس ومعايير الوقاية والأمن خلال الممارسة الرياضية."], ["ما الذي تكشفه الاختبارات عن جسم الرياضي؟", "العيوب الخلقية والتشوهات الموجودة فيه."]], "mcq": [{"q": "يقوم الطبيب الرياضي بفحص وتشخيص إصابة الرياضي و:", "o": ["تحكيم مبارياته", "تحسين أدائه", "تحديد أجره", "اختيار فريقه"], "a": 1}, {"q": "تحسين الأداء يعني:", "o": ["خفض مستوى المجهود البدني", "إيقاف التدريب", "تقليل عدد المنافسات", "رفع مستوى المجهود البدني"], "a": 3}, {"q": "من مهام الطبيب الرياضي المتابعة الدورية:", "o": ["للرياضي", "للحكام", "للجمهور", "للمدرب فقط"], "a": 0}, {"q": "من واجبات الطب الرياضي القراءة الصحيحة لـ:", "o": ["قوانين اللعبة", "عقود اللاعبين", "الاختبارات الرياضية", "جداول المنافسات"], "a": 2}, {"q": "يتابع الطبيب تغذية الرياضي خلال:", "o": ["العطلة فقط", "التحضير البدني أو المنافسة", "الدراسة", "النوم"], "a": 1}, {"q": "من الوسائل التي يجب أن يحسن الطبيب استعمالها:", "o": ["الجبيرة واللفائف والرباط", "الكرات", "الصافرات", "الشباك"], "a": 0}, {"q": "من الإصابات التي يتعامل معها الطبيب داخل الملاعب:", "o": ["الزكام", "السكتة القلبية", "الصداع الخفيف", "الأرق"], "a": 1}, {"q": "من إصابات الملاعب أيضًا:", "o": ["فقدان الشهية", "بلع اللسان", "ضعف البصر", "حساسية الجلد"], "a": 1}, {"q": "الاختبار الذي يقرر من خلاله الطبيب كفاءة ولياقة الشخص الراغب في ممارسة الرياضة:", "o": ["الإضافي", "المكرر", "الأولي", "العام"], "a": 2}, {"q": "الاختبار الذي يحدد تأثير الممارسة الرياضية العامة ومستوى التطور والنمو البدني:", "o": ["الأولي", "المكرر", "الإضافي", "الوقائي"], "a": 1}, {"q": "الاختبار الذي يؤهل الرياضي لمنافسة معينة:", "o": ["الأولي", "المكرر", "الوقائي", "الإضافي"], "a": 3}, {"q": "يُستعمل الاختبار الإضافي أيضًا لتقرير:", "o": ["سعر التذكرة", "عودة الرياضي من عدمها إلى التدريب بعد الإصابة", "نتيجة المباراة", "اختيار المدرب"], "a": 1}, {"q": "أي مما يلي من أهداف الاختبارات الطبية الرياضية؟", "o": ["الكشف عن العيوب الخلقية والتشوهات", "بيع المعدات", "تنظيم البطولات", "تعيين الحكام"], "a": 0}, {"q": "تكشف الاختبارات الطبية الرياضية عن مشاكل:", "o": ["الملعب", "النمو وعدم التوازن في النشاط البدني", "الإعلام", "التمويل"], "a": 1}, {"q": "من الأمور التي تكشف عنها الاختبارات:", "o": ["علامات التدريب الزائد", "أخطاء التحكيم", "سوء الإضاءة", "غياب الجمهور"], "a": 0}, {"q": "تكشف الاختبارات الطبية الرياضية عن اضطرابات:", "o": ["النوم فقط", "اللغة", "التغذية", "الحساب"], "a": 2}, {"q": "من أهداف الاختبارات توعية الرياضي وتحسين:", "o": ["مهاراته التسويقية", "ثقافته حول أهمية الاختبارات", "سرعة جريه", "أجره"], "a": 1}, {"q": "أي مما يلي ليس من أنواع الاختبارات الطبية الرياضية؟", "o": ["الأولي", "المكرر", "الإضافي", "التسويقي"], "a": 3}, {"q": "أي مما يلي ليس من مهام الطبيب الرياضي؟", "o": ["الفحص", "التشخيص", "العلاج", "وضع الخطط التكتيكية للفريق"], "a": 3}, {"q": "يتعامل الطبيب الرياضي مع الأعراض المرضية لدى:", "o": ["ذوي الاحتياجات الخاصة", "الحكام فقط", "المشجعين فقط", "الإداريين فقط"], "a": 0}], "pdf": "1-2.pdf", "pdfName": "1-2.pdf", "map": {"img": "https://i.ibb.co/n8QqF4LP/543637062-1791729744128813.jpg", "pdf": "1-2-map.pdf", "pdfName": "1-2-map.pdf"}}};
 
@@ -739,6 +810,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 
   function tab(t){
     wbStop();
+    window.CURRENT_LEC=(S+1)+'-'+L;var ab=$('askAI');if(ab)ab.hidden=!cur();
     T=t;document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.t===t)});
     var p=$('panel'),html='',c=cur()||{},LS=c.lesson,SM=c.summary,FQ=c.faq,MQ=c.mcq,empty={read:'لم يتوفر الدرس بعد',sum:'لا يوجد ملخص',faq:'لا توجد أسئلة',mcq:'لا توجد أسئلة',map:'ستتوفر الخريطة الذهنية عند توفر الدرس'};
     if(!c.lesson){html='<p style="text-align:center;margin:30px auto">'+empty[t]+'</p>';p.innerHTML=html;return}
@@ -765,6 +837,42 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     }
   }
   document.querySelector('.tabs').onclick=function(e){var b=e.target.closest('button');if(b)tab(b.dataset.t)};
+
+
+  /* ===== Notification bell: all lectures, newest first ===== */
+  (function(){
+    var bell=$('bell'),badge=$('badge'),sheet=$('nsheet'),list=$('nlist'),last=null;
+    function items(){
+      return Object.keys(CONTENT).map(function(k){
+        var p=k.split('-'),s=+p[0],l=+p[1],d=DATES[k]||'',t=d?Date.parse(d+'T00:00:00'):0;
+        return {k:k,s:s,l:l,d:d,t:isNaN(t)?0:t,name:(SUBJECTS[s-1]||{}).alt||('المادة '+s)};
+      }).sort(function(a,b){return b.t-a.t||b.s-a.s||b.l-a.l});
+    }
+    function pad(n){return n<10?'0'+n:''+n}
+    function fmt(t){try{return new Date(t).toLocaleDateString('ar-DZ-u-nu-latn',{day:'numeric',month:'long',year:'numeric'})}catch(e){return ''}}
+    function render(){
+      var a=items();
+      badge.textContent=a.length;badge.hidden=!a.length;
+      $('nsub').textContent='إجمالي '+a.length+' محاضرة · الأحدث أولًا';
+      var now=Date.now();
+      list.innerHTML=a.length?a.map(function(x){
+        var isNew=x.t&&now-x.t<7*864e5;
+        return '<li><button class="nitem" type="button" data-k="'+x.k+'"><span class="nnum">'+pad(x.l)+'</span><span class="nbody"><div class="ntitle">مقياس '+x.name+'</div><div class="nmeta"><b>المحاضرة '+pad(x.l)+'</b>'+(x.t?'<span>'+fmt(x.t)+'</span>':'')+'</div></span>'+(isNew?'<span class="nnew">جديد</span>':'')+'</button></li>';
+      }).join(''):'<li class="nempty">لا توجد محاضرات بعد</li>';
+    }
+    function open(){render();last=document.activeElement;sheet.classList.add('open');sheet.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';$('nclose').focus()}
+    function close(){sheet.classList.remove('open');sheet.setAttribute('aria-hidden','true');document.body.style.overflow='';if(last&&last.focus)last.focus()}
+    bell.onclick=open;$('nclose').onclick=close;
+    sheet.onclick=function(e){if(e.target===sheet)close()};
+    addEventListener('keydown',function(e){if(e.key==='Escape'&&sheet.classList.contains('open'))close()});
+    list.onclick=function(e){
+      var b=e.target.closest('.nitem');if(!b)return;
+      var p=b.dataset.k.split('-');S=+p[0]-1;L=+p[1];
+      close();renderLecs();$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec');
+    };
+    render();
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){setTimeout(function(){bell.classList.add('ring')},600)}
+  })();
 
   /* Make both name lines equal in width using letter-spacing on the narrower one */
   function fitName(){
@@ -820,5 +928,63 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   });
 })();
 </script>
+
+<!-- ===== PWA install button ===== -->
+<div class="pwa" id="pwa" hidden>
+  <button class="pwa-btn" id="pwaBtn" type="button">
+    <span class="pwa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg></span>
+    <span>ثبّت تطبيق الموقع على هاتفك الآن</span>
+  </button>
+  <button class="pwa-x" id="pwaX" type="button" aria-label="إخفاء">✕</button>
+</div>
+<div class="ios-bg" id="iosSheet" aria-hidden="true"><div class="ios-box" role="dialog" aria-modal="true" aria-labelledby="iosT">
+  <h2 id="iosT">تثبيت التطبيق على الآيفون</h2>
+  <p>خطوات بسيطة من متصفح Safari:</p>
+  <ol>
+    <li>اضغط على زر «مشاركة» <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> أسفل الشاشة</li>
+    <li>مرّر للأسفل واختر «إضافة إلى الشاشة الرئيسية»</li>
+    <li>اضغط «إضافة» في أعلى الشاشة</li>
+  </ol>
+  <button class="ios-ok" id="iosOk" type="button">فهمت</button>
+</div></div>
+<script>
+/* ===== PWA: زر التثبيت العائم (Android + iOS) ===== */
+(function(){
+  var $=function(i){return document.getElementById(i)},bar=$('pwa'),KEY='pwa-hide-until',DAYS=7,deferred=null;
+  function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  if(standalone)return; /* مثبّت مسبقًا: لا نعرض شيئًا */
+  var ua=navigator.userAgent||'';
+  var isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  function snoozed(){var t=+get(KEY);return t&&Date.now()<t}
+  function show(){if(snoozed()||!bar.hidden)return;bar.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){bar.classList.add('show')})})}
+  function hide(){bar.classList.remove('show');setTimeout(function(){bar.hidden=true},400)}
+
+  /* Android / Chrome / Edge / Samsung Internet */
+  addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show()});
+  addEventListener('appinstalled',function(){deferred=null;hide()});
+
+  /* iOS: لا يوجد beforeinstallprompt، نعرض الزر ثم إرشادات «مشاركة ← إضافة إلى الشاشة الرئيسية» */
+  if(isIOS)setTimeout(show,2500);
+
+  var sheet=$('iosSheet');
+  function openIOS(){sheet.classList.add('open');sheet.setAttribute('aria-hidden','false')}
+  function closeIOS(){sheet.classList.remove('open');sheet.setAttribute('aria-hidden','true')}
+  $('iosOk').onclick=closeIOS;
+  sheet.onclick=function(e){if(e.target===sheet)closeIOS()};
+  addEventListener('keydown',function(e){if(e.key==='Escape')closeIOS()});
+
+  $('pwaBtn').onclick=function(){
+    if(deferred){
+      var d=deferred;deferred=null;hide();
+      d.prompt();
+      if(d.userChoice)d.userChoice.then(function(c){if(c&&c.outcome!=='accepted')set(KEY,Date.now()+DAYS*864e5)});
+    }else if(isIOS){openIOS()}
+  };
+  $('pwaX').onclick=function(){set(KEY,Date.now()+DAYS*864e5);hide()};
+})();
+</script>
+<script src="ai-engine.js" defer></script>
 </body>
 </html>
