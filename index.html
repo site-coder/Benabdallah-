@@ -251,6 +251,7 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
   <h2 class="ptitle" id="ltitle"></h2>
   <div class="tabs" id="tabs" role="tablist">
     <button role="tab" data-t="read">درس للقراءة</button>
+    <button role="tab" data-t="ai">🤖 الذكاء الاصطناعي</button>
     <button role="tab" data-t="sum">ملخص</button>
     <button role="tab" data-t="faq">أسئلة عادية</button>
     <button role="tab" data-t="mcq">أسئلة اختيار من متعدد</button>
@@ -258,9 +259,6 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
     <button role="tab" data-t="wb">فيديو الوايت بورد</button>
   </div>
   <section class="panel" id="panel" role="tabpanel"></section>
-  <div class="ai-ask-wrap"><button class="ai-ask" id="askAI" type="button" hidden>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
-    <span>اسأل الذكاء الاصطناعي عن هذه المحاضرة</span></button></div>
 </main>
 
 <footer>
@@ -810,10 +808,11 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 
   function tab(t){
     wbStop();
-    window.CURRENT_LEC=(S+1)+'-'+L;var ab=$('askAI');if(ab)ab.hidden=!cur();
+    window.CURRENT_LEC=(S+1)+'-'+L;$('panel').classList.remove('ai-panel');
     T=t;document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.t===t)});
     var p=$('panel'),html='',c=cur()||{},LS=c.lesson,SM=c.summary,FQ=c.faq,MQ=c.mcq,empty={read:'لم يتوفر الدرس بعد',sum:'لا يوجد ملخص',faq:'لا توجد أسئلة',mcq:'لا توجد أسئلة',map:'ستتوفر الخريطة الذهنية عند توفر الدرس'};
     if(!c.lesson){html='<p style="text-align:center;margin:30px auto">'+empty[t]+'</p>';p.innerHTML=html;return}
+    if(t==='ai'){if(window.AIChat)AIChat.mount(p,(S+1)+'-'+L);else p.innerHTML='<p style="text-align:center;margin:30px auto">المساعد الذكي غير متاح حالياً</p>';return}
     if(t==='wb'){var wk=(S+1)+'-'+L;if(WB_DATA[wk])wbMount(p,wk);else p.innerHTML='<p style="text-align:center;margin:30px auto">سيتم إضافة فيديو هذه المحاضرة لاحقاً</p>';return}
     if(t==='faq'){flashDeck(p,FQ||[]);return}
     if(t==='mcq'){mcqDeck(p,MQ||[]);return}
