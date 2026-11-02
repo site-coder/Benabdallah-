@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var AI_PROXY_URL = 'https://curly-firefly-2cb6.mbenabdallah663.workers.dev';
+  var AI_PROXY_URL = 'https://withered-cake-8acc.mbenabdallah663.workers.dev';
   var LECTURES_URL = 'lectures.json';
   var FRIENDLY_FAIL = 'الخدمة مشغولة حالياً بسبب كثرة الاستخدام. أعد المحاولة بعد لحظات.';
 
