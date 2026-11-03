@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.3.0';
+const VERSION = 'v1.4.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -68,6 +68,13 @@ function isHttp(url) {
 const TRACK_HOST = 'wild-wind-8577.mbenabdallah663.workers.dev';
 function isTrackHost(url) {
   return url.hostname === TRACK_HOST;
+}
+
+/* خدمات تسجيل الدخول من قوقل (One Tap / زر الدخول): تمرّ دائماً للشبكة ولا تُخزَّن أبداً،
+   لأن تخزينها يجعل المكتبة قديمة ويكسر تسجيل الدخول. الخطوط (fonts.googleapis/gstatic) غير مشمولة. */
+const AUTH_HOSTS = ['accounts.google.com', 'apis.google.com', 'www.gstatic.com', 'www.google.com'];
+function isAuthHost(url) {
+  return AUTH_HOSTS.indexOf(url.hostname) !== -1 || /\.google\.com$/i.test(url.hostname);
 }
 
 function isCacheable(response) {
@@ -319,6 +326,7 @@ self.addEventListener('fetch', function (event) {
   const url = new URL(request.url);
   if (!isHttp(url)) return;
   if (isTrackHost(url)) return;
+  if (isAuthHost(url)) return;
   if (url.origin === ORIGIN && url.pathname.slice(-6) === '/sw.js') return;
   if (url.origin !== ORIGIN && request.mode === 'navigate') return;
 
@@ -345,6 +353,7 @@ async function warmCache(urls) {
     try { url = new URL(raw, SCOPE); } catch (e) { return; }
     if (!isHttp(url)) return;
     if (isTrackHost(url)) return;
+    if (isAuthHost(url)) return;
     if (url.origin === ORIGIN && url.pathname.slice(-6) === '/sw.js') return;
 
     const request = new Request(url.href);

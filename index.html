@@ -12,13 +12,14 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Mohamed Benabdallah | منصة تعليمية</title>
+<link rel="preconnect" href="https://accounts.google.com">
 <link rel="dns-prefetch" href="https://wild-wind-8577.mbenabdallah663.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&display=swap" rel="stylesheet">
 <script>
-/* اكتشاف الجلسة مبكراً: إن وُجد طالب مسجَّل لا تظهر بوابة الدخول إطلاقاً */
-(function(){try{var u=JSON.parse(localStorage.getItem('edu_user')||'null');if(u&&u.id)document.documentElement.setAttribute('data-signed','1')}catch(e){}})();
+/* اكتشاف الجلسة مبكراً: إن وُجدت جلسة صالحة لا تظهر بوابة الدخول إطلاقاً */
+(function(){try{var u=JSON.parse(localStorage.getItem('edu_user')||'null');if(u&&u.id&&Date.now()-(u.lastSeen||u.loginAt||0)<365*864e5)document.documentElement.setAttribute('data-signed','1')}catch(e){}})();
 </script>
 <style>
 :root{--bg:#08070C;--card:rgba(20,16,32,.62);--line:rgba(168,85,247,.22);--text:#fff;--muted:#B7AFCB;--p:#A855F7;--p2:#C084FC;--g:#F59E0B;--glow:0 0 22px rgba(192,132,252,.55),0 0 60px rgba(168,85,247,.3);--wave:.55;--r:16px}
@@ -239,19 +240,34 @@ html[data-signed="1"] .auth-gate{display:none}
 .gate-card h1{font-size:clamp(22px,6vw,28px);line-height:1.5;margin-bottom:6px}
 .gate-sub{font-size:13px;color:var(--g);margin-bottom:14px}
 .gate-lead{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:20px}
-.gate-form{display:flex;flex-direction:column;gap:12px;text-align:start}
-.gate-input{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:16px;line-height:1.5;outline:none;transition:border-color .2s,box-shadow .2s}
-.gate-input::placeholder{color:var(--muted);opacity:.8}
-.gate-input:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.25)}
-.gate-btn{width:100%;margin-top:4px;padding:14px 18px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:var(--glow);transition:transform .15s,opacity .2s}
-.gate-btn:active{transform:scale(.98)}
-.gate-btn:disabled{opacity:.6;cursor:not-allowed}
+.gate-gbtn{display:flex;justify-content:center;min-height:44px}
 .gate-msg{margin-top:14px;font-size:13px;color:var(--muted);min-height:22px}
 .gate-msg.err{color:#F87171}
+.gate-retry{margin-top:6px;padding:8px 22px;border-radius:99px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px}
 .auth-out{display:none;margin:14px auto 0;padding:6px 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;font-size:13px}
 html[data-signed="1"] .auth-out{display:inline-block}
 .auth-toast{position:fixed;z-index:120;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,24px);max-width:calc(100% - 32px);padding:10px 20px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
 .auth-toast.show{opacity:1;transform:translate(-50%,0)}
+/* زر قوقل الاحتياطي داخل البطاقة */
+.gate-gwrap{display:inline-flex;border-radius:99px;line-height:0;box-shadow:0 0 0 1px rgba(192,132,252,.55),0 0 22px rgba(168,85,247,.4);transition:box-shadow .2s}
+.gate-gwrap:hover{box-shadow:0 0 0 1px var(--g),0 0 24px rgba(245,158,11,.35)}
+/* تقدّم المحاضرات + زر المتابعة */
+.lec{position:relative;overflow:hidden}
+.lec .lp{position:absolute;inset-inline-end:16px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;color:var(--g)}
+.lec .lm{position:absolute;inset-inline-start:16px;top:50%;transform:translateY(-50%);font-size:15px}
+.lec .lbar{position:absolute;inset-inline-start:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--p),var(--g))}
+.resume{display:inline-block;max-width:100%;margin-top:22px;padding:12px 26px;border-radius:99px;border:1px solid var(--g);background:var(--card);color:var(--g);font:inherit;font-size:15px;font-weight:600;line-height:1.7;cursor:pointer;box-shadow:0 0 18px rgba(245,158,11,.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:.2s}
+.resume:hover{background:var(--g);color:#1A1030}
+.resume[hidden]{display:none}
+/* تبويب الملاحظات */
+.nt-l{display:block;color:var(--g);font-size:20px;font-weight:600;margin-bottom:10px}
+.nt-in{display:block;width:100%;min-height:220px;resize:vertical;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:16px;line-height:1.9}
+.nt-in::placeholder{color:var(--muted);opacity:.7}
+.nt-f{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.nt-s{flex:1;min-width:120px;font-size:13px;color:var(--muted);min-height:22px}
+.nt-s.ok{color:#34D399}.nt-s.err{color:#F87171}
+.nt-c{font-size:12px;color:var(--muted)}
+.nt-f .qbtn{flex:none;min-height:40px;padding:6px 18px;font-size:14px}
 </style>
 </head>
 <body>
@@ -260,13 +276,10 @@ html[data-signed="1"] .auth-out{display:inline-block}
     <div class="gate-logo" aria-hidden="true">🎓</div>
     <h1 id="gateT">مرحباً بك في المنصة</h1>
     <div class="gate-sub">ملحقة المدرسة العليا للأساتذة بالشلف · التربية البدنية والرياضية</div>
-    <p class="gate-lead">سجّل دخولك بـ الاسم ورقم التسجيل للوصول إلى المحاضرات والملخصات ومتابعة تقدّمك.</p>
-    <form class="gate-form" id="authForm" autocomplete="on" novalidate>
-      <input class="gate-input" id="authName" name="name" type="text" placeholder="الاسم واللقب" autocomplete="name" maxlength="60" required>
-      <input class="gate-input" id="authReg" name="regno" type="text" inputmode="numeric" placeholder="رقم التسجيل الجامعي" autocomplete="off" maxlength="20" dir="ltr" required>
-      <button class="gate-btn" id="authSubmit" type="submit">دخول المنصة</button>
-    </form>
-    <div class="gate-msg" id="authMsg" role="status" aria-live="polite"></div>
+    <p class="gate-lead">سجّل الدخول بحساب قوقل للدخول إلى المحاضرات والملخصات ومتابعة تقدّمك.</p>
+    <div class="gate-gbtn" id="authGBtn"></div>
+    <div class="gate-msg" id="authMsg" role="status" aria-live="polite">جارٍ التحميل…</div>
+    <button class="gate-retry" id="authRetry" type="button" hidden>إعادة المحاولة</button>
   </div>
 </div>
 <div class="waves" aria-hidden="true"><svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice" fill="none">
@@ -289,6 +302,7 @@ html[data-signed="1"] .auth-out{display:inline-block}
   <section class="hero wrap">
     <h1>ابنِ مستقبلك بالعلم</h1>
     <p class="lead">كل درس تتقنه اليوم خطوة نحو <b>الإنسان الذي تطمح أن تكونه</b>. ابدأ بثقة، واستمر بإصرار.</p>
+    <button class="resume" id="resume" type="button" hidden></button>
   </section>
   <section class="wrap"><div class="grid" id="subjects"></div></section>
 </main>
@@ -310,6 +324,7 @@ html[data-signed="1"] .auth-out{display:inline-block}
     <button role="tab" data-t="sum">ملخص</button>
     <button role="tab" data-t="faq">أسئلة عادية</button>
     <button role="tab" data-t="mcq">أسئلة اختيار من متعدد</button>
+    <button role="tab" data-t="notes">📝 ملاحظاتي</button>
     <button role="tab" data-t="map" id="tabmap">خرائط ذهنية قابلة للطباعة</button>
     <button role="tab" data-t="wb">فيديو الوايت بورد</button>
   </div>
@@ -368,19 +383,43 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   var th=get('theme');if(th)root.setAttribute('data-theme',th);
   $('theme').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);set('theme',n)};
 
-  function go(v){wbStop();for(var k in views)views[k].hidden=k!==v;scrollTo(0,0)}
+  /* وسيط آمن لاستدعاء EduAuth (قد يتأخر تحميل auth.js قليلاً) */
+  function A(fn){var a=window.EduAuth;if(!a||typeof a[fn]!=='function')return null;try{return a[fn].apply(a,[].slice.call(arguments,1))}catch(e){return null}}
+
+  var noteFlush=null;
+  function flushNote(){if(noteFlush){var f=noteFlush;noteFlush=null;f()}}
+  addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushNote()});
+  addEventListener('pagehide',flushNote);
+
+  function go(v){flushNote();wbStop();for(var k in views)views[k].hidden=k!==v;if(v==='home')paintResume();scrollTo(0,0)}
+
+  /* زر «تابع من حيث توقفت» */
+  function paintResume(){
+    var b=$('resume');if(!b)return;
+    var l=A('getLast');
+    if(!l||!CONTENT[(l.s+1)+'-'+l.l]){b.hidden=true;return}
+    b.textContent='تابع من حيث توقفت · '+((SUBJECTS[l.s]||{}).alt||'')+' · محاضرة '+l.l;
+    b.hidden=false;
+  }
+  $('resume').onclick=function(){
+    var l=A('getLast');if(!l||!CONTENT[(l.s+1)+'-'+l.l])return;
+    S=l.s;L=l.l;renderLecs();$('ltitle').textContent='محاضرة '+L;updTabs();tab(l.tab||'read');go('lec');
+  };
+  addEventListener('edu-auth',function(){renderLecs();paintResume()});
 
   $('subjects').innerHTML=SUBJECTS.map(function(s,i){return '<button class="card" data-s="'+i+'"><img src="'+s.img+'" alt="'+s.alt+'" loading="lazy"></button>'}).join('');
   function cur(){return CONTENT[(S+1)+'-'+L]}
   function updTabs(){$('tabmap').hidden=false;$('tabs').classList.add('six')}
   function renderLecs(){var c=10;if(S===0){c=Object.keys(CONTENT).filter(function(k){return k.indexOf('1-')===0}).length}
-    var h='';for(var n=1;n<=c;n++)h+='<button class="lec" data-l="'+n+'">محاضرة '+n+'</button>';$('lectures').innerHTML=h}
+    var h='';for(var n=1;n<=c;n++){var k=(S+1)+'-'+n,pc=A('percent',k)||0,nt=A('hasNote',k);
+      h+='<button class="lec" data-l="'+n+'">محاضرة '+n+(nt?'<span class="lm" title="لديك ملاحظة" aria-label="لديك ملاحظة">📝</span>':'')+(pc?'<span class="lp">'+pc+'%</span><i class="lbar" style="width:'+pc+'%"></i>':'')+'</button>'}
+    $('lectures').innerHTML=h}
   renderLecs();
 
   $('subjects').onclick=function(e){var c=e.target.closest('.card');if(!c)return;S=+c.dataset.s;renderLecs();go('list')};
   $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec');if(window.EduAuth)EduAuth.track('lecture_open',{subject:S+1,lecture:L})};
   document.querySelector('[data-go="home"]').onclick=function(){go('home')};
-  $('backList').onclick=function(){go('list')};
+  $('backList').onclick=function(){renderLecs();go('list')};
 
   /* ===== Slider: one item at a time (used by flashcards + MCQ) ===== */
   function slider(host,cfg){
@@ -439,7 +478,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   /* ===== "أسئلة اختيار من متعدد": one question per screen ===== */
   function mcqDeck(host,Q){
     if(!Q.length){host.innerHTML='<p style="text-align:center;margin:30px auto">لا توجد أسئلة</p>';return}
-    var ans,sl;
+    var ans,sl,qk=(S+1)+'-'+L;
     function clear(){ans=Q.map(function(){return null})}clear();
     function right(){return ans.filter(function(a,i){return a===Q[i].a}).length}
     function done(){return ans.filter(function(a){return a!==null}).length}
@@ -459,6 +498,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
       },
       summary:function(act){
         var r=right(),n=Q.length,pc=r/n*100,el=document.createElement('div');el.className='sum';
+        if(done())A('saveQuiz',qk,r,n);
         el.innerHTML='<div class="big">'+r+' / '+n+'</div><div>'+(pc>=80?'ممتاز! أداء رائع':pc>=50?'جيد، واصل المراجعة':'راجع الدرس وأعد المحاولة')+'</div>'+
           '<div class="st"><span>صحيحة: '+r+'</span><span>خاطئة: '+(done()-r)+'</span><span>دون إجابة: '+(n-done())+'</span></div>'+
           '<div class="acts"><button class="qbtn" type="button" data-a="review">مراجعة الأسئلة</button><button class="qbtn pri" type="button" data-a="restart">إعادة الاختبار</button></div>';
@@ -861,12 +901,40 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     wbGo(0,0);
   }
 
+  /* ===== تبويب «ملاحظاتي»: حفظ تلقائي محلي لكل محاضرة ===== */
+  function notesMount(p,key){
+    var max=A('noteMax')||5000;
+    p.innerHTML='<div class="nt"><label class="nt-l" for="ntarea">ملاحظاتي على هذه المحاضرة</label>'+
+      '<textarea class="nt-in" id="ntarea" maxlength="'+max+'" placeholder="اكتب ملاحظاتك هنا. تُحفظ تلقائياً على جهازك وتظهر لك كلما فتحت هذه المحاضرة."></textarea>'+
+      '<div class="nt-f"><span class="nt-s" id="ntstat" role="status" aria-live="polite"></span><span class="nt-c" id="ntcnt"></span><button class="qbtn" id="ntdel" type="button">مسح الملاحظة</button></div></div>';
+    var ta=$('ntarea'),st=$('ntstat'),cn=$('ntcnt'),del=$('ntdel'),tm=0;
+    ta.value=A('getNote',key)||'';
+    function count(){cn.textContent=ta.value.length?ta.value.length+' / '+max:''}
+    function say(t,c){st.textContent=t;st.className='nt-s'+(c?' '+c:'')}
+    function save(){
+      clearTimeout(tm);noteFlush=null;
+      var ok=A('setNote',key,ta.value);
+      if(ok)say(ta.value.trim()?'تم الحفظ على جهازك ✓':'','ok');else say('تعذّر الحفظ: تحقق من مساحة التخزين','err');
+    }
+    ta.oninput=function(){count();say('جارٍ الحفظ…');noteFlush=save;clearTimeout(tm);tm=setTimeout(save,500)};
+    ta.onblur=function(){if(noteFlush)save()};
+    del.onclick=function(){
+      if(!ta.value.trim())return;
+      if(!confirm('مسح ملاحظتك لهذه المحاضرة؟'))return;
+      ta.value='';count();save();ta.focus();
+    };
+    count();if(ta.value)say('ملاحظتك محفوظة على جهازك');
+  }
+
   function tab(t){
+    flushNote();
     wbStop();
     window.CURRENT_LEC=(S+1)+'-'+L;$('panel').classList.remove('ai-panel');
     T=t;document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.t===t)});
-    var p=$('panel'),html='',c=cur()||{},LS=c.lesson,SM=c.summary,FQ=c.faq,MQ=c.mcq,empty={read:'لم يتوفر الدرس بعد',sum:'لا يوجد ملخص',faq:'لا توجد أسئلة',mcq:'لا توجد أسئلة',map:'ستتوفر الخريطة الذهنية عند توفر الدرس'};
+    var p=$('panel'),html='',c=cur()||{},LS=c.lesson,SM=c.summary,FQ=c.faq,MQ=c.mcq,empty={read:'لم يتوفر الدرس بعد',notes:'لم يتوفر الدرس بعد',sum:'لا يوجد ملخص',faq:'لا توجد أسئلة',mcq:'لا توجد أسئلة',map:'ستتوفر الخريطة الذهنية عند توفر الدرس'};
     if(!c.lesson){html='<p style="text-align:center;margin:30px auto">'+empty[t]+'</p>';p.innerHTML=html;return}
+    var pk=(S+1)+'-'+L;A('markTab',pk,t);A('setLast',S,L,t);
+    if(t==='notes'){notesMount(p,pk);return}
     if(t==='ai'){if(window.AIChat)AIChat.mount(p,(S+1)+'-'+L);else p.innerHTML='<p style="text-align:center;margin:30px auto">المساعد الذكي غير متاح حالياً</p>';return}
     if(t==='wb'){var wk=(S+1)+'-'+L;if(WB_DATA[wk])wbMount(p,wk);else p.innerHTML='<p style="text-align:center;margin:30px auto">سيتم إضافة فيديو هذه المحاضرة لاحقاً</p>';return}
     if(t==='faq'){flashDeck(p,FQ||[]);return}
@@ -1051,7 +1119,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   addEventListener('edu-auth',function(e){
     var d=e.detail||{},u=d.user;
     document.documentElement.setAttribute('data-auth',u?'in':'out');
-    if(d.reason==='login'&&u)say('مرحباً '+(u.name||'')+' 👋');
+    if(d.reason==='login'&&u)say('مرحباً '+(u.givenName||u.name||'')+' 👋');
     else if(d.reason==='logout')say('تم تسجيل الخروج');
   });
   document.documentElement.setAttribute('data-auth','out');
