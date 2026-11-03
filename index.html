@@ -12,6 +12,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Mohamed Benabdallah | منصة تعليمية</title>
+<link rel="preconnect" href="https://accounts.google.com">
+<link rel="dns-prefetch" href="https://wild-wind-8577.mbenabdallah663.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -212,6 +214,26 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 .wb:fullscreen,.wb:-webkit-full-screen{max-width:none;width:100%;height:100%;overflow:auto;background:var(--bg);padding:10px;box-sizing:border-box}
 .wb:fullscreen .wb-stage,.wb:-webkit-full-screen .wb-stage{width:auto;height:calc(100vh - 130px);aspect-ratio:16/9;margin-inline:auto}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* ===== Header v3: icons on the left (toggle above bell), name next to them, affiliation on the right ===== */
+.bar{display:grid;grid-template-columns:1fr auto auto;gap:10px;width:min(1040px,100% - 20px);align-items:center;min-height:64px;padding:8px 0}
+.bar .side{grid-column:3;grid-row:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bar .name{grid-column:2;grid-row:1;justify-self:start;transform:translateX(14px);align-items:flex-start;font-size:clamp(14px,4vw,20px);line-height:1.05;text-shadow:0 0 14px rgba(192,132,252,.6)}
+.bar .aff{grid-column:1;grid-row:1;justify-self:start;text-align:start;margin-top:0;padding-inline-start:10px;border-inline-start:1px solid var(--line);font-size:clamp(9px,2.6vw,12px);line-height:1.6;min-width:0}
+.bar .aff span{display:block;white-space:nowrap}
+.bar .toggle{width:34px;height:18px;min-width:0;min-height:0;justify-self:auto;border-radius:99px}
+.bar .toggle::after{top:2px;inset-inline-start:2px;width:12px;height:12px;box-shadow:0 0 6px rgba(245,158,11,.5)}
+:root[data-theme="dark"] .bar .toggle::after{transform:translateX(-16px)}
+.bar .bell{position:relative;top:auto;left:auto;width:30px;height:30px;box-shadow:none}
+.bar .bell svg{width:15px;height:15px}
+/* ===== Google sign-in button (header) + session toast ===== */
+.bar .ico-row{display:flex;align-items:center;gap:6px}
+.bar .auth-fab{position:relative;top:auto;left:auto;width:30px;height:30px;padding:0;display:grid;place-items:center;overflow:hidden;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--p2);cursor:pointer;box-shadow:none}
+.bar .auth-fab svg{width:15px;height:15px}
+.bar .auth-fab .ini{font-size:13px}
+:root[data-auth="in"] .bar .auth-fab{border-color:var(--g)}
+.auth-toast{position:fixed;z-index:120;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,24px);max-width:calc(100% - 32px);padding:10px 20px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.auth-toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -222,11 +244,12 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 <path d="M-50 900C120 820 280 1050 460 950S720 840 860 930" opacity=".5"/><path d="M-50 930C120 850 280 1080 460 980S720 870 860 960" opacity=".32"/><path d="M-50 960C120 880 280 1110 460 1010S720 900 860 990" opacity=".2"/></g></svg></div>
 
 <header><div class="wrap bar">
-  <div class="brand">
-    <div class="name" aria-label="Mohamed Benabdallah"><span id="fn">Mohamed</span><span id="ln">Benabdallah</span></div>
-    <div class="aff"><span>ملحقة المدرسة العليا للأساتذة بالشلف</span><span>التربية البدنية والرياضية</span></div>
+  <div class="side">
+    <button class="toggle" id="theme" aria-label="تبديل الوضع الداكن / الفاتح"></button>
+    <div class="ico-row"><button class="auth-fab" id="authSlot" type="button" aria-label="تسجيل الدخول بقوقل" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button><button class="bell" id="bell" type="button" aria-label="الإشعارات: قائمة المحاضرات" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="badge">0</span></button></div>
   </div>
-  <button class="toggle" id="theme" aria-label="تبديل الوضع الداكن / الفاتح"></button>
+  <div class="aff"><span>ملحقة المدرسة العليا للأساتذة بالشلف</span><span>التربية البدنية والرياضية</span></div>
+  <div class="name" aria-label="Mohamed Benabdallah"><span id="fn">Mohamed</span><span id="ln">Benabdallah</span></div>
 </div></header>
 
 <!-- 1. Home -->
@@ -266,7 +289,6 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
   <div class="bye">بالتوفيق</div>
 </footer>
 
-<button class="bell" id="bell" type="button" aria-label="الإشعارات: قائمة المحاضرات" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="badge">0</span></button>
 
 <div class="sheet-bg" id="nsheet" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ntt">
   <div class="sheet-h"><div><h2 id="ntt">🔔 المحاضرات المتاحة</h2><small id="nsub"></small></div><button class="sheet-x" id="nclose" type="button" aria-label="إغلاق">✕</button></div>
@@ -323,7 +345,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   renderLecs();
 
   $('subjects').onclick=function(e){var c=e.target.closest('.card');if(!c)return;S=+c.dataset.s;renderLecs();go('list')};
-  $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec')};
+  $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec');if(window.EduAuth)EduAuth.track('lecture_open',{subject:S+1,lecture:L})};
   document.querySelector('[data-go="home"]').onclick=function(){go('home')};
   $('backList').onclick=function(){go('list')};
 
@@ -984,6 +1006,25 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   $('pwaX').onclick=function(){set(KEY,Date.now()+DAYS*864e5);hide()};
 })();
 </script>
+<script>
+/* ===== اكتشاف الجلسة: حالة الدخول + رسالة ترحيب عند تسجيل الدخول ===== */
+(function(){
+  var toast=null,timer=null;
+  function say(t){
+    if(!toast){toast=document.createElement('div');toast.className='auth-toast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');document.body.appendChild(toast)}
+    toast.textContent=t;toast.classList.add('show');
+    clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},3200);
+  }
+  addEventListener('edu-auth',function(e){
+    var d=e.detail||{},u=d.user;
+    document.documentElement.setAttribute('data-auth',u?'in':'out');
+    if(d.reason==='login'&&u)say('مرحباً '+(u.givenName||u.name||'')+' 👋');
+    else if(d.reason==='logout')say('تم تسجيل الخروج');
+  });
+  document.documentElement.setAttribute('data-auth','out');
+})();
+</script>
+<script src="auth.js" defer></script>
 <script src="ai-engine.js" defer></script>
 </body>
 </html>
