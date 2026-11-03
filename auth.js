@@ -185,136 +185,58 @@
       loginAt: Date.now()
     };
     set(USER_KEY, JSON.stringify(user));
-    renderFab();
+    applyGate();
     notify('login');
     track('login', {});
-    closeSheet();
   }
 
-  /* ------------------------------------ UI ------------------------------------ */
-  var css =
-    '.auth-fab{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 84px);left:14px;width:38px;height:38px;padding:0;display:grid;place-items:center;overflow:hidden;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--p2);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s}' +
-    '.auth-fab:active{transform:scale(.94)}' +
-    '.auth-fab svg{width:20px;height:20px}' +
-    '.auth-fab img{width:100%;height:100%;object-fit:cover;display:block}' +
-    '.auth-fab .ini{font-weight:800;font-size:16px;color:var(--text)}' +
-    '.auth-body{padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));text-align:center;overflow-y:auto}' +
-    '.auth-lead{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:16px}' +
-    '.auth-gbtn{display:flex;justify-content:center;min-height:44px}' +
-    '.auth-msg{margin-top:12px;font-size:13px;color:var(--muted);min-height:20px}' +
-    '.auth-msg.err{color:#F87171}' +
-    '.auth-av{width:84px;height:84px;margin:0 auto 12px;border-radius:50%;overflow:hidden;display:grid;place-items:center;border:2px solid var(--p2);background:var(--card);box-shadow:var(--glow)}' +
-    '.auth-av img{width:100%;height:100%;object-fit:cover;display:block}' +
-    '.auth-av .ini{font-size:34px;font-weight:800}' +
-    '.auth-name{font-size:18px;font-weight:700}' +
-    '.auth-mail{font-size:13px;color:var(--muted);direction:ltr;overflow-wrap:anywhere;margin-top:2px}' +
-    '.auth-out{margin-top:20px;padding:10px 26px;border-radius:99px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600}' +
-    '@media(hover:hover){.auth-out:hover{border-color:var(--g)}}';
+  /* ------------------------------ login gate ------------------------------ */
+  var root = document.documentElement;
 
-  var fab, bg, body, uiBuilt = false;
-
-  var ICON_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-
-  function initial(name) { return (name || '?').trim().charAt(0).toUpperCase() || '?'; }
-
-  function avatarInto(el, u) {
-    el.textContent = '';
-    if (u && u.picture) {
-      var img = document.createElement('img');
-      img.alt = ''; img.referrerPolicy = 'no-referrer'; img.src = u.picture;
-      img.onerror = function () { el.textContent = ''; var s = document.createElement('span'); s.className = 'ini'; s.textContent = initial(u.name); el.appendChild(s); };
-      el.appendChild(img);
-    } else if (u) {
-      var sp = document.createElement('span'); sp.className = 'ini'; sp.textContent = initial(u.name); el.appendChild(sp);
-    } else {
-      el.innerHTML = ICON_USER;
-    }
-  }
-
-  function buildUi() {
-    if (uiBuilt) return; uiBuilt = true;
-    var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-
-    fab = document.getElementById('authSlot');   /* زر الهيدر الموجود في index.html */
-    if (fab) {
-      fab.classList.add('auth-fab');
-    } else {
-      fab = document.createElement('button');
-      fab.type = 'button'; fab.className = 'auth-fab';
-      document.body.appendChild(fab);
-    }
-    fab.addEventListener('click', openSheet);
-
-    bg = document.createElement('div');
-    bg.className = 'sheet-bg'; bg.setAttribute('aria-hidden', 'true');
-    bg.innerHTML =
-      '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="authT">' +
-        '<div class="sheet-h"><div><h2 id="authT">حسابي</h2></div>' +
-        '<button class="sheet-x" type="button" aria-label="إغلاق">✕</button></div>' +
-        '<div class="auth-body"></div>' +
-      '</div>';
-    document.body.appendChild(bg);
-    body = bg.querySelector('.auth-body');
-    bg.querySelector('.sheet-x').addEventListener('click', closeSheet);
-    bg.addEventListener('click', function (e) { if (e.target === bg) closeSheet(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
-  }
-
-  function renderFab() {
-    if (!fab) return;
-    avatarInto(fab, user);
-    fab.setAttribute('aria-label', user ? ('حسابي: ' + user.name) : 'تسجيل الدخول');
-  }
+  function $(id) { return document.getElementById(id); }
 
   function setMsg(text, isErr) {
-    var m = body && body.querySelector('.auth-msg');
+    var m = $('authMsg');
     if (!m) return;
-    m.textContent = text || ''; m.className = 'auth-msg' + (isErr ? ' err' : '');
+    m.textContent = text || ''; m.className = 'gate-msg' + (isErr ? ' err' : '');
   }
 
-  function renderSheet() {
-    body.textContent = '';
-    if (user) {
-      var av = document.createElement('div'); av.className = 'auth-av'; avatarInto(av, user);
-      var nm = document.createElement('div'); nm.className = 'auth-name'; nm.textContent = user.name;
-      var ml = document.createElement('div'); ml.className = 'auth-mail'; ml.textContent = user.email;
-      var out = document.createElement('button'); out.type = 'button'; out.className = 'auth-out'; out.textContent = 'تسجيل الخروج';
-      out.addEventListener('click', signOut);
-      body.appendChild(av); body.appendChild(nm); body.appendChild(ml); body.appendChild(out);
-      return;
-    }
-    body.innerHTML =
-      '<p class="auth-lead">سجّل الدخول باستخدام قوقل لتسجيل بياناتك ومتابعة محاضراتك.</p>' +
-      '<div class="auth-gbtn" id="authGBtn"></div>' +
-      '<div class="auth-msg" role="status" aria-live="polite">جارٍ التحميل…</div>';
+  function renderGate() {
+    var box = $('authGBtn'), retry = $('authRetry');
+    if (!box || user) return;
+    box.textContent = '';
+    if (retry) retry.hidden = true;
+    setMsg('جارٍ التحميل…');
     loadGsi(function (ok) {
-      if (user || !body.querySelector('#authGBtn')) return;
-      if (!ok) { setMsg('يلزم اتصال بالإنترنت لتسجيل الدخول. حاول لاحقاً.', true); return; }
+      if (user) return;
+      if (!ok) {
+        setMsg(navigator.onLine ? 'تعذّر تحميل تسجيل الدخول. حاول مرة أخرى.' : 'يلزم اتصال بالإنترنت لتسجيل الدخول أول مرة.', true);
+        if (retry) retry.hidden = false;
+        return;
+      }
       setMsg('');
-      google.accounts.id.renderButton(body.querySelector('#authGBtn'), {
+      google.accounts.id.renderButton(box, {
         type: 'standard', theme: 'filled_blue', size: 'large',
         text: 'signin_with', shape: 'pill', logo_alignment: 'left', locale: 'ar',
-        width: Math.min(300, Math.max(200, (body.clientWidth || 300) - 36))
+        width: Math.min(300, Math.max(200, (box.clientWidth || 300) - 20))
       });
     });
   }
 
-  function openSheet() {
-    buildUi(); renderSheet();
-    bg.classList.add('open'); bg.setAttribute('aria-hidden', 'false');
-  }
-  function closeSheet() {
-    if (!bg) return;
-    bg.classList.remove('open'); bg.setAttribute('aria-hidden', 'true');
+  /* يظهر الموقع فقط عند وجود مستخدم مسجَّل، وإلا تظهر البوابة */
+  function applyGate() {
+    if (user) { root.setAttribute('data-signed', '1'); }
+    else { root.removeAttribute('data-signed'); renderGate(); }
   }
 
   function signOut() {
     track('logout', {});
-    flush();
     try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) { /* ignore */ }
     user = null; idToken = null; tokenExp = 0; refreshTried = false;
     del(USER_KEY); del(TOKEN_KEY);
-    renderFab(); notify('logout'); renderSheet();
+    notify('logout');
+    applyGate();
+    try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
   }
 
   /* ----------------------------------- API ----------------------------------- */
@@ -323,7 +245,7 @@
     getIdToken: function () { return validToken() ? idToken : null; },
     isSignedIn: function () { return !!user; },
     onChange: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
-    signIn: openSheet,
+    signIn: applyGate,
     signOut: signOut,
     track: track
   };
@@ -332,11 +254,12 @@
   function start() {
     user = loadUser();
     if (user) restoreToken();
-    buildUi();
-    renderFab();
+    var retry = $('authRetry');
+    if (retry) retry.addEventListener('click', function () { gsiState = 'idle'; renderGate(); });
+    applyGate();
     if (user) { notify('restore'); track('app_open', {}); }
   }
-  window.addEventListener('online', flush);
+  window.addEventListener('online', function () { flush(); if (!user) renderGate(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

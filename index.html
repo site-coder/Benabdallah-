@@ -17,6 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&display=swap" rel="stylesheet">
+<script>
+/* اكتشاف الجلسة مبكراً: إن وُجدت جلسة صالحة لا تظهر بوابة الدخول إطلاقاً */
+(function(){try{var u=JSON.parse(localStorage.getItem('edu_user')||'null');if(u&&u.id&&Date.now()-(u.loginAt||0)<30*864e5)document.documentElement.setAttribute('data-signed','1')}catch(e){}})();
+</script>
 <style>
 :root{--bg:#08070C;--card:rgba(20,16,32,.62);--line:rgba(168,85,247,.22);--text:#fff;--muted:#B7AFCB;--p:#A855F7;--p2:#C084FC;--g:#F59E0B;--glow:0 0 22px rgba(192,132,252,.55),0 0 60px rgba(168,85,247,.3);--wave:.55;--r:16px}
 :root[data-theme="light"]{--bg:#F7F3FF;--card:rgba(255,255,255,.75);--line:rgba(126,34,206,.22);--text:#1A1030;--muted:#5E5378;--p:#7E22CE;--p2:#9333EA;--g:#D97706;--glow:0 0 18px rgba(168,85,247,.28);--wave:.2}
@@ -226,17 +230,38 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 :root[data-theme="dark"] .bar .toggle::after{transform:translateX(-16px)}
 .bar .bell{position:relative;top:auto;left:auto;width:30px;height:30px;box-shadow:none}
 .bar .bell svg{width:15px;height:15px}
-/* ===== Google sign-in button (header) + session toast ===== */
-.bar .ico-row{display:flex;align-items:center;gap:6px}
-.bar .auth-fab{position:relative;top:auto;left:auto;width:30px;height:30px;padding:0;display:grid;place-items:center;overflow:hidden;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--p2);cursor:pointer;box-shadow:none}
-.bar .auth-fab svg{width:15px;height:15px}
-.bar .auth-fab .ini{font-size:13px}
-:root[data-auth="in"] .bar .auth-fab{border-color:var(--g)}
+/* ===== Login gate (قبل الصفحة الأولى) + session toast ===== */
+html:not([data-signed="1"]){overflow:hidden}
+html[data-signed="1"] .auth-gate{display:none}
+.auth-gate{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));background:var(--bg);overflow-y:auto}
+.auth-gate::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 40% at 50% 18%,rgba(168,85,247,.28),transparent 70%),radial-gradient(50% 35% at 50% 92%,rgba(245,158,11,.14),transparent 70%)}
+.gate-card{position:relative;width:min(400px,100%);padding:34px 22px 26px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--glow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.gate-logo{width:72px;height:72px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:30px;border:2px solid var(--p2);box-shadow:var(--glow)}
+.gate-card h1{font-size:clamp(22px,6vw,28px);line-height:1.5;margin-bottom:6px}
+.gate-sub{font-size:13px;color:var(--g);margin-bottom:14px}
+.gate-lead{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:20px}
+.gate-gbtn{display:flex;justify-content:center;min-height:44px}
+.gate-msg{margin-top:14px;font-size:13px;color:var(--muted);min-height:22px}
+.gate-msg.err{color:#F87171}
+.gate-retry{margin-top:6px;padding:8px 22px;border-radius:99px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px}
+.auth-out{display:none;margin:14px auto 0;padding:6px 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;font-size:13px}
+html[data-signed="1"] .auth-out{display:inline-block}
 .auth-toast{position:fixed;z-index:120;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,24px);max-width:calc(100% - 32px);padding:10px 20px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
 .auth-toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
+<div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="gateT">
+  <div class="gate-card">
+    <div class="gate-logo" aria-hidden="true">🎓</div>
+    <h1 id="gateT">مرحباً بك في المنصة</h1>
+    <div class="gate-sub">ملحقة المدرسة العليا للأساتذة بالشلف · التربية البدنية والرياضية</div>
+    <p class="gate-lead">سجّل الدخول بحساب قوقل للدخول إلى المحاضرات والملخصات ومتابعة تقدّمك.</p>
+    <div class="gate-gbtn" id="authGBtn"></div>
+    <div class="gate-msg" id="authMsg" role="status" aria-live="polite">جارٍ التحميل…</div>
+    <button class="gate-retry" id="authRetry" type="button" hidden>إعادة المحاولة</button>
+  </div>
+</div>
 <div class="waves" aria-hidden="true"><svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice" fill="none">
 <defs><linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#A855F7"/><stop offset=".6" stop-color="#C084FC"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs>
 <g stroke="url(#w)" stroke-width="1.2">
@@ -246,7 +271,7 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 <header><div class="wrap bar">
   <div class="side">
     <button class="toggle" id="theme" aria-label="تبديل الوضع الداكن / الفاتح"></button>
-    <div class="ico-row"><button class="auth-fab" id="authSlot" type="button" aria-label="تسجيل الدخول بقوقل" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button><button class="bell" id="bell" type="button" aria-label="الإشعارات: قائمة المحاضرات" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="badge">0</span></button></div>
+    <button class="bell" id="bell" type="button" aria-label="الإشعارات: قائمة المحاضرات" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="badge">0</span></button>
   </div>
   <div class="aff"><span>ملحقة المدرسة العليا للأساتذة بالشلف</span><span>التربية البدنية والرياضية</span></div>
   <div class="name" aria-label="Mohamed Benabdallah"><span id="fn">Mohamed</span><span id="ln">Benabdallah</span></div>
@@ -287,6 +312,7 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 <footer>
   <p class="fnote">سيتم إدراج كل المحاضرات وكل الملخصات بانتظام مستمر</p>
   <div class="bye">بالتوفيق</div>
+  <button class="auth-out" id="authOut" type="button">تسجيل الخروج</button>
 </footer>
 
 
@@ -1022,6 +1048,8 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     else if(d.reason==='logout')say('تم تسجيل الخروج');
   });
   document.documentElement.setAttribute('data-auth','out');
+  var o=document.getElementById('authOut');
+  if(o)o.addEventListener('click',function(){if(window.EduAuth)EduAuth.signOut()});
 })();
 </script>
 <script src="auth.js" defer></script>
