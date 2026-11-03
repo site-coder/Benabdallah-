@@ -12,14 +12,13 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Mohamed Benabdallah | منصة تعليمية</title>
-<link rel="preconnect" href="https://accounts.google.com">
 <link rel="dns-prefetch" href="https://wild-wind-8577.mbenabdallah663.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&display=swap" rel="stylesheet">
 <script>
-/* اكتشاف الجلسة مبكراً: إن وُجدت جلسة صالحة لا تظهر بوابة الدخول إطلاقاً */
-(function(){try{var u=JSON.parse(localStorage.getItem('edu_user')||'null');if(u&&u.id&&Date.now()-(u.loginAt||0)<30*864e5)document.documentElement.setAttribute('data-signed','1')}catch(e){}})();
+/* اكتشاف الجلسة مبكراً: إن وُجد طالب مسجَّل لا تظهر بوابة الدخول إطلاقاً */
+(function(){try{var u=JSON.parse(localStorage.getItem('edu_user')||'null');if(u&&u.id)document.documentElement.setAttribute('data-signed','1')}catch(e){}})();
 </script>
 <style>
 :root{--bg:#08070C;--card:rgba(20,16,32,.62);--line:rgba(168,85,247,.22);--text:#fff;--muted:#B7AFCB;--p:#A855F7;--p2:#C084FC;--g:#F59E0B;--glow:0 0 22px rgba(192,132,252,.55),0 0 60px rgba(168,85,247,.3);--wave:.55;--r:16px}
@@ -240,10 +239,15 @@ html[data-signed="1"] .auth-gate{display:none}
 .gate-card h1{font-size:clamp(22px,6vw,28px);line-height:1.5;margin-bottom:6px}
 .gate-sub{font-size:13px;color:var(--g);margin-bottom:14px}
 .gate-lead{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:20px}
-.gate-gbtn{display:flex;justify-content:center;min-height:44px}
+.gate-form{display:flex;flex-direction:column;gap:12px;text-align:start}
+.gate-input{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:16px;line-height:1.5;outline:none;transition:border-color .2s,box-shadow .2s}
+.gate-input::placeholder{color:var(--muted);opacity:.8}
+.gate-input:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.25)}
+.gate-btn{width:100%;margin-top:4px;padding:14px 18px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:var(--glow);transition:transform .15s,opacity .2s}
+.gate-btn:active{transform:scale(.98)}
+.gate-btn:disabled{opacity:.6;cursor:not-allowed}
 .gate-msg{margin-top:14px;font-size:13px;color:var(--muted);min-height:22px}
 .gate-msg.err{color:#F87171}
-.gate-retry{margin-top:6px;padding:8px 22px;border-radius:99px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px}
 .auth-out{display:none;margin:14px auto 0;padding:6px 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;font-size:13px}
 html[data-signed="1"] .auth-out{display:inline-block}
 .auth-toast{position:fixed;z-index:120;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,24px);max-width:calc(100% - 32px);padding:10px 20px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
@@ -256,10 +260,13 @@ html[data-signed="1"] .auth-out{display:inline-block}
     <div class="gate-logo" aria-hidden="true">🎓</div>
     <h1 id="gateT">مرحباً بك في المنصة</h1>
     <div class="gate-sub">ملحقة المدرسة العليا للأساتذة بالشلف · التربية البدنية والرياضية</div>
-    <p class="gate-lead">سجّل الدخول بحساب قوقل للدخول إلى المحاضرات والملخصات ومتابعة تقدّمك.</p>
-    <div class="gate-gbtn" id="authGBtn"></div>
-    <div class="gate-msg" id="authMsg" role="status" aria-live="polite">جارٍ التحميل…</div>
-    <button class="gate-retry" id="authRetry" type="button" hidden>إعادة المحاولة</button>
+    <p class="gate-lead">سجّل دخولك بـ الاسم ورقم التسجيل للوصول إلى المحاضرات والملخصات ومتابعة تقدّمك.</p>
+    <form class="gate-form" id="authForm" autocomplete="on" novalidate>
+      <input class="gate-input" id="authName" name="name" type="text" placeholder="الاسم واللقب" autocomplete="name" maxlength="60" required>
+      <input class="gate-input" id="authReg" name="regno" type="text" inputmode="numeric" placeholder="رقم التسجيل الجامعي" autocomplete="off" maxlength="20" dir="ltr" required>
+      <button class="gate-btn" id="authSubmit" type="submit">دخول المنصة</button>
+    </form>
+    <div class="gate-msg" id="authMsg" role="status" aria-live="polite"></div>
   </div>
 </div>
 <div class="waves" aria-hidden="true"><svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice" fill="none">
@@ -1044,7 +1051,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   addEventListener('edu-auth',function(e){
     var d=e.detail||{},u=d.user;
     document.documentElement.setAttribute('data-auth',u?'in':'out');
-    if(d.reason==='login'&&u)say('مرحباً '+(u.givenName||u.name||'')+' 👋');
+    if(d.reason==='login'&&u)say('مرحباً '+(u.name||'')+' 👋');
     else if(d.reason==='logout')say('تم تسجيل الخروج');
   });
   document.documentElement.setAttribute('data-auth','out');

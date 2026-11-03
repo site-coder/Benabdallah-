@@ -1,75 +1,89 @@
 /* ==========================================================================
-   auth.js — تسجيل الدخول عبر Google (Google Identity Services) + حفظ حالة الطالب
-   - يحمّل مكتبة قوقل عند الحاجة فقط (لا يعطّل الموقع ولا وضع الأوفلاين)
-   - يستلم الاسم والبريد والصورة من رمز الهوية (ID Token) ويحفظها محلياً
+   auth.js — دخول سريع بالاسم + رقم التسجيل الجامعي، وحفظ دائم لبيانات الطالب
+   - يحفظ الطالب وتقدّمه وملاحظاته في LocalStorage ولا يحذفها عند الخروج أو إغلاق التطبيق
+   - يتذكّر الطالب تلقائياً عند إعادة فتح التطبيق (لا بوابة دخول مجدداً)
+   - يرسل الدخول والحضور والتقدّم في الخلفية إلى Cloudflare Worker (/track)
    - يوفّر window.EduAuth للاستخدام من أي ملف آخر
-   - يرسل الأحداث (دخول، خروج، فتح التطبيق، فتح المحاضرات) إلى Cloudflare Worker (/track)
-     مع رمز Google ID Token ليتحقق منه الـ Worker من جهة الخادم
-   ملاحظة: الموقع ثابت (GitHub Pages)، فالحالة المحفوظة هنا للعرض والتتبع فقط
-   وليست وسيلة حماية. التحقق الحقيقي يتم في الـ Worker.
+   ملاحظة: الموقع ثابت، فهذا النظام للتعريف والتتبّع وليس وسيلة حماية.
    ========================================================================== */
 (function () {
   'use strict';
 
-  var CLIENT_ID = '858808052749-2h3qrn3bsrqov6q4fdhvpm5viee8hc0n.apps.googleusercontent.com';
-
-  /* Cloudflare Worker: نقطة استقبال الأحداث وتسجيل الدخول */
   var TRACK_URL = 'https://wild-wind-8577.mbenabdallah663.workers.dev/track';
 
-  var GSI_SRC = 'https://accounts.google.com/gsi/client';
-  var USER_KEY = 'edu_user';
+  var USER_KEY = 'edu_user';          /* الجلسة الحالية (تُزال عند «تسجيل الخروج» فقط) */
+  var PROFILE_KEY = 'edu_profile';    /* آخر طالب: لا يُحذف أبداً، ويستعمله الإرسال بعد الخروج */
+  var DATA_PREFIX = 'edu_data_';      /* بيانات كل طالب: التقدّم والملاحظات (دائمة) */
   var QUEUE_KEY = 'edu_events';
-  var TOKEN_KEY = 'edu_idt';
-  var SESSION_DAYS = 30;
   var MAX_QUEUE = 200;
 
   var user = null;
-  var idToken = null;          /* صالح ساعة واحدة تقريباً (مدة صلاحية رمز قوقل) */
-  var tokenExp = 0;
   var listeners = [];
-  var gsiState = 'idle';       /* idle | loading | ready | failed */
-  var gsiWaiters = [];
+  var flushing = false, retryTimer = null;
 
   /* ------------------------------- storage ------------------------------- */
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+  function set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
   function del(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+  function readJson(k, fallback) { try { var v = JSON.parse(get(k)); return v == null ? fallback : v; } catch (e) { return fallback; } }
+
+  /* طلب تخزين دائم كي لا يمسح المتصفح البيانات عند ضيق المساحة */
+  function persistStorage() {
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ignore */ }
+  }
 
   function loadUser() {
-    try {
-      var u = JSON.parse(get(USER_KEY) || 'null');
-      if (!u || !u.id) return null;
-      if (Date.now() - (u.loginAt || 0) > SESSION_DAYS * 864e5) { del(USER_KEY); return null; }
-      return u;
-    } catch (e) { return null; }
+    var u = readJson(USER_KEY, null);
+    return u && u.id ? u : null;
   }
 
-  function saveToken() { set(TOKEN_KEY, JSON.stringify({ t: idToken, exp: tokenExp })); }
-  function restoreToken() {
-    try {
-      var o = JSON.parse(get(TOKEN_KEY) || 'null');
-      if (o && o.t && o.exp > Date.now()) { idToken = o.t; tokenExp = o.exp; } else del(TOKEN_KEY);
-    } catch (e) { del(TOKEN_KEY); }
-  }
-  function validToken() { return !!idToken && tokenExp - 60000 > Date.now(); }
+  /* ------------------------- student data (progress/notes) ------------------------- */
+  function dataKey(id) { return DATA_PREFIX + id; }
 
-  /* --------------------------------- JWT --------------------------------- */
-  /* فك ترميز آمن لليونيكود (الأسماء العربية) */
-  function decodeJwt(token) {
-    try {
-      var p = String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-      while (p.length % 4) p += '=';
-      var bin = atob(p), bytes = new Uint8Array(bin.length);
-      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      return JSON.parse(new TextDecoder('utf-8').decode(bytes));
-    } catch (e) { return null; }
+  function readData(id) {
+    var d = readJson(dataKey(id), null);
+    if (!d || typeof d !== 'object') d = {};
+    if (!d.progress || typeof d.progress !== 'object') d.progress = {};
+    if (!d.notes || typeof d.notes !== 'object') d.notes = {};
+    return d;
   }
+
+  function writeData(id, d) { set(dataKey(id), JSON.stringify(d)); }
+
+  function recordLecture(data) {
+    if (!user || !data) return;
+    var d = readData(user.id);
+    var key = data.subject + '-' + data.lecture;
+    var lec = d.progress.lectures || (d.progress.lectures = {});
+    var rec = lec[key] || { opens: 0 };
+    rec.opens += 1;
+    rec.last = Date.now();
+    lec[key] = rec;
+    d.progress.last = { subject: data.subject, lecture: data.lecture, ts: rec.last };
+    writeData(user.id, d);
+  }
+
+  /* --------------------------------- input --------------------------------- */
+  /* تحويل الأرقام العربية/الفارسية إلى لاتينية وتنظيف المسافات */
+  function normDigits(s) {
+    return String(s || '')
+      .replace(/[\u0660-\u0669]/g, function (c) { return String(c.charCodeAt(0) - 0x0660); })
+      .replace(/[\u06F0-\u06F9]/g, function (c) { return String(c.charCodeAt(0) - 0x06F0); });
+  }
+  function cleanName(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
+  function cleanReg(s) { return normDigits(s).replace(/[\s\-_/]+/g, '').toLowerCase(); }
 
   /* ------------------------------- tracking ------------------------------- */
-  function readQueue() { try { return JSON.parse(get(QUEUE_KEY) || '[]'); } catch (e) { return []; } }
+  function readQueue() { var q = readJson(QUEUE_KEY, []); return Array.isArray(q) ? q : []; }
+
+  function identity() {
+    var p = user || readJson(PROFILE_KEY, null);
+    return p && p.id ? { id: p.id, name: p.name, regNo: p.regNo } : null;
+  }
 
   function track(type, data) {
     if (!user) return;
+    if (type === 'lecture_open') recordLecture(data);
     var q = readQueue();
     q.push({ t: type, d: data || {}, ts: Date.now(), uid: user.id });
     if (q.length > MAX_QUEUE) q = q.slice(q.length - MAX_QUEUE);
@@ -77,29 +91,19 @@
     flush();
   }
 
-  var flushing = false, retryTimer = null, refreshTried = false;
-
   function scheduleRetry() {
     if (retryTimer) return;
     retryTimer = setTimeout(function () { retryTimer = null; flush(); }, 30000);
   }
 
-  /* تجديد رمز قوقل بصمت قدر الإمكان (مرة واحدة لكل فتح للصفحة) */
-  function refreshToken() {
-    if (refreshTried || !user) return;
-    refreshTried = true;
-    loadGsi(function (ok) {
-      if (!ok || !window.google || !google.accounts) return;
-      try { google.accounts.id.prompt(); } catch (e) { /* ignore */ }
-    });
-  }
-
   function flush() {
-    if (!TRACK_URL || !user || flushing || !navigator.onLine) return;
+    var who = identity();
+    if (!TRACK_URL || !who || flushing || !navigator.onLine) return;
     var q = readQueue();
     if (!q.length) return;
     flushing = true;
     var sent = q.length;
+    var data = readData(who.id);
     /* text/plain: طلب «بسيط» لا يحتاج preflight، والـ Worker يقرأ الجسم كـ JSON عادي */
     fetch(TRACK_URL, {
       method: 'POST',
@@ -107,17 +111,15 @@
       keepalive: true,
       body: JSON.stringify({
         app: 'eps-chlef-hub',
-        user: { id: user.id, name: user.name, email: user.email },
-        idToken: validToken() ? idToken : null,
+        user: who,
+        progress: data.progress,
         events: q
       })
     }).then(function (r) {
       if (r.ok) {
         set(QUEUE_KEY, JSON.stringify(readQueue().slice(sent)));
-      } else if (r.status === 401 || r.status === 403) {
-        refreshToken();            /* تبقى الأحداث في الطابور حتى يصل رمز جديد */
       } else if (r.status >= 400 && r.status < 500 && r.status !== 408 && r.status !== 429) {
-        set(QUEUE_KEY, JSON.stringify(readQueue().slice(sent)));   /* طلب مرفوض نهائياً: لا نكرره */
+        set(QUEUE_KEY, JSON.stringify(readQueue().slice(sent)));   /* مرفوض نهائياً: لا نكرره */
       } else {
         scheduleRetry();
       }
@@ -131,68 +133,8 @@
     try { window.dispatchEvent(new CustomEvent('edu-auth', { detail: { user: user, reason: reason || 'change' } })); } catch (e) { /* ignore */ }
   }
 
-  /* ----------------------------------- GSI ----------------------------------- */
-  function loadGsi(cb) {
-    if (gsiState === 'ready') return cb(true);
-    if (gsiState === 'failed') gsiState = 'idle';
-    gsiWaiters.push(cb);
-    if (gsiState === 'loading') return;
-    gsiState = 'loading';
-
-    function done(ok) {
-      gsiState = ok ? 'ready' : 'failed';
-      var w = gsiWaiters; gsiWaiters = [];
-      w.forEach(function (fn) { fn(ok); });
-    }
-
-    var s = document.createElement('script');
-    s.src = GSI_SRC; s.async = true; s.defer = true;
-    s.onload = function () {
-      try {
-        google.accounts.id.initialize({
-          client_id: CLIENT_ID,
-          callback: onCredential,
-          auto_select: true,
-          cancel_on_tap_outside: true,
-          itp_support: true
-        });
-        done(true);
-      } catch (e) { done(false); }
-    };
-    s.onerror = function () { s.remove(); done(false); };
-    document.head.appendChild(s);
-  }
-
-  function onCredential(resp) {
-    var c = decodeJwt(resp && resp.credential);
-    var okIss = c && (c.iss === 'https://accounts.google.com' || c.iss === 'accounts.google.com');
-    if (!c || c.aud !== CLIENT_ID || !okIss || c.exp * 1000 < Date.now()) {
-      setMsg('تعذّر التحقق من بيانات الدخول. حاول مرة أخرى.', true);
-      return;
-    }
-    var renewal = !!(user && user.id === c.sub);
-    idToken = resp.credential;
-    tokenExp = c.exp * 1000;
-    saveToken();
-    if (renewal) { flush(); return; }   /* تجديد الرمز لنفس المستخدم: لا حدث دخول جديد */
-    user = {
-      id: c.sub,
-      name: c.name || '',
-      givenName: c.given_name || '',
-      email: c.email || '',
-      emailVerified: !!c.email_verified,
-      picture: c.picture || '',
-      loginAt: Date.now()
-    };
-    set(USER_KEY, JSON.stringify(user));
-    applyGate();
-    notify('login');
-    track('login', {});
-  }
-
   /* ------------------------------ login gate ------------------------------ */
   var root = document.documentElement;
-
   function $(id) { return document.getElementById(id); }
 
   function setMsg(text, isErr) {
@@ -201,39 +143,44 @@
     m.textContent = text || ''; m.className = 'gate-msg' + (isErr ? ' err' : '');
   }
 
-  function renderGate() {
-    var box = $('authGBtn'), retry = $('authRetry');
-    if (!box || user) return;
-    box.textContent = '';
-    if (retry) retry.hidden = true;
-    setMsg('جارٍ التحميل…');
-    loadGsi(function (ok) {
-      if (user) return;
-      if (!ok) {
-        setMsg(navigator.onLine ? 'تعذّر تحميل تسجيل الدخول. حاول مرة أخرى.' : 'يلزم اتصال بالإنترنت لتسجيل الدخول أول مرة.', true);
-        if (retry) retry.hidden = false;
-        return;
-      }
-      setMsg('');
-      google.accounts.id.renderButton(box, {
-        type: 'standard', theme: 'filled_blue', size: 'large',
-        text: 'signin_with', shape: 'pill', logo_alignment: 'left', locale: 'ar',
-        width: Math.min(300, Math.max(200, (box.clientWidth || 300) - 20))
-      });
-    });
+  function applyGate() {
+    if (user) root.setAttribute('data-signed', '1');
+    else root.removeAttribute('data-signed');
   }
 
-  /* يظهر الموقع فقط عند وجود مستخدم مسجَّل، وإلا تظهر البوابة */
-  function applyGate() {
-    if (user) { root.setAttribute('data-signed', '1'); }
-    else { root.removeAttribute('data-signed'); renderGate(); }
+  function signIn(name, regNo) {
+    name = cleanName(name);
+    regNo = cleanReg(regNo);
+    if (name.length < 3 || name.split(' ').length < 2) {
+      setMsg('أدخل الاسم واللقب كاملين.', true); return false;
+    }
+    if (!/^[a-z0-9]{4,20}$/.test(regNo)) {
+      setMsg('رقم التسجيل غير صالح (4 إلى 20 رقماً أو حرفاً).', true); return false;
+    }
+    user = {
+      id: regNo,
+      name: name,
+      regNo: regNo,
+      loginAt: Date.now()
+    };
+    set(USER_KEY, JSON.stringify(user));
+    set(PROFILE_KEY, JSON.stringify({ id: user.id, name: user.name, regNo: user.regNo }));
+    var d = readData(user.id);              /* استرجاع التقدّم والملاحظات السابقة إن وُجدت */
+    d.profile = { name: user.name, regNo: user.regNo };
+    writeData(user.id, d);
+    persistStorage();
+    setMsg('');
+    applyGate();
+    notify('login');
+    track('login', {});
+    return true;
   }
 
   function signOut() {
     track('logout', {});
-    try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) { /* ignore */ }
-    user = null; idToken = null; tokenExp = 0; refreshTried = false;
-    del(USER_KEY); del(TOKEN_KEY);
+    /* نحذف الجلسة فقط؛ التقدّم والملاحظات تبقى محفوظة ويستعيدها الطالب عند دخوله مجدداً */
+    user = null;
+    del(USER_KEY);
     notify('logout');
     applyGate();
     try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
@@ -242,24 +189,40 @@
   /* ----------------------------------- API ----------------------------------- */
   window.EduAuth = {
     getUser: function () { return user ? Object.assign({}, user) : null; },
-    getIdToken: function () { return validToken() ? idToken : null; },
     isSignedIn: function () { return !!user; },
     onChange: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
-    signIn: applyGate,
+    signIn: signIn,
     signOut: signOut,
-    track: track
+    track: track,
+    /* التقدّم: مفتاح/قيمة قابلة للتحويل إلى JSON */
+    getProgress: function () { return user ? JSON.parse(JSON.stringify(readData(user.id).progress)) : {}; },
+    setProgress: function (key, value) {
+      if (!user || !key) return;
+      var d = readData(user.id); d.progress[key] = value; writeData(user.id, d); flush();
+    },
+    /* الملاحظات: لكل محاضرة نص مستقل */
+    getNote: function (key) { return user ? (readData(user.id).notes[key] || '') : ''; },
+    getNotes: function () { return user ? JSON.parse(JSON.stringify(readData(user.id).notes)) : {}; },
+    setNote: function (key, text) {
+      if (!user || !key) return;
+      var d = readData(user.id);
+      if (text) d.notes[key] = String(text); else delete d.notes[key];
+      writeData(user.id, d);
+    }
   };
 
   /* ---------------------------------- start ---------------------------------- */
   function start() {
     user = loadUser();
-    if (user) restoreToken();
-    var retry = $('authRetry');
-    if (retry) retry.addEventListener('click', function () { gsiState = 'idle'; renderGate(); });
+    var form = $('authForm');
+    if (form) form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      signIn(($('authName') || {}).value, ($('authReg') || {}).value);
+    });
     applyGate();
-    if (user) { notify('restore'); track('app_open', {}); }
+    if (user) { persistStorage(); notify('restore'); track('app_open', {}); }
   }
-  window.addEventListener('online', function () { flush(); if (!user) renderGate(); });
+  window.addEventListener('online', flush);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

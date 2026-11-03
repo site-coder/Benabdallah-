@@ -64,16 +64,10 @@ function isHttp(url) {
   return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
-/* مكتبة تسجيل الدخول من قوقل: لا تُخزَّن أبداً (يجب أن تُجلب حيّة من الشبكة) */
-const AUTH_HOSTS = ['accounts.google.com', 'apis.google.com', 'oauth2.googleapis.com', 'www.googleapis.com', 'ssl.gstatic.com', 'www.gstatic.com'];
-function isAuthHost(url) {
-  return AUTH_HOSTS.indexOf(url.hostname) !== -1;
-}
-
-/* واجهات الخادم (Cloudflare Workers: /track والذكاء الاصطناعي) لا تمرّ عبر الـ SW إطلاقاً:
-   لا تخزين ولا اعتراض، فتصل طلبات المصادقة والتتبع مباشرة للشبكة */
-function isApiHost(url) {
-  return /\.workers\.dev$/i.test(url.hostname) || url.pathname.slice(-6) === '/track';
+/* خادم التتبع (Cloudflare Worker): لا يمرّ عبر الـ Service Worker ولا يُخزَّن أبداً */
+const TRACK_HOST = 'wild-wind-8577.mbenabdallah663.workers.dev';
+function isTrackHost(url) {
+  return url.hostname === TRACK_HOST;
 }
 
 function isCacheable(response) {
@@ -311,11 +305,6 @@ self.addEventListener('activate', function (event) {
       if (name.indexOf(PREFIX + '-') === 0 && KEEP.indexOf(name) === -1) return caches.delete(name);
       return null;
     }));
-    /* حذف صورة منتهية الصلاحية من الذاكرة (تم استبدالها برابط جديد) */
-    try {
-      const imgCache = await caches.open(CACHE_IMAGES);
-      await imgCache.delete('https://i.ibb.co/sXSj8yG/902727229-1790797197308525.jpg');
-    } catch (e) { /* ignore */ }
     if (self.registration.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (e) { /* ignore */ }
     }
@@ -329,7 +318,7 @@ self.addEventListener('fetch', function (event) {
 
   const url = new URL(request.url);
   if (!isHttp(url)) return;
-  if (isAuthHost(url) || isApiHost(url)) return;
+  if (isTrackHost(url)) return;
   if (url.origin === ORIGIN && url.pathname.slice(-6) === '/sw.js') return;
   if (url.origin !== ORIGIN && request.mode === 'navigate') return;
 
@@ -355,7 +344,7 @@ async function warmCache(urls) {
     let url;
     try { url = new URL(raw, SCOPE); } catch (e) { return; }
     if (!isHttp(url)) return;
-    if (isAuthHost(url) || isApiHost(url)) return;
+    if (isTrackHost(url)) return;
     if (url.origin === ORIGIN && url.pathname.slice(-6) === '/sw.js') return;
 
     const request = new Request(url.href);
