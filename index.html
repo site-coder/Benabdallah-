@@ -297,6 +297,7 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
 .bnav button:active{background:color-mix(in srgb,var(--p) 14%,transparent)}
 @media(hover:hover){.bnav button:not([aria-current="page"]):hover{color:var(--text)}}
 @media(min-width:700px){.bnav{width:min(520px,100% - 48px)}.bnav button{font-size:12.5px}}
+.page-empty{min-height:55vh}
 .set-list{display:grid;gap:12px;padding:16px 0 32px;max-width:560px;margin-inline:auto}
 .set-row{display:flex;align-items:center;gap:14px;width:100%;min-height:62px;padding:12px 16px;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .2s,box-shadow .2s}
 @media(hover:hover){.set-row:hover{border-color:var(--g);box-shadow:0 0 24px rgba(245,158,11,.22)}}
@@ -348,20 +349,19 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
   <div class="name" aria-label="Mohamed Benabdallah"><span id="fn">Mohamed</span><span id="ln">Benabdallah</span></div>
 </div></header>
 
-<!-- 1. Home -->
-<main id="v-home">
-  <section class="hero wrap">
-    <h1>ابنِ مستقبلك بالعلم</h1>
-    <p class="lead">كل درس تتقنه اليوم خطوة نحو <b>الإنسان الذي تطمح أن تكونه</b>. ابدأ بثقة، واستمر بإصرار.</p>
-    <button class="resume" id="resume" type="button" hidden></button>
-  </section>
-  <section class="wrap"><div class="grid" id="subjects"></div></section>
+<!-- 1. Home (فارغة عمداً) -->
+<main class="wrap page-empty" id="v-home" aria-label="الرئيسية"></main>
+
+<!-- 2. Lectures: قائمة كل المقاييس -->
+<main class="wrap" id="v-lectures" hidden>
+  <h2 class="ptitle">المحاضرات</h2>
+  <div class="grid" id="subjects"></div>
 </main>
 
-<!-- 2. Lectures list -->
+<!-- 2b. محاضرات المقياس المختار -->
 <main class="wrap" id="v-list" hidden>
-  <button class="back" data-go="home">العودة للمواد</button>
-  <h2 class="ptitle">المحاضرات</h2>
+  <button class="back" data-go="lectures">العودة للمقاييس</button>
+  <h2 class="ptitle" id="stitle">المحاضرات</h2>
   <div class="list" id="lectures"></div>
 </main>
 
@@ -382,6 +382,12 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
   <section class="panel" id="panel" role="tabpanel"></section>
 </main>
 
+<!-- Tools (فارغة عمداً) -->
+<main class="wrap page-empty" id="v-tools" aria-label="الأدوات" hidden></main>
+
+<!-- My notes (فارغة عمداً) -->
+<main class="wrap page-empty" id="v-notes" aria-label="ملاحظاتي" hidden></main>
+
 <!-- 4. Settings -->
 <main class="wrap" id="v-settings" hidden>
   <h2 class="ptitle">الإعدادات</h2>
@@ -395,11 +401,6 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
   </div>
 </main>
 
-<footer>
-  <p class="fnote">سيتم إدراج كل المحاضرات وكل الملخصات بانتظام مستمر</p>
-  <div class="bye">بالتوفيق</div>
-  <button class="auth-out" id="authOut" type="button">تسجيل الخروج</button>
-</footer>
 
 
 <nav class="bnav" id="bnav" aria-label="التنقل الرئيسي">
@@ -449,10 +450,10 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 /* ===== App ===== */
 (function(){
   var $=function(i){return document.getElementById(i)},root=document.documentElement;
-  var views={home:$('v-home'),list:$('v-list'),lec:$('v-lec'),settings:$('v-settings')},S=0,L=1,T='read';
+  var views={home:$('v-home'),lectures:$('v-lectures'),list:$('v-list'),lec:$('v-lec'),tools:$('v-tools'),notes:$('v-notes'),settings:$('v-settings')},S=0,L=1,T='read';
   function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
   function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-  var th=get('theme');if(th)root.setAttribute('data-theme',th);
+  var th=get('theme');root.setAttribute('data-theme',th==='light'?'light':'dark');
   $('theme').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);set('theme',n)};
 
   /* وسيط آمن لاستدعاء EduAuth (قد يتأخر تحميل auth.js قليلاً) */
@@ -463,26 +464,32 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushNote()});
   addEventListener('pagehide',flushNote);
 
-  function go(v){flushNote();wbStop();for(var k in views)views[k].hidden=k!==v;if(v==='home')paintResume();navSync(v);scrollTo(0,0)}
-
-  /* زر «تابع من حيث توقفت» */
-  function paintResume(){
-    var b=$('resume');if(!b)return;
-    var l=A('getLast');
-    if(!l||!CONTENT[(l.s+1)+'-'+l.l]){b.hidden=true;return}
-    b.textContent='تابع من حيث توقفت · '+((SUBJECTS[l.s]||{}).alt||'')+' · محاضرة '+l.l;
-    b.hidden=false;
+  var CUR='home';
+  function go(v,noPush){
+    flushNote();wbStop();
+    for(var k in views)views[k].hidden=k!==v;
+    navSync(v);scrollTo(0,0);
+    if(!noPush){
+      var st={v:v,s:S,l:L},old=history.state;
+      var same=old&&old.v===v&&old.s===S&&old.l===L;
+      try{if(same)history.replaceState(st,'');else history.pushState(st,'')}catch(e){}
+    }
+    CUR=v;
   }
-  $('resume').onclick=function(){
-    var l=A('getLast');if(!l||!CONTENT[(l.s+1)+'-'+l.l])return;
-    S=l.s;L=l.l;renderLecs();$('ltitle').textContent='محاضرة '+L;updTabs();tab(l.tab||'read');go('lec');
-  };
-  addEventListener('edu-auth',function(){renderLecs();paintResume()});
+  /* زر الرجوع في الهاتف / المتصفح */
+  addEventListener('popstate',function(e){
+    var st=e.state;if(!st||!views[st.v]){st={v:'home',s:S,l:L}}
+    S=st.s||0;L=st.l||1;
+    if(st.v==='list')renderLecs();
+    if(st.v==='lec'){$('ltitle').textContent='محاضرة '+L;updTabs();tab('read')}
+    go(st.v,true);
+  });
+  addEventListener('edu-auth',function(){renderLecs()});
 
   $('subjects').innerHTML=SUBJECTS.map(function(s,i){return '<button class="card" data-s="'+i+'"><img src="'+s.img+'" alt="'+s.alt+'" loading="lazy"></button>'}).join('');
   function cur(){return CONTENT[(S+1)+'-'+L]}
   function updTabs(){$('tabmap').hidden=false;$('tabs').classList.add('six')}
-  function renderLecs(){var c=10;if(S===0){c=Object.keys(CONTENT).filter(function(k){return k.indexOf('1-')===0}).length}
+  function renderLecs(){$('stitle').textContent=(SUBJECTS[S]||{}).alt||'المحاضرات';var c=10;if(S===0){c=Object.keys(CONTENT).filter(function(k){return k.indexOf('1-')===0}).length}
     var h='';for(var n=1;n<=c;n++){var k=(S+1)+'-'+n,pc=A('percent',k)||0,nt=A('hasNote',k);
       h+='<button class="lec" data-l="'+n+'">محاضرة '+n+(nt?'<span class="lm" title="لديك ملاحظة" aria-label="لديك ملاحظة">📝</span>':'')+(pc?'<span class="lp">'+pc+'%</span><i class="lbar" style="width:'+pc+'%"></i>':'')+'</button>'}
     $('lectures').innerHTML=h}
@@ -490,7 +497,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 
   $('subjects').onclick=function(e){var c=e.target.closest('.card');if(!c)return;S=+c.dataset.s;renderLecs();go('list')};
   $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec');if(window.EduAuth)EduAuth.track('lecture_open',{subject:S+1,lecture:L})};
-  document.querySelector('[data-go="home"]').onclick=function(){go('home')};
+  document.querySelector('[data-go="lectures"]').onclick=function(){go('lectures')};
   $('backList').onclick=function(){renderLecs();go('list')};
 
   /* ===== Slider: one item at a time (used by flashcards + MCQ) ===== */
@@ -1070,12 +1077,13 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 
   /* ===== Bottom navigation + settings =====
      لتفعيل «الأدوات» أو «ملاحظاتي» مستقبلًا: أضف <main id="v-tools" hidden> وسجّله في views ثم أضف دالة في NAV أدناه. */
-  var NAV_ACTIVE={home:'home',list:'lectures',lec:'lectures',settings:'settings'};
+  var NAV_ACTIVE={home:'home',lectures:'lectures',list:'lectures',lec:'lectures',tools:'tools',notes:'notes',settings:'settings'};
   var NAV={
     home:function(){go('home')},
-    lectures:function(){renderLecs();go('list')},
+    lectures:function(){go('lectures')},
+    tools:function(){go('tools')},
+    notes:function(){go('notes')},
     settings:function(){go('settings')}
-    /* tools / notes: لا صفحات بعد */
   };
   function navSync(v){
     var a=NAV_ACTIVE[v];
@@ -1096,7 +1104,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   themeSync();
   /* بقية الخيارات مهيّأة للتطوير لاحقًا (profile / about / rate / contact). تسجيل الخروج يستعمل EduAuth الموجود أصلًا */
   var SETTINGS_ACTIONS={
-    logout:function(){if(window.EduAuth)EduAuth.signOut()}
+    logout:function(){if(window.EduAuth&&confirm('هل أنت متأكد من تسجيل الخروج؟'))EduAuth.signOut()}
   };
   document.querySelector('.set-list').onclick=function(e){
     var r=e.target.closest('.set-row');if(!r||r.id==='themeRow')return;
@@ -1110,6 +1118,8 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     var d=b.getBoundingClientRect().width-a.getBoundingClientRect().width,t=d>0?a:b,n=t.textContent.length;
     if(d!==0){var ls=Math.abs(d)/n;t.style.letterSpacing=ls+'px';t.style.transform='translateX('+(ls/2)+'px)'}
   }
+  try{history.replaceState({v:'home',s:0,l:1},'')}catch(e){}
+  navSync('home');
   fitName();addEventListener('resize',fitName);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitName);
 })();
