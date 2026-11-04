@@ -281,6 +281,35 @@ html[data-signed="1"] .auth-out{display:inline-block}
 .nt-s.ok{color:#34D399}.nt-s.err{color:#F87171}
 .nt-c{font-size:12px;color:var(--muted)}
 .nt-f .qbtn{flex:none;min-height:40px;padding:6px 18px;font-size:14px}
+
+/* ===== Bottom navigation + settings ===== */
+:root{--nav-h:64px;--nav-gap:10px;--nav-space:calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom,0px));--nav-bg:rgba(20,16,32,.96);--nav-shadow:0 8px 28px rgba(0,0,0,.5),0 0 0 1px var(--line)}
+:root[data-theme="light"]{--nav-bg:#fff;--nav-shadow:0 6px 24px rgba(60,20,110,.16),0 0 0 1px var(--line)}
+body{padding-bottom:calc(var(--nav-space) + 12px)}
+.pwa{bottom:calc(var(--nav-space) + 10px)}
+.auth-toast{bottom:calc(var(--nav-space) + 12px)}
+.bnav{position:fixed;z-index:50;left:0;right:0;bottom:calc(var(--nav-gap) + env(safe-area-inset-bottom,0px));margin-inline:auto;width:min(560px,100% - 24px);height:var(--nav-h);display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;background:var(--nav-bg);border-radius:22px;box-shadow:var(--nav-shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.bnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;border:0;border-radius:16px;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:11.5px;font-weight:600;line-height:1.3;-webkit-tap-highlight-color:transparent;transition:color .25s,background-color .25s}
+.bnav svg{width:22px;height:22px;flex:none;transition:transform .25s}
+.bnav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bnav button[aria-current="page"]{color:var(--g);background:color-mix(in srgb,var(--g) 14%,transparent)}
+.bnav button[aria-current="page"] svg{transform:translateY(-1px)}
+.bnav button:active{background:color-mix(in srgb,var(--p) 14%,transparent)}
+@media(hover:hover){.bnav button:not([aria-current="page"]):hover{color:var(--text)}}
+@media(min-width:700px){.bnav{width:min(520px,100% - 48px)}.bnav button{font-size:12.5px}}
+.set-list{display:grid;gap:12px;padding:16px 0 32px;max-width:560px;margin-inline:auto}
+.set-row{display:flex;align-items:center;gap:14px;width:100%;min-height:62px;padding:12px 16px;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .2s,box-shadow .2s}
+@media(hover:hover){.set-row:hover{border-color:var(--g);box-shadow:0 0 24px rgba(245,158,11,.22)}}
+.set-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--p) 16%,transparent);color:var(--p2)}
+.set-ic svg{width:21px;height:21px}
+.set-tx{flex:1;min-width:0;font-size:16px;font-weight:600}
+.set-row[data-set="logout"] .set-ic{background:rgba(239,68,68,.14);color:#F87171}
+.set-sw{flex:none;position:relative;width:46px;height:26px;border-radius:99px;border:1px solid var(--line);background:var(--card)}
+.set-sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--g),#FCD34D);transition:transform .25s}
+:root[data-theme="dark"] .set-sw::after{transform:translateX(-20px);background:linear-gradient(135deg,var(--p2),var(--p))}
+#themeRow .ic-moon{display:none}
+:root[data-theme="dark"] #themeRow .ic-moon{display:block}
+:root[data-theme="dark"] #themeRow .ic-sun{display:none}
 </style>
 </head>
 <body>
@@ -353,12 +382,33 @@ html[data-signed="1"] .auth-out{display:inline-block}
   <section class="panel" id="panel" role="tabpanel"></section>
 </main>
 
+<!-- 4. Settings -->
+<main class="wrap" id="v-settings" hidden>
+  <h2 class="ptitle">الإعدادات</h2>
+  <div class="set-list">
+    <button class="set-row" type="button" data-set="profile"><span class="set-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="set-tx">الملف الشخصي</span></button>
+    <button class="set-row" type="button" data-set="theme" id="themeRow" role="switch" aria-checked="true"><span class="set-ic"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span class="set-tx">الوضع الليلي والنهاري</span><span class="set-sw" aria-hidden="true"></span></button>
+    <button class="set-row" type="button" data-set="about"><span class="set-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span class="set-tx">حول المنصة</span></button>
+    <button class="set-row" type="button" data-set="rate"><span class="set-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></span><span class="set-tx">تقييم المنصة</span></button>
+    <button class="set-row" type="button" data-set="contact"><span class="set-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg></span><span class="set-tx">تواصل معنا</span></button>
+    <button class="set-row" type="button" data-set="logout"><span class="set-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></span><span class="set-tx">تسجيل الخروج</span></button>
+  </div>
+</main>
+
 <footer>
   <p class="fnote">سيتم إدراج كل المحاضرات وكل الملخصات بانتظام مستمر</p>
   <div class="bye">بالتوفيق</div>
   <button class="auth-out" id="authOut" type="button">تسجيل الخروج</button>
 </footer>
 
+
+<nav class="bnav" id="bnav" aria-label="التنقل الرئيسي">
+  <button type="button" data-nav="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>الرئيسية</span></button>
+  <button type="button" data-nav="lectures"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span>المحاضرات</span></button>
+  <button type="button" data-nav="tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>الأدوات</span></button>
+  <button type="button" data-nav="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg><span>ملاحظاتي</span></button>
+  <button type="button" data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>الإعدادات</span></button>
+</nav>
 
 <div class="sheet-bg" id="nsheet" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ntt">
   <div class="sheet-h"><div><h2 id="ntt">🔔 المحاضرات المتاحة</h2><small id="nsub"></small></div><button class="sheet-x" id="nclose" type="button" aria-label="إغلاق">✕</button></div>
@@ -399,7 +449,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 /* ===== App ===== */
 (function(){
   var $=function(i){return document.getElementById(i)},root=document.documentElement;
-  var views={home:$('v-home'),list:$('v-list'),lec:$('v-lec')},S=0,L=1,T='read';
+  var views={home:$('v-home'),list:$('v-list'),lec:$('v-lec'),settings:$('v-settings')},S=0,L=1,T='read';
   function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
   function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
   var th=get('theme');if(th)root.setAttribute('data-theme',th);
@@ -413,7 +463,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushNote()});
   addEventListener('pagehide',flushNote);
 
-  function go(v){flushNote();wbStop();for(var k in views)views[k].hidden=k!==v;if(v==='home')paintResume();scrollTo(0,0)}
+  function go(v){flushNote();wbStop();for(var k in views)views[k].hidden=k!==v;if(v==='home')paintResume();navSync(v);scrollTo(0,0)}
 
   /* زر «تابع من حيث توقفت» */
   function paintResume(){
@@ -1017,6 +1067,41 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     render();
     if(!matchMedia('(prefers-reduced-motion: reduce)').matches){setTimeout(function(){bell.classList.add('ring')},600)}
   })();
+
+  /* ===== Bottom navigation + settings =====
+     لتفعيل «الأدوات» أو «ملاحظاتي» مستقبلًا: أضف <main id="v-tools" hidden> وسجّله في views ثم أضف دالة في NAV أدناه. */
+  var NAV_ACTIVE={home:'home',list:'lectures',lec:'lectures',settings:'settings'};
+  var NAV={
+    home:function(){go('home')},
+    lectures:function(){renderLecs();go('list')},
+    settings:function(){go('settings')}
+    /* tools / notes: لا صفحات بعد */
+  };
+  function navSync(v){
+    var a=NAV_ACTIVE[v];
+    document.querySelectorAll('#bnav button').forEach(function(b){
+      if(b.dataset.nav===a)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+    });
+  }
+  $('bnav').onclick=function(e){
+    var b=e.target.closest('button');if(!b)return;
+    var f=NAV[b.dataset.nav];if(f)f();
+  };
+
+  /* الإعدادات: الوضع الليلي/النهاري يستعمل نفس مفتاح الحفظ 'theme' ونفس خاصية data-theme */
+  var themeRow=$('themeRow');
+  function themeSync(){themeRow.setAttribute('aria-checked',root.getAttribute('data-theme')==='dark')}
+  themeRow.onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);set('theme',n)};
+  new MutationObserver(themeSync).observe(root,{attributes:true,attributeFilter:['data-theme']});
+  themeSync();
+  /* بقية الخيارات مهيّأة للتطوير لاحقًا (profile / about / rate / contact). تسجيل الخروج يستعمل EduAuth الموجود أصلًا */
+  var SETTINGS_ACTIONS={
+    logout:function(){if(window.EduAuth)EduAuth.signOut()}
+  };
+  document.querySelector('.set-list').onclick=function(e){
+    var r=e.target.closest('.set-row');if(!r||r.id==='themeRow')return;
+    var f=SETTINGS_ACTIONS[r.dataset.set];if(f)f();
+  };
 
   /* Make both name lines equal in width using letter-spacing on the narrower one */
   function fitName(){
