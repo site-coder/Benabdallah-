@@ -251,6 +251,19 @@ html[data-signed="1"] .auth-out{display:inline-block}
 /* زر قوقل الاحتياطي داخل البطاقة */
 .gate-gwrap{display:inline-flex;border-radius:99px;line-height:0;box-shadow:0 0 0 1px rgba(192,132,252,.55),0 0 22px rgba(168,85,247,.4);transition:box-shadow .2s}
 .gate-gwrap:hover{box-shadow:0 0 0 1px var(--g),0 0 24px rgba(245,158,11,.35)}
+/* دخول بالاسم + رقم التسجيل داخل نفس البطاقة */
+.gate-or{display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:var(--muted);font-size:13px}
+.gate-or::before,.gate-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.gate-form{display:flex;flex-direction:column;gap:6px;text-align:start}
+.gate-lbl{font-size:13px;color:var(--p2);margin-top:6px}
+.gate-in{width:100%;min-height:46px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:16px;transition:border-color .2s,box-shadow .2s}
+.gate-in::placeholder{color:var(--muted);opacity:.55}
+.gate-in:focus{outline:none;border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.28)}
+#authReg{direction:ltr;text-align:start}
+.gate-go{margin-top:10px;min-height:48px;border:0;border-radius:99px;cursor:pointer;font:inherit;font-size:16px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--p),var(--p2));box-shadow:0 0 18px rgba(168,85,247,.45);transition:transform .15s,box-shadow .2s}
+.gate-go:hover{box-shadow:0 0 26px rgba(192,132,252,.7)}
+.gate-go:active{transform:scale(.98)}
+#authMsg2{margin-top:2px;min-height:20px;font-size:13px;color:#F87171}
 /* تقدّم المحاضرات + زر المتابعة */
 .lec{position:relative;overflow:hidden}
 .lec .lp{position:absolute;inset-inline-end:16px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;color:var(--g)}
@@ -276,10 +289,19 @@ html[data-signed="1"] .auth-out{display:inline-block}
     <div class="gate-logo" aria-hidden="true">🎓</div>
     <h1 id="gateT">مرحباً بك في المنصة</h1>
     <div class="gate-sub">ملحقة المدرسة العليا للأساتذة بالشلف · التربية البدنية والرياضية</div>
-    <p class="gate-lead">سجّل الدخول بحساب قوقل للدخول إلى المحاضرات والملخصات ومتابعة تقدّمك.</p>
+    <p class="gate-lead">اختر الطريقة الأنسب لك للدخول إلى المحاضرات والملخصات ومتابعة تقدّمك وملاحظاتك.</p>
     <div class="gate-gbtn" id="authGBtn"></div>
     <div class="gate-msg" id="authMsg" role="status" aria-live="polite">جارٍ التحميل…</div>
     <button class="gate-retry" id="authRetry" type="button" hidden>إعادة المحاولة</button>
+    <div class="gate-or" role="separator"><span>أو</span></div>
+    <form class="gate-form" id="authForm" novalidate autocomplete="on">
+      <label class="gate-lbl" for="authName">الاسم واللقب</label>
+      <input class="gate-in" id="authName" name="name" type="text" autocomplete="name" maxlength="60" placeholder="مثال: محمد بن عبد الله" required>
+      <label class="gate-lbl" for="authReg">رقم التسجيل الجامعي</label>
+      <input class="gate-in" id="authReg" name="regno" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="24" dir="ltr" placeholder="مثال: 202312345678" required>
+      <div id="authMsg2" role="alert" aria-live="polite"></div>
+      <button class="gate-go" id="authGo" type="submit">دخول سريع</button>
+    </form>
   </div>
 </div>
 <div class="waves" aria-hidden="true"><svg viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice" fill="none">

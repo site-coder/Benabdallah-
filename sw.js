@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.4.0';
+const VERSION = 'v1.5.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -382,4 +382,17 @@ self.addEventListener('message', function (event) {
   } else if (type === 'CACHE_URLS' && data && Array.isArray(data.urls)) {
     event.waitUntil(warmCache(data.urls));
   }
+});
+
+/* ----------------------- المزامنة في الخلفية (Background Sync) -----------------------
+   الصفحة تسجّل الوسم 'edu-flush' عندما يفشل إرسال التقدّم/الملاحظات (انقطاع الاتصال).
+   عند عودة الاتصال يوقظ المتصفح هذا الـ SW فيطلب من الصفحة إرسال ما تبقّى إلى الـ Worker.
+   البيانات نفسها تبقى محفوظة في localStorage داخل الصفحة، ولا يلمسها الـ SW. */
+async function pingClients(msg) {
+  const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  list.forEach(function (c) { try { c.postMessage(msg); } catch (e) { /* ignore */ } });
+}
+
+self.addEventListener('sync', function (event) {
+  if (event.tag === 'edu-flush') event.waitUntil(pingClients({ type: 'FLUSH' }));
 });

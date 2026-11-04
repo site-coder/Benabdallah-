@@ -1,40 +1,41 @@
 /* ==========================================================================
-   auth.js — تسجيل الدخول عبر Google One Tap + حفظ حالة الطالب
-   - نافذة «النقرة الواحدة» تظهر فور فتح الصفحة، وزر قوقل الاحتياطي داخل البطاقة
-   - الجلسة محفوظة في localStorage وتتجدد مع كل فتح للتطبيق (لا يُطلب الدخول مجدداً)
-   - يحفظ محلياً وبشكل دائم لكل طالب: البريد، التقدّم في المحاضرات، نتائج الاختبارات، الملاحظات
-     (المفتاح: edu_data_<معرّف قوقل>) ولا تُحذف عند تسجيل الخروج، فتعود عند الدخول بنفس الحساب
-   - يرسل الأحداث والتقدّم إلى Cloudflare Worker (/track) مع رمز Google ID Token
-     (نصوص الملاحظات تبقى على الجهاز ولا تُرسل، يُرسل فقط حدث «تم حفظ ملاحظة» وطولها)
-   - يوفّر window.EduAuth للاستخدام من أي ملف آخر
-   ملاحظة: الموقع ثابت (GitHub Pages)، فالحالة المحفوظة هنا للعرض والتتبع فقط
-   وليست وسيلة حماية. التحقق الحقيقي يتم في الـ Worker.
+   auth.js — تسجيل الدخول بطريقتين (Google One Tap  |  الاسم + رقم التسجيل)
+   - الطريقة 1: Google (One Tap تلقائياً + زر احتياطي داخل البطاقة)
+   - الطريقة 2: الاسم واللقب + رقم التسجيل الجامعي (تعمل حتى بدون إنترنت)
+   - يُنشأ معرّف موحّد للطالب: Google → معرّف قوقل (sub) ، يدوي → m_<بصمة الاسم+الرقم>
+   - الجلسة، التقدّم، نتائج الاختبارات، الملاحظات: تُحفظ دائماً في localStorage
+     (المفتاح: edu_data_<المعرّف>) ولا تُحذف عند الخروج، وتعود عند الدخول بنفس الطريقة
+   - كل شيء يُرسل في الخلفية إلى الـ Worker عبر /track (الأحداث + التقدّم + الملاحظات)
+   - عند إعادة فتح التطبيق: تُتجاوز شاشة الدخول تلقائياً وتُسترجع الملاحظات والتقدّم
+   - يوفّر window.EduAuth للاستخدام من أي ملف آخر (نفس الواجهة السابقة)
+   ملاحظة: الموقع ثابت (GitHub Pages) فالدخول هنا للتتبع وحفظ التقدّم وليس وسيلة حماية.
    ========================================================================== */
 (function () {
   'use strict';
 
   var CLIENT_ID = '858808052749-2h3qrn3bsrqov6q4fdhvpm5viee8hc0n.apps.googleusercontent.com';
 
-  /* Cloudflare Worker: نقطة استقبال الأحداث وتسجيل الدخول */
+  /* Cloudflare Worker: نقطة استقبال الأحداث والتقدّم والملاحظات */
   var TRACK_URL = 'https://wild-wind-8577.mbenabdallah663.workers.dev/track';
 
   var GSI_SRC = 'https://accounts.google.com/gsi/client';
   var USER_KEY = 'edu_user';
   var QUEUE_KEY = 'edu_events';
   var TOKEN_KEY = 'edu_idt';
+  var DIRTY_KEY = 'edu_dirty';      /* توجد بيانات (تقدّم/ملاحظات) لم تصل للخادم بعد */
   var DATA_PREFIX = 'edu_data_';
-  var SESSION_DAYS = 365;      /* جلسة متجددة: تمتد سنة كاملة من آخر فتح للتطبيق */
+  var SESSION_DAYS = 365;           /* جلسة متجددة: تمتد سنة كاملة من آخر فتح للتطبيق */
   var MAX_QUEUE = 200;
   var NOTE_MAX = 5000;
 
   var user = null;
-  var data = null;             /* بيانات الطالب الحالي: { email, progress, notes, last } */
-  var idToken = null;          /* صالح ساعة واحدة تقريباً (مدة صلاحية رمز قوقل) */
+  var data = null;                  /* بيانات الطالب الحالي: { email, name, progress, notes, last } */
+  var idToken = null;               /* خاص بطريقة Google فقط (صالح ساعة تقريباً) */
   var tokenExp = 0;
   var listeners = [];
-  var gsiState = 'idle';       /* idle | loading | ready | failed */
+  var gsiState = 'idle';            /* idle | loading | ready | failed */
   var gsiWaiters = [];
-  var skipPrompt = false;      /* بعد الخروج اليدوي لا نعرض One Tap تلقائياً في نفس الصفحة */
+  var skipPrompt = false;           /* بعد الخروج اليدوي لا نعرض One Tap تلقائياً في نفس الصفحة */
 
   /* ------------------------------- storage ------------------------------- */
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -46,6 +47,7 @@
       var u = JSON.parse(get(USER_KEY) || 'null');
       if (!u || !u.id) return null;
       if (Date.now() - (u.lastSeen || u.loginAt || 0) > SESSION_DAYS * 864e5) { del(USER_KEY); return null; }
+      if (!u.method) u.method = 'google';   /* جلسات قديمة قبل هذا التحديث */
       return u;
     } catch (e) { return null; }
   }
@@ -78,6 +80,7 @@
     if (!user || !data) return false;
     data.email = user.email;
     data.updatedAt = Date.now();
+    set(DIRTY_KEY, '1');
     return set(dataKey(), JSON.stringify(data));
   }
 
@@ -122,10 +125,11 @@
     if (!user || !data) return;
     data.last = { s: s, l: l, tab: tab || 'read', ts: Date.now() };
     saveData();
+    scheduleSync();
   }
   function getLast() { return data && data.last ? Object.assign({}, data.last) : null; }
 
-  var noteSent = {};
+  var noteTimer = null;
   function getNote(key) {
     var n = data && data.notes[key];
     return n && n.t ? String(n.t) : '';
@@ -136,15 +140,15 @@
     text = String(text || '').slice(0, NOTE_MAX);
     if (!text.trim()) delete data.notes[key];
     else data.notes[key] = { t: text, ts: Date.now() };
-    var ok = saveData();
-    if (ok && text.trim() && Date.now() - (noteSent[key] || 0) > 60000) {
-      noteSent[key] = Date.now();
-      track('note_saved', { lecture: key, len: text.length });
+    var ok = saveData();                 /* محلياً فوراً وبشكل دائم */
+    if (ok) {                            /* وللخادم في الخلفية بعد توقف الكتابة */
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(function () { track('note_saved', { lecture: key, len: text.length }); }, 4000);
     }
     return ok;
   }
 
-  /* ملخص صغير للتقدّم يُرسل مع كل دفعة أحداث (بدون نصوص الملاحظات) */
+  /* ملخص صغير للتقدّم + الحالة الكاملة (بما فيها نصوص الملاحظات) تُرسل مع كل دفعة */
   function snapshot() {
     if (!data) return null;
     var out = {};
@@ -154,6 +158,39 @@
       out[k] = o;
     });
     return { lectures: out, notes: Object.keys(data.notes).length, last: data.last };
+  }
+  function fullState() {
+    if (!data) return null;
+    return { progress: data.progress, notes: data.notes, last: data.last, updatedAt: data.updatedAt || 0 };
+  }
+
+  /* ------------------- المعرّف الموحّد للدخول بالاسم + الرقم ------------------- */
+  function normDigits(s) {   /* ٠١٢٣٤٥٦٧٨٩ و ۰۱۲۳۴۵۶۷۸۹ → 0123456789 */
+    return String(s || '').replace(/[\u0660-\u0669]/g, function (c) { return c.charCodeAt(0) - 0x660; })
+      .replace(/[\u06F0-\u06F9]/g, function (c) { return c.charCodeAt(0) - 0x6F0; });
+  }
+  function normName(s) {
+    return normDigits(s).replace(/[\u064B-\u065F\u0670\u0640]/g, '')   /* التشكيل والتطويل */
+      .replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+  function normReg(s) { return normDigits(s).replace(/[\s\-_\/\.]/g, '').toUpperCase(); }
+
+  /* بصمة 53-بت (cyrb53) — ثابتة وسريعة وتعمل بدون إنترنت */
+  function hash53(str, seed) {
+    var h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (var i = 0, ch; i < str.length; i++) {
+      ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  function manualId(name, reg) {
+    var s = normName(name) + '|' + normReg(reg);
+    return 'm_' + hash53(s, 1).toString(36) + hash53(s, 7).toString(36);
   }
 
   /* --------------------------------- JWT --------------------------------- */
@@ -180,16 +217,31 @@
     flush();
   }
 
-  var flushing = false, retryTimer = null, refreshTried = false;
-
-  function scheduleRetry() {
-    if (retryTimer) return;
-    retryTimer = setTimeout(function () { retryTimer = null; flush(); }, 30000);
+  /* مزامنة الحالة (آخر موضع/تقدّم) بعد هدوء قصير حتى لا نرسل مع كل نقرة */
+  var syncTimer = null;
+  function scheduleSync() {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(flush, 5000);
   }
 
-  /* تجديد رمز قوقل بصمت قدر الإمكان (مرة واحدة لكل فتح للصفحة) */
+  var flushing = false, retryTimer = null, refreshTried = false;
+
+  function scheduleRetry(ms) {
+    if (retryTimer) return;
+    retryTimer = setTimeout(function () { retryTimer = null; flush(); }, ms || 30000);
+    /* مزامنة خلفية: يوقظ الـ Service Worker الصفحة عند عودة الاتصال */
+    try {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function (reg) {
+          if (reg && reg.sync) reg.sync.register('edu-flush').catch(function () { /* ignore */ });
+        }).catch(function () { /* ignore */ });
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  /* تجديد رمز قوقل بصمت قدر الإمكان (مرة واحدة لكل فتح للصفحة) — لمستخدمي Google فقط */
   function refreshToken() {
-    if (refreshTried || !user) return;
+    if (refreshTried || !user || user.method !== 'google') return;
     refreshTried = true;
     loadGsi(function (ok) {
       if (!ok || !window.google || !google.accounts) return;
@@ -197,12 +249,34 @@
     });
   }
 
+  /* دمج حالة وصلت من الخادم (إن أعادها الـ Worker): الأحدث يفوز، ولا يُحذف شيء محلي */
+  function mergeRemote(st) {
+    if (!st || typeof st !== 'object' || !data) return;
+    var changed = false;
+    if (st.notes && typeof st.notes === 'object') {
+      Object.keys(st.notes).forEach(function (k) {
+        var r = st.notes[k], l = data.notes[k];
+        if (r && r.t && (!l || (r.ts || 0) > (l.ts || 0))) { data.notes[k] = { t: String(r.t).slice(0, NOTE_MAX), ts: r.ts || Date.now() }; changed = true; }
+      });
+    }
+    if (st.progress && typeof st.progress === 'object') {
+      Object.keys(st.progress).forEach(function (k) {
+        var r = st.progress[k], l = data.progress[k];
+        if (r && typeof r === 'object' && (!l || (r.lastAt || 0) > (l.lastAt || 0))) { data.progress[k] = r; changed = true; }
+      });
+    }
+    if (st.last && (!data.last || (st.last.ts || 0) > (data.last.ts || 0))) { data.last = st.last; changed = true; }
+    if (changed) { set(dataKey(), JSON.stringify(data)); notify('sync'); }
+  }
+
   function flush() {
     if (!TRACK_URL || !user || flushing || !navigator.onLine) return;
     var q = readQueue();
-    if (!q.length) return;
+    var dirty = get(DIRTY_KEY) === '1';
+    if (!q.length && !dirty) return;
     flushing = true;
     var sent = q.length;
+    var stamp = data ? data.updatedAt : 0;
     /* text/plain: طلب «بسيط» لا يحتاج preflight، والـ Worker يقرأ الجسم كـ JSON عادي */
     fetch(TRACK_URL, {
       method: 'POST',
@@ -210,18 +284,23 @@
       keepalive: true,
       body: JSON.stringify({
         app: 'eps-chlef-hub',
-        user: { id: user.id, name: user.name, email: user.email },
-        idToken: validToken() ? idToken : null,
+        method: user.method,                       /* 'google' | 'manual' */
+        user: { id: user.id, name: user.name, email: user.email, regNo: user.regNo || null, method: user.method },
+        idToken: (user.method === 'google' && validToken()) ? idToken : null,
         progress: snapshot(),
+        state: fullState(),                        /* التقدّم + الملاحظات كاملة */
         events: q
       })
     }).then(function (r) {
       if (r.ok) {
         var rest = readQueue().slice(sent);
         set(QUEUE_KEY, JSON.stringify(rest));
+        if (data && data.updatedAt === stamp) del(DIRTY_KEY);   /* لم يتغيّر شيء أثناء الإرسال */
+        r.json().then(function (j) { if (j && j.state) mergeRemote(j.state); }).catch(function () { /* ignore */ });
         if (rest.length) setTimeout(flush, 300);   /* أحداث وصلت أثناء الإرسال: أرسلها فوراً */
       } else if (r.status === 401 || r.status === 403) {
-        refreshToken();            /* تبقى الأحداث في الطابور حتى يصل رمز جديد */
+        if (user && user.method === 'google') refreshToken();   /* تبقى الأحداث حتى يصل رمز جديد */
+        else scheduleRetry(300000);                              /* دخول يدوي: أعد المحاولة بعد 5 دقائق */
       } else if (r.status >= 400 && r.status < 500 && r.status !== 408 && r.status !== 429) {
         set(QUEUE_KEY, JSON.stringify(readQueue().slice(sent)));   /* طلب مرفوض نهائياً: لا نكرره */
       } else {
@@ -270,6 +349,19 @@
     document.head.appendChild(s);
   }
 
+  /* بعد نجاح أي طريقة دخول */
+  function startSession(u, reason) {
+    user = u;
+    persistUser();
+    loadData();                          /* تعود ملاحظاته وتقدّمه السابق إن وُجدت */
+    saveData();
+    skipPrompt = false;
+    applyGate();
+    notify('login');
+    track('login', { method: u.method });
+    flush();
+  }
+
   function onCredential(resp) {
     var c = decodeJwt(resp && resp.credential);
     var okIss = c && (c.iss === 'https://accounts.google.com' || c.iss === 'accounts.google.com');
@@ -282,8 +374,9 @@
     tokenExp = c.exp * 1000;
     saveToken();
     if (renewal) { flush(); return; }   /* تجديد الرمز لنفس المستخدم: لا حدث دخول جديد */
-    user = {
-      id: c.sub,
+    startSession({
+      id: c.sub,                         /* نفس المعرّف السابق: لا يضيع تقدّم من دخلوا من قبل */
+      method: 'google',
       name: c.name || '',
       givenName: c.given_name || '',
       email: c.email || '',
@@ -291,13 +384,28 @@
       picture: c.picture || '',
       loginAt: Date.now(),
       lastSeen: Date.now()
-    };
-    persistUser();
-    loadData();                          /* تعود ملاحظاته وتقدّمه السابق إن وُجدت */
-    saveData();
-    applyGate();
-    notify('login');
-    track('login', {});
+    });
+  }
+
+  /* الدخول بالاسم واللقب + رقم التسجيل الجامعي */
+  function manualLogin(name, reg) {
+    name = String(name || '').replace(/\s+/g, ' ').trim();
+    var regN = normReg(reg);
+    if (name.length < 3 || !/[A-Za-z\u0621-\u064A]/.test(name)) return { ok: false, msg: 'اكتب اسمك ولقبك كاملين.' };
+    if (!/^[A-Z0-9]{4,20}$/.test(regN)) return { ok: false, msg: 'رقم التسجيل غير صحيح (أرقام أو حروف لاتينية، من 4 إلى 20 خانة).' };
+    try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.cancel(); } catch (e) { /* ignore */ }
+    idToken = null; tokenExp = 0; del(TOKEN_KEY);
+    startSession({
+      id: manualId(name, regN),
+      method: 'manual',
+      name: name,
+      givenName: name.split(' ')[0],
+      email: '',
+      regNo: regN,
+      loginAt: Date.now(),
+      lastSeen: Date.now()
+    });
+    return { ok: true };
   }
 
   /* ------------------------------ login gate ------------------------------ */
@@ -309,6 +417,10 @@
     var m = $('authMsg');
     if (!m) return;
     m.textContent = text || ''; m.className = 'gate-msg' + (isErr ? ' err' : '');
+  }
+  function setMsg2(text) {
+    var m = $('authMsg2');
+    if (m) m.textContent = text || '';
   }
 
   /* نافذة «النقرة الواحدة» (One Tap) */
@@ -326,7 +438,7 @@
     loadGsi(function (ok) {
       if (user) return;
       if (!ok) {
-        setMsg(navigator.onLine ? 'تعذّر تحميل تسجيل الدخول. حاول مرة أخرى.' : 'يلزم اتصال بالإنترنت لتسجيل الدخول أول مرة.', true);
+        setMsg(navigator.onLine ? 'تعذّر تحميل دخول قوقل. يمكنك الدخول بالاسم ورقم التسجيل أدناه.' : 'دخول قوقل يحتاج إنترنت. يمكنك الدخول بالاسم ورقم التسجيل أدناه.', true);
         if (retry) retry.hidden = false;
         return;
       }
@@ -353,8 +465,9 @@
 
   function signOut() {
     track('logout', {});
+    flush();
     try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) { /* ignore */ }
-    /* تُحذف الجلسة فقط. ملاحظات الطالب وتقدّمه تبقى على الجهاز وتعود عند الدخول بنفس الحساب */
+    /* تُحذف الجلسة فقط. ملاحظات الطالب وتقدّمه تبقى على الجهاز وتعود عند الدخول بنفس الطريقة */
     user = null; data = null; idToken = null; tokenExp = 0; refreshTried = false;
     skipPrompt = true;
     del(USER_KEY); del(TOKEN_KEY);
@@ -370,6 +483,7 @@
     isSignedIn: function () { return !!user; },
     onChange: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
     signIn: applyGate,
+    signInManual: manualLogin,
     signOut: signOut,
     track: track,
     /* التقدّم */
@@ -390,20 +504,46 @@
   };
 
   /* ---------------------------------- start ---------------------------------- */
+  function bindManualForm() {
+    var form = $('authForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      setMsg2('');
+      var r = manualLogin(($('authName') || {}).value, ($('authReg') || {}).value);
+      if (!r.ok) setMsg2(r.msg);
+    });
+  }
+
   function start() {
     user = loadUser();
     if (user) {
-      restoreToken();
+      if (user.method === 'google') restoreToken();
       user.lastSeen = Date.now();       /* تجديد الجلسة مع كل فتح */
       persistUser();
       loadData();
     }
+    /* اطلب من المتصفح عدم حذف بيانات الموقع تلقائياً (حماية الملاحظات والتقدّم) */
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ignore */ }
+
     var retry = $('authRetry');
     if (retry) retry.addEventListener('click', function () { gsiState = 'idle'; renderGate(); });
+    bindManualForm();
     applyGate();
     if (user) { notify('restore'); track('app_open', {}); }
   }
+
   window.addEventListener('online', function () { flush(); if (!user) renderGate(); });
+  /* عند إغلاق التطبيق أو إخفائه: أرسل ما تبقّى فوراً */
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
+  window.addEventListener('pagehide', flush);
+  /* الـ Service Worker يوقظ الصفحة عند عودة الاتصال (Background Sync) */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'FLUSH') flush();
+    });
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
