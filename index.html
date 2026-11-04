@@ -298,6 +298,24 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
 @media(hover:hover){.bnav button:not([aria-current="page"]):hover{color:var(--text)}}
 @media(min-width:700px){.bnav{width:min(520px,100% - 48px)}.bnav button{font-size:12.5px}}
 .page-empty{min-height:55vh}
+.nb-add{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:560px;margin:8px auto 18px;min-height:54px;border-radius:var(--r);border:1px solid var(--g);background:var(--card);color:var(--g);font:inherit;font-size:16px;font-weight:700;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.nb-add svg,.nb-btn svg,#nbBack svg{width:20px;height:20px;flex:none}
+.nb-list{list-style:none;margin:0 auto;padding:0 0 32px;display:grid;gap:12px;max-width:560px}
+.nb-item{display:block;width:100%;text-align:start;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);color:var(--text);font:inherit;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .2s,box-shadow .2s}
+.nb-item:hover{border-color:var(--p2);box-shadow:0 0 24px rgba(168,85,247,.3)}
+.nb-item b{display:block;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nb-item small{display:block;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.nb-empty{text-align:center;color:var(--muted);line-height:2;padding:36px 12px}
+#nbEdit{max-width:560px;margin-inline:auto;padding-bottom:32px}
+#nbBack{display:inline-flex;align-items:center;gap:6px}
+.nb-title{display:block;width:100%;margin:14px 0 12px;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:18px;font-weight:700}
+.nb-body{min-height:42vh}
+.nb-actions{display:flex;gap:12px;margin-top:14px}
+.nb-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.nb-btn.pri{border-color:var(--g);color:var(--g)}
+.nb-btn.del{border-color:rgba(239,68,68,.5);color:#F87171}
+.nb-toast{position:fixed;inset-inline:0;margin-inline:auto;width:max-content;max-width:90%;bottom:calc(var(--nav-space) + 16px);padding:10px 20px;border-radius:99px;background:var(--nav-bg);border:1px solid var(--g);color:var(--text);font-size:14px;z-index:60;opacity:0;transform:translateY(8px);pointer-events:none;transition:.25s}
+.nb-toast.show{opacity:1;transform:none}
 .set-list{display:grid;gap:12px;padding:16px 0 32px;max-width:560px;margin-inline:auto}
 .set-row{display:flex;align-items:center;gap:14px;width:100%;min-height:62px;padding:12px 16px;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .2s,box-shadow .2s}
 @media(hover:hover){.set-row:hover{border-color:var(--g);box-shadow:0 0 24px rgba(245,158,11,.22)}}
@@ -386,7 +404,24 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
 <main class="wrap page-empty" id="v-tools" aria-label="الأدوات" hidden></main>
 
 <!-- My notes (فارغة عمداً) -->
-<main class="wrap page-empty" id="v-notes" aria-label="ملاحظاتي" hidden></main>
+<main class="wrap" id="v-notes" aria-label="ملاحظاتي" hidden>
+  <section id="nbList">
+    <h2 class="ptitle">ملاحظاتي</h2>
+    <button class="nb-add" id="nbAdd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>إضافة ملاحظة جديدة</span></button>
+    <ul class="nb-list" id="nbItems"></ul>
+    <p class="nb-empty" id="nbEmpty" hidden>لا توجد ملاحظات حالياً، ابدأ بإنشاء ملاحظتك الأولى</p>
+  </section>
+  <section id="nbEdit" hidden>
+    <button class="back" id="nbBack" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span>العودة للملاحظات</span></button>
+    <input class="nb-title" id="nbTitle" type="text" maxlength="120" placeholder="عنوان الملاحظة" autocomplete="off">
+    <textarea class="nt-in nb-body" id="nbBody" placeholder="اكتب ملاحظتك هنا..."></textarea>
+    <div class="nb-actions">
+      <button class="nb-btn pri" id="nbSave" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span>حفظ</span></button>
+      <button class="nb-btn del" id="nbDel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>حذف</span></button>
+    </div>
+  </section>
+  <div class="nb-toast" id="nbToast" role="status" aria-live="polite"></div>
+</main>
 
 <!-- 4. Settings -->
 <main class="wrap" id="v-settings" hidden>
@@ -469,6 +504,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     flushNote();wbStop();
     for(var k in views)views[k].hidden=k!==v;
     navSync(v);scrollTo(0,0);
+    if(v==='notes'&&!noPush)notesShow(null);
     if(!noPush){
       var st={v:v,s:S,l:L},old=history.state;
       var same=old&&old.v===v&&old.s===S&&old.l===L;
@@ -481,6 +517,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     var st=e.state;if(!st||!views[st.v]){st={v:'home',s:S,l:L}}
     S=st.s||0;L=st.l||1;
     if(st.v==='list')renderLecs();
+    if(st.v==='notes')notesShow(st.n==null?null:st.n);
     if(st.v==='lec'){$('ltitle').textContent='محاضرة '+L;updTabs();tab('read')}
     go(st.v,true);
   });
@@ -1109,6 +1146,58 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   document.querySelector('.set-list').onclick=function(e){
     var r=e.target.closest('.set-row');if(!r||r.id==='themeRow')return;
     var f=SETTINGS_ACTIONS[r.dataset.set];if(f)f();
+  };
+
+
+  /* ===== نظام الملاحظات (LocalStorage: المفتاح hub_notes_v1) ===== */
+  var NB_KEY='hub_notes_v1',nbCur=null;
+  function nbLoad(){try{var a=JSON.parse(localStorage.getItem(NB_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function nbStore(a){try{localStorage.setItem(NB_KEY,JSON.stringify(a));return true}catch(e){return false}}
+  function nbEsc(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  var nbTt=0;
+  function nbToast(m){var t=$('nbToast');t.textContent=m;t.classList.add('show');clearTimeout(nbTt);nbTt=setTimeout(function(){t.classList.remove('show')},2200)}
+  function nbDate(t){try{return new Date(t).toLocaleDateString('ar-DZ-u-nu-latn',{day:'numeric',month:'long',year:'numeric'})}catch(e){return ''}}
+  function nbRender(){
+    var a=nbLoad().sort(function(x,y){return y.updated-x.updated});
+    $('nbEmpty').hidden=a.length>0;
+    $('nbItems').innerHTML=a.map(function(n){return '<li><button class="nb-item" type="button" data-id="'+nbEsc(n.id)+'"><b>'+nbEsc(n.title||'بدون عنوان')+'</b><small>'+nbDate(n.updated)+'</small></button></li>'}).join('');
+  }
+  /* id: null = القائمة، 'new' = ملاحظة جديدة، غير ذلك = تعديل ملاحظة */
+  function notesShow(id){
+    nbCur=id;
+    $('nbList').hidden=id!=null;$('nbEdit').hidden=id==null;
+    if(id==null){nbRender();return}
+    var n=id==='new'?null:nbLoad().filter(function(x){return x.id===id})[0];
+    if(id!=='new'&&!n){nbCur=null;$('nbList').hidden=false;$('nbEdit').hidden=true;nbRender();return}
+    $('nbTitle').value=n?n.title:'';$('nbBody').value=n?n.body:'';
+    $('nbDel').style.display=n?'':'none';
+    scrollTo(0,0);
+  }
+  function nbOpen(id){
+    notesShow(id);
+    try{history.pushState({v:'notes',s:S,l:L,n:id},'')}catch(e){}
+  }
+  function nbClose(){
+    if(history.state&&history.state.n!=null)history.back();else notesShow(null);
+  }
+  $('nbAdd').onclick=function(){nbOpen('new')};
+  $('nbItems').onclick=function(e){var b=e.target.closest('.nb-item');if(b)nbOpen(b.dataset.id)};
+  $('nbBack').onclick=nbClose;
+  $('nbSave').onclick=function(){
+    var t=$('nbTitle').value.trim(),b=$('nbBody').value;
+    if(!t&&!b.trim()){nbToast('اكتب عنواناً أو محتوى قبل الحفظ');return}
+    if(!t)t=b.trim().split('\n')[0].slice(0,60);
+    var a=nbLoad(),now=Date.now(),n=nbCur&&nbCur!=='new'?a.filter(function(x){return x.id===nbCur})[0]:null;
+    if(n){n.title=t;n.body=b;n.updated=now}
+    else a.push({id:'n'+now.toString(36)+Math.random().toString(36).slice(2,6),title:t,body:b,created:now,updated:now});
+    if(!nbStore(a)){nbToast('تعذّر الحفظ: مساحة التخزين ممتلئة');return}
+    nbClose();nbToast('تم حفظ الملاحظة');
+  };
+  $('nbDel').onclick=function(){
+    if(!nbCur||nbCur==='new')return;
+    if(!confirm('هل تريد حذف هذه الملاحظة نهائياً؟'))return;
+    var id=nbCur;nbStore(nbLoad().filter(function(x){return x.id!==id}));
+    nbClose();nbToast('تم حذف الملاحظة');
   };
 
   /* Make both name lines equal in width using letter-spacing on the narrower one */
