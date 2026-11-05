@@ -72,6 +72,8 @@ h1{font-size:clamp(34px,9vw,68px);font-weight:800;line-height:1.35;text-shadow:v
 .tabs button{padding:10px 8px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;font-size:14px;transition:.2s}
 .tabs button[aria-selected="true"]{border-color:var(--g);color:var(--g);box-shadow:0 0 18px rgba(245,158,11,.3)}
 @media(min-width:700px){.tabs{grid-template-columns:repeat(4,1fr)}}
+#tabs{display:none!important}
+.lhub{margin-top:14px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px 22px;margin-bottom:64px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .panel h3{color:var(--g);font-size:20px;font-weight:600;margin:18px 0 6px}
 .panel h3:first-child{margin-top:0}
@@ -386,7 +388,9 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
 <!-- 3. Lecture -->
 <main class="wrap" id="v-lec" hidden>
   <button class="back" id="backList">العودة للمحاضرات</button>
+  <button class="back" id="backHub" type="button" hidden>العودة للعناصر</button>
   <h2 class="ptitle" id="ltitle"></h2>
+  <div class="tl-hub lhub" id="lhub"></div>
   <div class="tabs" id="tabs" role="tablist">
     <button role="tab" data-t="read">درس للقراءة</button>
     <button role="tab" data-t="ai">🤖 الذكاء الاصطناعي</button>
@@ -396,7 +400,7 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
     <button role="tab" data-t="map" id="tabmap">خرائط ذهنية قابلة للطباعة</button>
     <button role="tab" data-t="wb">فيديو الوايت بورد</button>
   </div>
-  <section class="panel" id="panel" role="tabpanel"></section>
+  <section class="panel" id="panel" role="tabpanel" hidden></section>
 </main>
 
 <!-- Tools (فارغة عمداً) -->
@@ -517,14 +521,29 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     S=st.s||0;L=st.l||1;
     if(st.v==='list')renderLecs();
     if(st.v==='notes')notesShow(st.n==null?null:st.n);
-    if(st.v==='lec'){$('ltitle').textContent='محاضرة '+L;updTabs();tab('read')}
     go(st.v,true);
+    if(st.v==='lec'){updTabs();if(st.t&&LNAME[st.t])lecOpen(st.t,true);else lecHub()}
   });
   addEventListener('edu-auth',function(){renderLecs()});
 
   $('subjects').innerHTML=SUBJECTS.map(function(s,i){return '<button class="card" data-s="'+i+'"><img src="'+s.img+'" alt="'+s.alt+'" loading="lazy"></button>'}).join('');
   function cur(){return CONTENT[(S+1)+'-'+L]}
   function updTabs(){$('tabmap').hidden=false;$('tabs').classList.add('six')}
+  /* ===== عناصر المحاضرة: بطاقات (مثل الأدوات)، وكل عنصر يفتح في صفحة مستقلة ===== */
+  var LNAME={read:'درس للقراءة',ai:'الذكاء الاصطناعي',sum:'ملخص',faq:'أسئلة عادية',mcq:'أسئلة اختيار من متعدد',map:'خرائط ذهنية',wb:'فيديو الوايت بورد'};
+  var LDESC={read:'الدرس كاملاً مع تحميل PDF',ai:'اسأل المساعد عن هذه المحاضرة',sum:'أهم النقاط في ملخص سريع',faq:'بطاقات أسئلة وأجوبة للمراجعة',mcq:'اختبر نفسك بأسئلة الاختيار من متعدد',map:'خريطة ذهنية قابلة للطباعة',wb:'شرح مصوّر بالسبورة البيضاء'};
+  var LICO={read:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',ai:'<rect x="3" y="8" width="18" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><path d="M8 14h.01"/><path d="M16 14h.01"/>',sum:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',faq:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',mcq:'<path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',map:'<circle cx="12" cy="12" r="3"/><circle cx="4" cy="5" r="2"/><circle cx="20" cy="5" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="19" r="2"/><path d="m6 6 4 4M18 6l-4 4M6 18l4-4M18 18l-4-4"/>',wb:'<rect x="2" y="4" width="20" height="14" rx="2"/><path d="m10 8 5 3-5 3z"/><path d="M8 21h8"/>'};
+  $('lhub').innerHTML=['read','ai','sum','faq','mcq','map','wb'].map(function(t){return '<button type="button" class="tl-card" data-t="'+t+'"><span class="tl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+LICO[t]+'</svg></span><span class="tl-grow"><b>'+LNAME[t]+'</b><small>'+LDESC[t]+'</small></span><span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span></button>'}).join('');
+  function lecHub(){
+    flushNote();wbStop();var p=$('panel');p.innerHTML='';p.classList.remove('ai-panel');p.hidden=true;
+    $('lhub').hidden=false;$('backHub').hidden=true;$('backList').hidden=false;
+    $('ltitle').textContent='محاضرة '+L;window.CURRENT_LEC=(S+1)+'-'+L;scrollTo(0,0)}
+  function lecOpen(t,noPush){
+    $('lhub').hidden=true;$('panel').hidden=false;$('backHub').hidden=false;$('backList').hidden=true;
+    $('ltitle').textContent='محاضرة '+L+' · '+LNAME[t];tab(t);scrollTo(0,0);
+    if(!noPush){try{history.pushState({v:'lec',s:S,l:L,t:t},'')}catch(e){}}}
+  $('lhub').onclick=function(e){var c=e.target.closest('.tl-card');if(c)lecOpen(c.dataset.t)};
+  $('backHub').onclick=function(){if(history.state&&history.state.t)history.back();else lecHub()};
   function renderLecs(){$('stitle').textContent=(SUBJECTS[S]||{}).alt||'المحاضرات';var c=10;if(S===0){c=Object.keys(CONTENT).filter(function(k){return k.indexOf('1-')===0}).length}
     var h='';for(var n=1;n<=c;n++){var k=(S+1)+'-'+n,pc=A('percent',k)||0,nt=A('hasNote',k);
       h+='<button class="lec" data-l="'+n+'">محاضرة '+n+(nt?'<span class="lm" title="لديك ملاحظة" aria-label="لديك ملاحظة">📝</span>':'')+(pc?'<span class="lp">'+pc+'%</span><i class="lbar" style="width:'+pc+'%"></i>':'')+'</button>'}
@@ -532,7 +551,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   renderLecs();
 
   $('subjects').onclick=function(e){var c=e.target.closest('.card');if(!c)return;S=+c.dataset.s;renderLecs();go('list')};
-  $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec');if(window.EduAuth)EduAuth.track('lecture_open',{subject:S+1,lecture:L})};
+  $('lectures').onclick=function(e){var c=e.target.closest('.lec');if(!c)return;L=+c.dataset.l;updTabs();lecHub();go('lec');if(window.EduAuth)EduAuth.track('lecture_open',{subject:S+1,lecture:L})};
   document.querySelector('[data-go="lectures"]').onclick=function(){go('lectures')};
   $('backList').onclick=function(){renderLecs();go('list')};
 
@@ -1105,7 +1124,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
     list.onclick=function(e){
       var b=e.target.closest('.nitem');if(!b)return;
       var p=b.dataset.k.split('-');S=+p[0]-1;L=+p[1];
-      close();renderLecs();$('ltitle').textContent='محاضرة '+L;updTabs();tab('read');go('lec');
+      close();renderLecs();updTabs();lecHub();go('lec');
     };
     render();
     if(!matchMedia('(prefers-reduced-motion: reduce)').matches){setTimeout(function(){bell.classList.add('ring')},600)}
