@@ -1,0 +1,93 @@
+/* ==========================================================================
+   الصفحة الرئيسية (home.css) — كل الأسماء بالبادئة hm- ومحصورة داخل #v-home
+   تستعمل متغيرات الموقع الحالية: --bg --card --line --text --muted --p --p2 --g --r
+   ========================================================================== */
+#v-home{--hm-ok:#34D399;--hm-gap:22px}
+:root[data-theme="light"] #v-home{--hm-ok:#059669}
+#v-home.page-empty{min-height:0}
+#v-home .hm{display:grid;gap:var(--hm-gap);padding:8px 0 32px;max-width:760px;margin-inline:auto}
+#v-home .hm button{cursor:pointer;font-family:inherit}
+
+/* ---------- عناوين الأقسام ---------- */
+#v-home .hm-h{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;line-height:1.6;margin:0}
+#v-home .hm-h svg{flex:none;width:22px;height:22px;color:var(--g)}
+#v-home .hm-sec-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+
+/* ---------- الترحيب ---------- */
+#v-home .hm-hero{position:relative;text-align:center;padding:26px 8px 6px}
+#v-home .hm-cap{display:inline-grid;place-items:center;width:64px;height:64px;border-radius:20px;color:var(--g);background:color-mix(in srgb,var(--p) 18%,transparent);border:1px solid var(--line);box-shadow:var(--glow)}
+#v-home .hm-cap svg{width:34px;height:34px}
+#v-home .hm-hero h1{font-size:clamp(34px,9vw,56px);margin:14px 0 0;line-height:1.3}
+#v-home .hm-greet{color:var(--g);font-weight:600;font-size:15px;margin-top:6px}
+#v-home .hm-lead{color:var(--muted);font-weight:300;font-size:clamp(15px,3.8vw,18px);max-width:30em;margin:8px auto 0}
+#v-home .hm-ecg{display:block;width:min(340px,86%);height:auto;margin:18px auto 0;overflow:visible}
+#v-home .hm-ecg path{fill:none;stroke:url(#hmEcgG);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}
+#v-home .hm-ecg.go path{animation:hmEcg 2.2s cubic-bezier(.4,.1,.2,1) both}
+@keyframes hmEcg{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+
+/* ---------- هل تعلم؟ ---------- */
+#v-home .hm-fact{position:relative;overflow:hidden;padding:20px 20px 16px;border-radius:calc(var(--r) + 6px);border:1px solid var(--line);background:linear-gradient(150deg,color-mix(in srgb,var(--p) 24%,var(--card)) 0%,var(--card) 62%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#v-home .hm-fact::before{content:"";position:absolute;inset-inline:0;top:0;height:3px;background:linear-gradient(90deg,var(--g),var(--p2),transparent)}
+#v-home .hm-fact::after{content:"؟";position:absolute;inset-inline-end:-6px;bottom:-34px;font-size:170px;font-weight:800;line-height:1;color:var(--p2);opacity:.1;pointer-events:none}
+#v-home .hm-fact-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#v-home .hm-chip{font-size:12.5px;font-weight:600;color:var(--g);border:1px solid color-mix(in srgb,var(--g) 45%,transparent);border-radius:99px;padding:2px 12px;background:color-mix(in srgb,var(--g) 10%,transparent)}
+#v-home .hm-fact-t{position:relative;z-index:1;font-size:clamp(16.5px,4.2vw,19px);font-weight:400;line-height:2;margin:12px 0 14px;max-width:34em;transition:opacity .18s}
+#v-home .hm-fact-t.out{opacity:0}
+#v-home .hm-fact-foot{position:relative;z-index:1;display:flex;justify-content:flex-start}
+#v-home .hm-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--p2);font-size:14.5px;font-weight:600;transition:border-color .2s,box-shadow .2s,transform .2s}
+#v-home .hm-btn svg{width:18px;height:18px;transition:transform .5s}
+#v-home .hm-btn.spin svg{transform:rotate(360deg)}
+#v-home .hm-btn:active{transform:scale(.97)}
+@media(hover:hover){#v-home .hm-btn:hover{border-color:var(--g);box-shadow:0 0 20px rgba(245,158,11,.25)}}
+
+/* ---------- الوصول السريع ---------- */
+#v-home .hm-quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#v-home .hm-q{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:start;min-height:128px;padding:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .2s,border-color .2s,box-shadow .2s}
+#v-home .hm-q-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:var(--p2);background:color-mix(in srgb,var(--p) 16%,transparent)}
+#v-home .hm-q-ic svg{width:24px;height:24px}
+#v-home .hm-q b{font-size:16px;font-weight:700;line-height:1.5}
+#v-home .hm-q small{font-size:13px;font-weight:300;line-height:1.6;color:var(--muted)}
+#v-home .hm-q:active{transform:scale(.98)}
+@media(hover:hover){#v-home .hm-q:hover{border-color:var(--g);box-shadow:0 0 24px rgba(245,158,11,.22)}}
+@media(min-width:700px){#v-home .hm-quick{grid-template-columns:repeat(4,1fr)}}
+
+/* ---------- المقاييس ---------- */
+#v-home .hm-toggle{flex:none;white-space:nowrap;min-height:38px;padding:4px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--p2);font-size:13.5px;font-weight:600}
+#v-home .hm-subj{display:grid;gap:10px}
+#v-home .hm-s{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .2s,box-shadow .2s,transform .2s}
+#v-home .hm-s-img{flex:none;width:54px;height:54px;border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--p) 18%,transparent);display:grid;place-items:center;color:var(--p2);font-weight:800;font-size:20px}
+#v-home .hm-s-img img{width:100%;height:100%;object-fit:cover;display:block}
+#v-home .hm-s-tx{flex:1;min-width:0}
+#v-home .hm-s-tx b{display:block;font-size:16px;font-weight:700;line-height:1.6}
+#v-home .hm-s-tx small{display:block;font-size:13px;font-weight:300;color:var(--muted);line-height:1.6}
+#v-home .hm-s-go{flex:none;width:20px;height:20px;color:var(--g)}
+#v-home .hm-s:active{transform:scale(.985)}
+@media(hover:hover){#v-home .hm-s:hover{border-color:var(--g);box-shadow:0 0 22px rgba(245,158,11,.2)}}
+@media(min-width:700px){#v-home .hm-subj{grid-template-columns:1fr 1fr}}
+#v-home .hm-bar{height:6px;border-radius:99px;background:color-mix(in srgb,var(--p) 16%,transparent);overflow:hidden;margin-top:6px}
+#v-home .hm-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--p),var(--g));transition:width .6s}
+
+/* ---------- مصطلح جامعي اليوم ---------- */
+#v-home .hm-term{padding:18px 18px 16px;border-radius:var(--r);border:1px solid var(--line);border-inline-start:4px solid var(--g);background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#v-home .hm-term-w{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:10px 0 4px}
+#v-home .hm-term-w b{font-size:clamp(22px,6vw,28px);font-weight:800;line-height:1.5}
+#v-home .hm-term-w span{direction:ltr;unicode-bidi:isolate;color:var(--p2);font-weight:300;font-size:14.5px}
+#v-home .hm-term p{color:var(--muted);font-weight:300;line-height:2;max-width:36em}
+
+/* ---------- الإنجازات ---------- */
+#v-home .hm-ach{display:grid;gap:10px}
+#v-home .hm-a{display:block;width:100%;text-align:start;padding:12px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .2s,transform .2s}
+#v-home .hm-a-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+#v-home .hm-a-top b{font-size:15.5px;font-weight:600;line-height:1.7}
+#v-home .hm-a-top em{font-style:normal;font-weight:800;font-size:18px;color:var(--g);white-space:nowrap}
+#v-home .hm-a-top em small{font-weight:300;font-size:13px;color:var(--muted)}
+#v-home .hm-a small.hm-note{display:block;margin-top:4px;font-size:12.5px;font-weight:300;color:var(--muted);line-height:1.6}
+#v-home .hm-a:active{transform:scale(.99)}
+@media(hover:hover){#v-home .hm-a:hover{border-color:var(--g)}}
+#v-home .hm-empty{padding:18px;text-align:center;color:var(--muted);font-weight:300;border:1px dashed var(--line);border-radius:var(--r);line-height:1.9}
+#v-home .hm-hint{text-align:center;color:var(--muted);font-weight:300;font-size:13.5px;margin-top:2px}
+
+@media(prefers-reduced-motion:reduce){
+  #v-home .hm-ecg.go path{animation:none}
+  #v-home .hm-fact-t,#v-home .hm-btn svg,#v-home .hm-bar i,#v-home .hm-q,#v-home .hm-s,#v-home .hm-a{transition:none}
+}

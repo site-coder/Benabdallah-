@@ -333,6 +333,7 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
 :root[data-theme="dark"] #themeRow .ic-sun{display:none}
 </style>
 <link rel="stylesheet" href="tools.css">
+<link rel="stylesheet" href="home.css">
 </head>
 <body>
 <div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="gateT">
@@ -369,8 +370,8 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
   <div class="name" aria-label="Mohamed Benabdallah"><span id="fn">Mohamed</span><span id="ln">Benabdallah</span></div>
 </div></header>
 
-<!-- 1. Home (فارغة عمداً) -->
-<main class="wrap page-empty" id="v-home" aria-label="الرئيسية"></main>
+<!-- 1. Home: «مركزك الجامعي» (يُبنى محتواها في home.js) -->
+<main class="wrap" id="v-home" aria-label="الرئيسية"></main>
 
 <!-- 2. Lectures: قائمة كل المقاييس -->
 <main class="wrap" id="v-lectures" hidden>
@@ -1353,6 +1354,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 </script>
 <script src="auth.js" defer></script>
 <script src="tools.js" defer></script>
+<script src="home.js" defer></script>
 <script src="ai-engine.js" defer></script>
 </body>
 </html>
