@@ -75,8 +75,7 @@
       addEventListener('pointerdown', off, true);
     }, 80);
   }
-  function doPrint(html, asPdf) {
-    if (asPdf) toast('في نافذة الطباعة اختر «حفظ بصيغة PDF» كوجهة الطباعة', 4500);
+  function printIframe(html) {
     var old = document.getElementById('tlPrintFrame'); if (old) old.remove();
     var f = document.createElement('iframe'), fired = false;
     f.id = 'tlPrintFrame'; f.setAttribute('aria-hidden', 'true'); f.setAttribute('tabindex', '-1');
@@ -99,6 +98,99 @@
     } catch (e) { f.remove(); printFallback(html); return; }
     f.onload = function () { setTimeout(fire, 150); };
     setTimeout(fire, 700);
+  }
+
+  /* ---- توليد PDF حقيقي داخل الموقع (بدون مكتبات ولا إنترنت) ----
+     نرسم صفحة الطباعة إلى صورة عبر SVG ثم نقطّعها إلى صفحات A4 ونكتب ملف PDF يدوياً. */
+  var PDF_CSS = '#tlPdfRoot{direction:rtl;font-family:Tahoma,Arial,"Noto Naskh Arabic",sans-serif;color:#000;background:#fff;line-height:1.8;font-size:14px}#tlPdfRoot *{box-sizing:border-box}' +
+    '#tlPdfRoot h1{font-size:22px;margin:0 0 4px}#tlPdfRoot .pm{color:#444;font-size:13px;margin-bottom:10px}#tlPdfRoot table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:12px}#tlPdfRoot th,#tlPdfRoot td{border:1px solid #888;padding:4px 8px;text-align:right;vertical-align:top}#tlPdfRoot th{background:#eee}#tlPdfRoot .dn td{color:#666;text-decoration:line-through}#tlPdfRoot .brk td{color:#777;font-size:12px;text-align:center}#tlPdfRoot .big{font-size:19px;font-weight:700;margin:8px 0}#tlPdfRoot small{color:#555}';
+  function pdfCanvases(html) {
+    return new Promise(function (resolve, reject) {
+      var W = 794, PH = 1123, MT = 36, U = PH - 2 * MT, host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:-99999px;top:0;width:' + W + 'px;visibility:hidden;pointer-events:none';
+      host.innerHTML = '<style>' + PDF_CSS + '</style><div id="tlPdfRoot" style="box-sizing:border-box;width:' + W + 'px;padding:0 40px;">' + html + '</div>';
+      document.body.appendChild(host);
+      var rootEl = host.lastChild;
+      function done(e) { if (host.parentNode) host.remove(); reject(e); }
+      try {
+        var H = Math.ceil(rootEl.scrollHeight) + 4, base = rootEl.getBoundingClientRect().top, cands = [0];
+        $$('tr,h1,.pm,.big', rootEl).forEach(function (el) { cands.push(Math.round(el.getBoundingClientRect().bottom - base)); });
+        cands.sort(function (a, b) { return a - b; });
+        var xml = new XMLSerializer().serializeToString(rootEl), css = PDF_CSS.replace(/&/g, '&amp;');
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>' + css + '</style>' + xml + '</div></foreignObject></svg>';
+        var sc = H * 2 > 15000 ? 1 : 2, img = new Image();
+        img.onload = function () {
+          try {
+            var big = document.createElement('canvas'); big.width = W * sc; big.height = H * sc;
+            var bx = big.getContext('2d'); bx.fillStyle = '#fff'; bx.fillRect(0, 0, big.width, big.height); bx.drawImage(img, 0, 0, W * sc, H * sc);
+            var pages = [], start = 0, guard = 0;
+            while (start < H - 2 && guard++ < 60) {
+              var limit = start + U, end = Math.min(H, limit);
+              if (H > limit) { var best = 0; cands.forEach(function (c) { if (c > start + 40 && c <= limit) best = c; }); end = best || limit; }
+              var pc = document.createElement('canvas'); pc.width = W * sc; pc.height = PH * sc;
+              var px = pc.getContext('2d'); px.fillStyle = '#fff'; px.fillRect(0, 0, pc.width, pc.height);
+              px.drawImage(big, 0, start * sc, W * sc, (end - start) * sc, 0, MT * sc, W * sc, (end - start) * sc);
+              pages.push(pc.toDataURL('image/jpeg', 0.92).split(',')[1]); start = end;
+            }
+            host.remove(); resolve(pages);
+          } catch (e) { done(e); }
+        };
+        img.onerror = function () { done(new Error('svg')); };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      } catch (e) { done(e); }
+    });
+  }
+  function buildPdf(b64pages, wpx, hpx) {
+    var parts = [], off = [], len = 0;
+    function str(t) { var u = new Uint8Array(t.length); for (var i = 0; i < t.length; i++) u[i] = t.charCodeAt(i) & 255; return u; }
+    function push(x) { if (typeof x === 'string') x = str(x); parts.push(x); len += x.length; }
+    function b64(t) { var bin = atob(t), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+    var n = b64pages.length, kids = [], i;
+    for (i = 0; i < n; i++) kids.push((3 + 3 * i) + ' 0 R');
+    push('%PDF-1.4\n');
+    off[1] = len; push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    off[2] = len; push('2 0 obj\n<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + n + ' >>\nendobj\n');
+    for (i = 0; i < n; i++) {
+      var pg = 3 + 3 * i, ct = 4 + 3 * i, im = 5 + 3 * i, jpg = b64(b64pages[i]), cs = 'q 595.28 0 0 841.89 0 0 cm /Im0 Do Q';
+      off[pg] = len; push(pg + ' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 ' + im + ' 0 R >> >> /Contents ' + ct + ' 0 R >>\nendobj\n');
+      off[ct] = len; push(ct + ' 0 obj\n<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream\nendobj\n');
+      off[im] = len; push(im + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + wpx + ' /Height ' + hpx + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpg.length + ' >>\nstream\n'); push(jpg); push('\nendstream\nendobj\n');
+    }
+    var total = 3 + 3 * n, xr = len, x = 'xref\n0 ' + total + '\n0000000000 65535 f \n';
+    for (i = 1; i < total; i++) x += ('0000000000' + off[i]).slice(-10) + ' 00000 n \n';
+    push(x + 'trailer\n<< /Size ' + total + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+  function makePdf(html) {
+    return pdfCanvases(html).then(function (pages) {
+      var c = document.createElement('canvas'); /* أبعاد الصورة (نفس أبعاد كل الصفحات) */
+      var sc = 2; return buildPdf(pages, 794 * sc, 1123 * sc);
+    });
+  }
+  function savePdf(blob, name) {
+    var u = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = u; a.download = name; a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+  }
+  function openPdf(blob, name) {
+    var u = URL.createObjectURL(blob), w = null;
+    try { w = window.open(u, '_blank'); } catch (e) {}
+    if (!w) savePdf(blob, name); else setTimeout(function () { URL.revokeObjectURL(u); }, 120000);
+  }
+  /* asPdf=true: تنزيل ملف PDF دائماً. asPdf=false: طباعة مباشرة على الحاسوب، وعلى الهاتف
+     نولّد PDF ونفتح قائمة المشاركة (فيها «طباعة») أو نفتحه في تبويب جديد. */
+  function doPrint(html, asPdf, name) {
+    name = (name || 'document') + '.pdf';
+    var touch = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+    if (!asPdf && !touch) { printIframe(html); return; }
+    toast('جارٍ تجهيز الملف…', 1800);
+    makePdf(html).then(function (blob) {
+      if (asPdf) { savePdf(blob, name); toast('تم تنزيل ملف PDF'); return; }
+      var file = null; try { file = new File([blob], name, { type: 'application/pdf' }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: name }).catch(function (e) { if (!e || e.name !== 'AbortError') openPdf(blob, name); });
+      } else openPdf(blob, name);
+    }).catch(function () { if (asPdf) toast('تعذّر إنشاء PDF على هذا المتصفح، جرّب زر الطباعة'); else printIframe(html); });
   }
 
   /* ---------- التنقل بين الصفحات الداخلية للأدوات ---------- */
@@ -454,8 +546,8 @@
       if (t.closest('#schAddSes')) { schSessionModal(null); return; }
       if ((b = t.closest('[data-edit]'))) { schSessionModal(b.dataset.edit); return; }
       if (t.closest('#schSave')) { schSave(); return; }
-      if (t.closest('#schPrint')) { doPrint(schPrintHtml(), false); return; }
-      if (t.closest('#schPdf')) { doPrint(schPrintHtml(), true); return; }
+      if (t.closest('#schPrint')) { doPrint(schPrintHtml(), false, 'جدول-دراسي'); return; }
+      if (t.closest('#schPdf')) { doPrint(schPrintHtml(), true, 'جدول-دراسي'); return; }
       if (t.closest('#schNew')) {
         if (w.sessions.length && !sch.curId && !confirm('لم تحفظ الجدول الحالي. سيُمسح لبدء جدول جديد. متابعة؟')) return;
         sch.work = defSched(); sch.curId = null; schPersist(); schMsg('ok', []); schRenderAll(); toast('جدول جديد'); return;
@@ -761,7 +853,7 @@
         if (!lsSet(GK, gp)) { toast('تعذّر الحفظ: مساحة التخزين ممتلئة'); return; }
         $('#gpSaved', v).innerHTML = gpSavedHtml(); toast('تم حفظ كشف النقاط «' + nm + '»'); return;
       }
-      if (t.closest('#gpPrint') || t.closest('#gpPdf')) { if ((c = gpGuard())) doPrint(gpPrintHtml(c), !!t.closest('#gpPdf')); return; }
+      if (t.closest('#gpPrint') || t.closest('#gpPdf')) { if ((c = gpGuard())) doPrint(gpPrintHtml(c), !!t.closest('#gpPdf'), 'كشف-نقاط'); return; }
       var sv = t.closest('[data-sv]');
       if (sv && t.closest('[data-open]')) {
         var e2 = gp.saved.filter(function (x) { return x.id === sv.dataset.sv; })[0]; if (!e2) return;
@@ -881,7 +973,7 @@
     v.addEventListener('click', function (e) {
       var t = e.target, b;
       if (t.closest('#tdAdd')) { tdModal(null); return; }
-      if (t.closest('#tdPrint')) { doPrint(tdPrintHtml(), false); return; }
+      if (t.closest('#tdPrint')) { doPrint(tdPrintHtml(), false, 'قائمة-المهام'); return; }
       if (t.closest('#tdClear')) {
         var n = td.tasks.filter(function (x) { return x.done; }).length;
         if (!n) { toast('لا توجد مهام مكتملة لمسحها'); return; }
