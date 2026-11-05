@@ -228,8 +228,8 @@ footer{border-top:1px solid var(--line);text-align:center;padding:40px 16px calc
 .bar .toggle{width:34px;height:18px;min-width:0;min-height:0;justify-self:auto;border-radius:99px}
 .bar .toggle::after{top:2px;inset-inline-start:2px;width:12px;height:12px;box-shadow:0 0 6px rgba(245,158,11,.5)}
 :root[data-theme="dark"] .bar .toggle::after{transform:translateX(-16px)}
-.bar .bell{position:relative;top:auto;left:auto;width:30px;height:30px;box-shadow:none}
-.bar .bell svg{width:15px;height:15px}
+.bar .bell{position:relative;top:auto;left:auto;width:46px;height:46px;box-shadow:none}
+.bar .bell svg{width:24px;height:24px}
 /* ===== Login gate (قبل الصفحة الأولى) + session toast ===== */
 html:not([data-signed="1"]){overflow:hidden}
 html[data-signed="1"] .auth-gate{display:none}
@@ -361,7 +361,6 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
 
 <header><div class="wrap bar">
   <div class="side">
-    <button class="toggle" id="theme" aria-label="تبديل الوضع الداكن / الفاتح"></button>
     <button class="bell" id="bell" type="button" aria-label="الإشعارات: قائمة المحاضرات" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="badge">0</span></button>
   </div>
   <div class="aff"><span>ملحقة المدرسة العليا للأساتذة بالشلف</span><span>التربية البدنية والرياضية</span></div>
@@ -394,7 +393,6 @@ body{padding-bottom:calc(var(--nav-space) + 12px)}
     <button role="tab" data-t="sum">ملخص</button>
     <button role="tab" data-t="faq">أسئلة عادية</button>
     <button role="tab" data-t="mcq">أسئلة اختيار من متعدد</button>
-    <button role="tab" data-t="notes">📝 ملاحظاتي</button>
     <button role="tab" data-t="map" id="tabmap">خرائط ذهنية قابلة للطباعة</button>
     <button role="tab" data-t="wb">فيديو الوايت بورد</button>
   </div>
@@ -490,7 +488,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
   function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
   var th=get('theme');root.setAttribute('data-theme',th==='light'?'light':'dark');
-  $('theme').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);set('theme',n)};
+  var _thBtn=$('theme');if(_thBtn)_thBtn.onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);set('theme',n)};
 
   /* وسيط آمن لاستدعاء EduAuth (قد يتأخر تحميل auth.js قليلاً) */
   function A(fn){var a=window.EduAuth;if(!a||typeof a[fn]!=='function')return null;try{return a[fn].apply(a,[].slice.call(arguments,1))}catch(e){return null}}

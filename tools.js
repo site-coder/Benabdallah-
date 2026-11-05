@@ -62,16 +62,43 @@
   printEl.id = 'tlPrint'; document.body.appendChild(printEl);
   function clearPrint() { document.body.classList.remove('tl-printing'); }
   addEventListener('afterprint', clearPrint);
-  function doPrint(html, asPdf) {
+  /* الطباعة تتم عبر إطار (iframe) مستقل يحوي صفحة الطباعة فقط؛ هذا أضمن على الهاتف والحاسوب
+     من طباعة الصفحة نفسها. وإن تعذّر الإطار نستعمل الطريقة القديمة (إخفاء الصفحة مؤقتاً). */
+  var PRINT_CSS = '@page{size:A4;margin:12mm}*{box-sizing:border-box}body{direction:rtl;font-family:"Alexandria",Tahoma,Arial,sans-serif;color:#000;background:#fff;margin:0;padding:0;line-height:1.8;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'h1{font-size:20px;margin:0 0 4px}.pm{color:#444;font-size:12.5px;margin-bottom:10px}table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}th,td{border:1px solid #888;padding:4px 8px;text-align:right;vertical-align:top}th{background:#eee}tr{page-break-inside:avoid}.dn td{color:#666;text-decoration:line-through}.brk td{color:#777;font-size:11.5px;text-align:center}.big{font-size:18px;font-weight:700;margin:8px 0}small{color:#555}';
+  function printFallback(html) {
     printEl.innerHTML = html;
     document.body.classList.add('tl-printing');
-    if (asPdf) toast('في نافذة الطباعة اختر «حفظ بصيغة PDF» كوجهة الطباعة', 4200);
     setTimeout(function () {
       try { window.print(); } catch (e) { clearPrint(); toast('تعذّرت الطباعة على هذا المتصفح'); return; }
-      /* احتياط للمتصفحات التي لا تطلق afterprint: نزيل الصنف عند أول لمسة لاحقة */
       var off = function () { clearPrint(); removeEventListener('pointerdown', off, true); };
       addEventListener('pointerdown', off, true);
     }, 80);
+  }
+  function doPrint(html, asPdf) {
+    if (asPdf) toast('في نافذة الطباعة اختر «حفظ بصيغة PDF» كوجهة الطباعة', 4500);
+    var old = document.getElementById('tlPrintFrame'); if (old) old.remove();
+    var f = document.createElement('iframe'), fired = false;
+    f.id = 'tlPrintFrame'; f.setAttribute('aria-hidden', 'true'); f.setAttribute('tabindex', '-1');
+    f.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;height:600px;border:0;opacity:0;pointer-events:none';
+    document.body.appendChild(f);
+    function fire() {
+      if (fired) return; fired = true;
+      try {
+        var w = f.contentWindow; w.focus();
+        w.onafterprint = function () { setTimeout(function () { if (f.parentNode) f.remove(); }, 800); };
+        w.print();
+        setTimeout(function () { if (f.parentNode) f.remove(); }, 120000);
+      } catch (e) { if (f.parentNode) f.remove(); printFallback(html); }
+    }
+    try {
+      var d = f.contentDocument || f.contentWindow.document;
+      d.open();
+      d.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>طباعة</title><style>' + PRINT_CSS + '</style></head><body>' + html + '</body></html>');
+      d.close();
+    } catch (e) { f.remove(); printFallback(html); return; }
+    f.onload = function () { setTimeout(fire, 150); };
+    setTimeout(fire, 700);
   }
 
   /* ---------- التنقل بين الصفحات الداخلية للأدوات ---------- */
