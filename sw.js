@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.7.4';
+const VERSION = 'v1.7.5';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -38,6 +38,7 @@ const PRECACHE = [
   './tools.css',
   './home.js',
   './home.css',
+  './theme.css',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png'

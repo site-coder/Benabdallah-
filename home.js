@@ -155,44 +155,92 @@
   /* ==========================================================================
      بناء الهيكل (مرة واحدة)
      ========================================================================== */
+
+  /* ---------- إضافات الواجهة الجديدة (قراءة فقط من بيانات الموقع) ---------- */
+  var GOAL = 2; /* هدف جلسات التركيز اليومية */
+  var QUOTES = [
+    'النجاح يبدأ بخطوة صغيرة في كل يوم.',
+    'من جدّ وجد، ومن زرع حصد.',
+    'التعلّم رحلة، وكل محاضرة محطة تقرّبك من هدفك.',
+    'اجتهاد اليوم هو ثقتك في امتحان الغد.',
+    'لا تقارن بدايتك بنهاية غيرك، واصل خطوتك.'
+  ];
+  function streakDays() {
+    var s = lsGet('tl_pomo_v1', null), days = (s && s.days && typeof s.days === 'object') ? s.days : {};
+    var d = new Date(), n = 0;
+    function key(x) { return x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()); }
+    if (!(days[key(d)] && +days[key(d)].n > 0)) d.setDate(d.getDate() - 1); /* اليوم الجاري لا يكسر السلسلة قبل أن ينتهي */
+    while (days[key(d)] && +days[key(d)].n > 0) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  function hours(min) { return min < 60 ? min + 'm' : (Math.round(min / 6) / 10) + 'h'; }
+  function dateLabel() {
+    try { return new Date().toLocaleDateString('ar-DZ-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+    catch (e) { return todayKey(); }
+  }
+  function openTodos() {
+    var s = lsGet('tl_todo_v1', null), a = (s && Array.isArray(s.tasks)) ? s.tasks : [];
+    return a.filter(function (t) { return t && t.id && t.title && !t.done; }).slice(0, 3);
+  }
+
   var QUICK = [
-    ['sched', 'الجدول الدراسي', P.cal],
-    ['todo', 'قائمة المهام', P.list],
-    ['gpa', 'حساب المعدل', P.calc],
-    ['pomo', 'مؤقت التركيز', P.timer]
+    ['sched', 'الجدول', P.cal],
+    ['todo', 'المهام', P.list],
+    ['gpa', 'المعدل', P.calc],
+    ['pomo', 'التركيز', P.timer]
   ];
   var showAll = false, queue = [], qi = 0, built = false;
 
   function build() {
+    var ring = '<svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="hmRg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8B5CF6"/><stop offset=".55" stop-color="#C084FC"/><stop offset="1" stop-color="#FBBF24"/></linearGradient></defs>' +
+      '<circle class="hm-ring-bg" cx="60" cy="60" r="52"/><circle class="hm-ring-fg" id="hmRingFg" cx="60" cy="60" r="52" pathLength="100"/></svg>';
     var h = '<div class="hm">';
     /* 1) الترحيب */
     h += '<section class="hm-hero" aria-labelledby="hmT">' +
-      '<span class="hm-cap">' + ic(P.cap) + '</span>' +
-      '<h1 id="hmT">مركزك الجامعي</h1>' +
-      '<p class="hm-greet" id="hmGreet" hidden></p>' +
-      '<p class="hm-lead">أهلاً بك في منصتك. هنا تجد أهم ما تحتاجه في دراستك: أدواتك ومقاييسك وتقدّمك، كلها في صفحة واحدة.</p>' +
-      '<svg class="hm-ecg" id="hmEcg" viewBox="0 0 320 60" aria-hidden="true"><defs><linearGradient id="hmEcgG" x1="0" x2="1"><stop offset="0" stop-color="#A855F7"/><stop offset=".6" stop-color="#C084FC"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs>' +
-      '<path pathLength="1" d="M0 34H96l9-5 7 5h14l8-26 12 48 10-34 7 12h26l9-6 9 6H320"/></svg>' +
+      '<h1 id="hmT">مرحباً بك مجدداً</h1>' +
+      '<p class="hm-sub"><span class="hm-wave" aria-hidden="true">👋</span><span id="hmSub">نتمنى لك يوماً دراسياً موفقاً</span></p>' +
       '</section>';
-    /* 2) هل تعلم؟ */
+    /* 2) التاريخ */
+    h += '<div class="hm-date">' + ic(P.cal) + '<span>اليوم : <b id="hmDate"></b></span></div>';
+    /* 3) هدف اليوم */
+    h += '<section class="hm-goal hm-card" aria-labelledby="hmGoalT">' +
+      '<h2 class="hm-h" id="hmGoalT">' + ic('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>') + 'هدفك الدراسي اليوم</h2>' +
+      '<div class="hm-goal-n" id="hmGoalN"></div>' +
+      '<div class="hm-bar hm-bar-lg" aria-hidden="true"><i id="hmGoalBar"></i></div>' +
+      '<p class="hm-goal-m" id="hmGoalM"></p></section>';
+    /* 4) الدائرة + إحصاءات جانبية */
+    h += '<section class="hm-ringrow" aria-label="تقدّمك العام">' +
+      '<div class="hm-ring hm-card">' + ring + '<div class="hm-ring-c"><b id="hmRingP">0<small>%</small></b><span>من دراستك الكلية</span></div></div>' +
+      '<div class="hm-side"><div class="hm-mini hm-card">' + ic(P.book) + '<b id="hmSubjN">0</b><span>المقاييس</span></div>' +
+      '<div class="hm-mini hm-card">' + ic(P.timer) + '<b id="hmHours">0m</b><span>ساعات الدراسة</span></div></div></section>';
+    /* 5) اقتباس */
+    h += '<section class="hm-quote"><span class="hm-quote-ic" aria-hidden="true">🎓</span><p id="hmQuote"></p></section>';
+    /* 6) مهام اليوم */
+    h += '<section class="hm-card hm-todo" aria-labelledby="hmTdT"><h2 class="hm-h" id="hmTdT">' + ic(P.list) + 'مهام اليوم</h2><div id="hmTodos" class="hm-tasks"></div></section>';
+    /* 7) إحصاءات سريعة */
+    h += '<section class="hm-card" aria-labelledby="hmStT"><h2 class="hm-h" id="hmStT">' + ic('<path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-9"/>') + 'إحصائياتك السريعة</h2><div class="hm-stats">' +
+      '<div class="hm-stat">' + ic(P.timer) + '<b id="hmS1">0</b><span>وقت الدراسة</span></div>' +
+      '<div class="hm-stat hm-ok">' + ic('<path d="M20 6 9 17l-5-5"/>') + '<b id="hmS2">0</b><span>مهام منجزة</span></div>' +
+      '<div class="hm-stat hm-gold">' + ic(P.trophy) + '<b id="hmS3">0%</b><span>معدل التقدم</span></div>' +
+      '<div class="hm-stat hm-fire">' + ic('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>') + '<b id="hmS4">0</b><span>أيام متتالية</span></div>' +
+      '</div></section>';
+    /* 8) أدوات سريعة */
+    h += '<section class="hm-card" aria-labelledby="hmQT"><h2 class="hm-h" id="hmQT">' + ic(P.bolt) + 'أدوات سريعة</h2><div class="hm-quick">';
+    QUICK.forEach(function (q) {
+      h += '<button type="button" class="hm-q" data-tool="' + q[0] + '"><span class="hm-q-ic">' + ic(q[2]) + '</span><b>' + q[1] + '</b><small id="hmQ-' + q[0] + '"></small></button>';
+    });
+    h += '</div></section>';
+    /* 9) المقاييس الأكثر متابعة */
+    h += '<section class="hm-card" aria-labelledby="hmST"><div class="hm-sec-top"><h2 class="hm-h" id="hmST">' + ic(P.layers) + 'المقاييس الأكثر متابعة</h2><button type="button" class="hm-toggle" id="hmSTog" aria-expanded="false" hidden></button></div><div class="hm-subj" id="hmSubj"></div></section>';
+    /* 10) هل تعلم؟ */
     h += '<section class="hm-fact" aria-labelledby="hmFactT">' +
       '<div class="hm-fact-head"><h2 class="hm-h" id="hmFactT">' + ic(P.bulb) + 'هل تعلم؟</h2><span class="hm-chip" id="hmFactCat"></span></div>' +
       '<p class="hm-fact-t" id="hmFactTx" aria-live="polite"></p>' +
       '<div class="hm-fact-foot"><button type="button" class="hm-btn" id="hmFactBtn">' + ic(P.refresh) + '<span>معلومة أخرى</span></button></div>' +
       '</section>';
-    /* 3) الوصول السريع */
-    h += '<section aria-labelledby="hmQT"><div class="hm-sec-top"><h2 class="hm-h" id="hmQT">' + ic(P.bolt) + 'الوصول السريع</h2></div><div class="hm-quick">';
-    QUICK.forEach(function (q) {
-      h += '<button type="button" class="hm-q" data-tool="' + q[0] + '"><span class="hm-q-ic">' + ic(q[2]) + '</span><b>' + q[1] + '</b><small id="hmQ-' + q[0] + '"></small></button>';
-    });
-    h += '</div></section>';
-    /* 4) المقاييس */
-    h += '<section aria-labelledby="hmST"><div class="hm-sec-top"><h2 class="hm-h" id="hmST">' + ic(P.layers) + 'المقاييس التي تتابعها</h2><button type="button" class="hm-toggle" id="hmSTog" aria-expanded="false" hidden></button></div><div class="hm-subj" id="hmSubj"></div></section>';
-    /* 5) مصطلح جامعي اليوم */
+    /* 11) مصطلح جامعي اليوم */
     h += '<section class="hm-term" aria-labelledby="hmTT"><h2 class="hm-h" id="hmTT">' + ic(P.book) + 'مصطلح جامعي اليوم</h2>' +
       '<div class="hm-term-w"><b id="hmTerm"></b><span id="hmTermEn"></span></div><p id="hmTermDef"></p></section>';
-    /* 6) الإنجازات */
-    h += '<section aria-labelledby="hmAT"><div class="hm-sec-top"><h2 class="hm-h" id="hmAT">' + ic(P.trophy) + 'إنجازاتك الدراسية</h2></div><div class="hm-ach" id="hmAch"></div><p class="hm-hint" id="hmAchHint" hidden></p></section>';
     h += '</div>';
     root.innerHTML = h;
     root.classList.remove('page-empty');
@@ -209,6 +257,30 @@
     });
     var tmo = $('#hmFactBtn');
     if (tmo) tmo.addEventListener('transitionend', function () { tmo.classList.remove('spin'); });
+  }
+
+  /* ---------- تعبئة الأقسام الجديدة من بيانات حقيقية ---------- */
+  function renderDash() {
+    var lc = lecStats(), td = todoStats(), pm = pomoStats(), p = lc.total ? Math.round(lc.done / lc.total * 100) : 0, el;
+    if ((el = $('#hmDate'))) el.textContent = dateLabel();
+    if ((el = $('#hmGoalN'))) el.textContent = Math.min(pm.today, GOAL) + ' / ' + GOAL + ' جلسات تركيز';
+    if ((el = $('#hmGoalBar'))) el.style.width = Math.min(100, Math.round(pm.today / GOAL * 100)) + '%';
+    if ((el = $('#hmGoalM'))) el.textContent = pm.today >= GOAL ? '🎉 أحسنت! حققت هدف اليوم' : '💪 واصل لتحقيق هدفك اليوم';
+    if ((el = $('#hmRingFg'))) el.style.strokeDashoffset = 100 - p;
+    if ((el = $('#hmRingP'))) el.innerHTML = p + '<small>%</small>';
+    if ((el = $('#hmSubjN'))) el.textContent = subjects().length;
+    if ((el = $('#hmHours'))) el.textContent = hours(pm.min);
+    if ((el = $('#hmQuote'))) el.textContent = QUOTES[Math.floor(Date.now() / 864e5) % QUOTES.length];
+    if ((el = $('#hmS1'))) el.textContent = hours(pm.min);
+    if ((el = $('#hmS2'))) el.textContent = td.done;
+    if ((el = $('#hmS3'))) el.textContent = p + '%';
+    if ((el = $('#hmS4'))) el.textContent = streakDays();
+    if ((el = $('#hmTodos'))) {
+      var a = openTodos();
+      el.innerHTML = a.length ? a.map(function (t) {
+        return '<button type="button" class="hm-task" data-tool="todo"><span class="hm-chk" aria-hidden="true"></span><span>' + esc(t.title) + '</span></button>';
+      }).join('') : '<button type="button" class="hm-empty" data-tool="todo">' + (td.total ? 'أنجزت كل مهامك 🎉' : 'أضف أول مهمة لك') + '</button>';
+    }
   }
 
   /* ==========================================================================
@@ -253,7 +325,7 @@
      المقاييس: من SUBJECTS و CONTENT الفعليتين
      ========================================================================== */
   function renderSubjects() {
-    var box = $('#hmSubj'), tog = $('#hmSTog'), S = subjects(), st = lecStats(), LIMIT = 4;
+    var box = $('#hmSubj'), tog = $('#hmSTog'), S = subjects(), st = lecStats(), LIMIT = 3;
     if (!box) return;
     if (!S.length) {
       box.innerHTML = '<div class="hm-empty">لا توجد مقاييس مسجّلة حالياً. ستظهر هنا فور إضافتها إلى الموقع.</div>';
@@ -304,11 +376,11 @@
      الترحيب الشخصي + تحديث شامل
      ========================================================================== */
   function renderGreet() {
-    var g = $('#hmGreet'), n = userName();
+    var g = $('#hmSub'), n = userName();
     if (!g) return;
-    if (n) { g.textContent = greeting() + '، ' + n; g.hidden = false; } else g.hidden = true;
+    g.textContent = n ? (greeting() + '، ' + n + ' — نتمنى لك يوماً دراسياً موفقاً') : 'نتمنى لك يوماً دراسياً موفقاً';
   }
-  function update() { if (!built) return; renderGreet(); renderQuick(); renderSubjects(); renderTerm(); renderAch(); }
+  function update() { if (!built) return; renderGreet(); renderDash(); renderQuick(); renderSubjects(); renderTerm(); }
 
   function playEcg() {
     var e = $('#hmEcg'); if (!e) return;
@@ -321,7 +393,6 @@
   build();
   nextFact(false);
   update();
-  playEcg();
 
   /* كلما عاد الطالب إلى الرئيسية: بيانات محدّثة + معلومة جديدة */
   var wasHidden = root.hidden;
