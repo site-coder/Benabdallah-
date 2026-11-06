@@ -72,6 +72,13 @@
     if (!d.progress || typeof d.progress !== 'object') d.progress = {};
     if (!d.notes || typeof d.notes !== 'object') d.notes = {};
     if (!d.last || typeof d.last !== 'object') d.last = null;
+    if (!d.profile || typeof d.profile !== 'object') d.profile = null;   /* تعديلات الملف الشخصي (نصوص فقط) */
+    if (typeof d.photo !== 'string') d.photo = '';                        /* الصورة الشخصية: محلية فقط ولا تُرسل للخادم */
+    if (user && d.profile) {                                              /* تعديلات الطالب تبقى حتى بعد إعادة الدخول */
+      if (d.profile.name) { user.name = d.profile.name; user.givenName = String(d.profile.name).split(' ')[0]; }
+      if (typeof d.profile.email === 'string') user.email = d.profile.email;
+      persistUser();
+    }
     if (user) { d.email = user.email; d.name = user.name; }
     data = d;
   }
@@ -161,7 +168,46 @@
   }
   function fullState() {
     if (!data) return null;
-    return { progress: data.progress, notes: data.notes, last: data.last, updatedAt: data.updatedAt || 0 };
+    return { progress: data.progress, notes: data.notes, last: data.last, profile: data.profile, updatedAt: data.updatedAt || 0 };
+  }
+
+  /* ----------------------------- الملف الشخصي ----------------------------- */
+  function cleanField(v, n) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n || 80); }
+
+  function getProfile() {
+    if (!user || !data) return null;
+    var p = data.profile || {};
+    return {
+      name: user.name || '', email: user.email || '', regNo: user.regNo || '',
+      major: p.major || '', level: p.level || '', year: p.year || '',
+      picture: data.photo || user.picture || '', method: user.method
+    };
+  }
+
+  /* f: { name, email, major, level, year, photo? }  —  photo: undefined = بلا تغيير، '' = حذف، 'data:image/…' = جديدة.
+     رقم التسجيل لا يُعدَّل أبداً، ومعرّف الطالب (id) لا يتغيّر. يعيد true عند نجاح الحفظ الدائم. */
+  function updateProfile(f) {
+    if (!user || !data || !f) return false;
+    var name = cleanField(f.name, 80);
+    if (name.length < 3) return false;
+    var prev = { profile: data.profile, photo: data.photo, name: user.name, given: user.givenName, email: user.email, upd: data.updatedAt };
+    data.profile = { name: name, email: cleanField(f.email, 120), major: cleanField(f.major), level: cleanField(f.level), year: cleanField(f.year), ts: Date.now() };
+    if (typeof f.photo === 'string') {
+      if (f.photo === '') data.photo = '';
+      else if (/^data:image\//.test(f.photo) && f.photo.length < 400000) data.photo = f.photo;
+    }
+    user.name = data.profile.name; user.givenName = name.split(' ')[0]; user.email = data.profile.email;
+    var ok = saveData();
+    if (!ok) {                                   /* فشل التخزين: أعد الحالة السابقة كما كانت */
+      data.profile = prev.profile; data.photo = prev.photo; data.updatedAt = prev.upd;
+      user.name = prev.name; user.givenName = prev.given; user.email = prev.email;
+      return false;
+    }
+    persistUser();
+    track('profile_updated', {});
+    scheduleSync();
+    notify('profile');
+    return true;
   }
 
   /* ------------------- المعرّف الموحّد للدخول بالاسم + الرقم ------------------- */
@@ -266,7 +312,39 @@
       });
     }
     if (st.last && (!data.last || (st.last.ts || 0) > (data.last.ts || 0))) { data.last = st.last; changed = true; }
+    if (st.profile && typeof st.profile === 'object' && st.profile.name && (!data.profile || (st.profile.ts || 0) > (data.profile.ts || 0))) {
+      data.profile = { name: String(st.profile.name).slice(0, 80), email: String(st.profile.email || '').slice(0, 120), major: String(st.profile.major || '').slice(0, 80), level: String(st.profile.level || '').slice(0, 80), year: String(st.profile.year || '').slice(0, 80), ts: st.profile.ts || Date.now() };
+      if (user) { user.name = data.profile.name; user.givenName = data.profile.name.split(' ')[0]; user.email = data.profile.email; persistUser(); }
+      changed = true;
+    }
     if (changed) { set(dataKey(), JSON.stringify(data)); notify('sync'); }
+  }
+
+  /* جسم الطلب المشترك بين المزامنة الخلفية (flush) والإرسال المباشر (sendNow) */
+  function buildBody(events) {
+    return {
+      app: 'eps-chlef-hub',
+      method: user.method,                       /* 'google' | 'manual' */
+      user: { id: user.id, name: user.name, email: user.email, regNo: user.regNo || null, method: user.method },
+      idToken: (user.method === 'google' && validToken()) ? idToken : null,
+      progress: snapshot(),
+      state: fullState(),                        /* التقدّم + الملاحظات + الملف الشخصي */
+      events: events
+    };
+  }
+
+  /* إرسال حدث واحد فوراً مع نتيجة حقيقية: { ok: true } فقط إذا ردّ الخادم بنجاح */
+  function sendNow(type, d) {
+    if (!TRACK_URL || !user) return Promise.resolve({ ok: false, reason: 'nouser' });
+    if (!navigator.onLine) return Promise.resolve({ ok: false, reason: 'offline' });
+    var ev = [{ t: type, d: d || {}, ts: Date.now(), uid: user.id }];
+    return fetch(TRACK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      keepalive: true,
+      body: JSON.stringify(buildBody(ev))
+    }).then(function (r) { return { ok: !!r.ok, status: r.status }; })
+      .catch(function () { return { ok: false, reason: 'network' }; });
   }
 
   function flush() {
@@ -282,15 +360,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       keepalive: true,
-      body: JSON.stringify({
-        app: 'eps-chlef-hub',
-        method: user.method,                       /* 'google' | 'manual' */
-        user: { id: user.id, name: user.name, email: user.email, regNo: user.regNo || null, method: user.method },
-        idToken: (user.method === 'google' && validToken()) ? idToken : null,
-        progress: snapshot(),
-        state: fullState(),                        /* التقدّم + الملاحظات كاملة */
-        events: q
-      })
+      body: JSON.stringify(buildBody(q))
     }).then(function (r) {
       if (r.ok) {
         var rest = readQueue().slice(sent);
@@ -486,6 +556,10 @@
     signInManual: manualLogin,
     signOut: signOut,
     track: track,
+    sendNow: sendNow,
+    /* الملف الشخصي */
+    getProfile: getProfile,
+    updateProfile: updateProfile,
     /* التقدّم */
     markTab: markTab,
     saveQuiz: saveQuiz,

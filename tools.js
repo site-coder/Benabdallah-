@@ -1,5 +1,5 @@
 /* ==========================================================================
-   أدوات الطالب (tools.js) — 4 أدوات تعمل محلياً بالكامل داخل قسم «الأدوات»
+   أدوات الطالب (tools.js) — 5 أدوات تعمل محلياً بالكامل داخل قسم «الأدوات»
    - بلا أي API خارجي ولا ذكاء اصطناعي، والحفظ في LocalStorage فقط
    - مفاتيح الحفظ مستقلة لكل أداة: tl_sched_v1 / tl_pomo_v1 / tl_gpa_v1 / tl_todo_v1
    - كل الأسماء داخل IIFE واحدة وبالبادئة tl، فلا تتعارض مع سكربتات الموقع
@@ -37,6 +37,7 @@
     cal: ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/>'),
     timer: ic('<path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/>'),
     calc: ic('<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01"/><path d="M12 11h.01"/><path d="M16 11h.01"/><path d="M8 15h.01"/><path d="M12 15h.01"/><path d="M16 15h.01"/><path d="M8 19h8"/>'),
+    dumb: ic('<path d="M6.5 6.5v11"/><path d="M17.5 6.5v11"/><path d="M3.5 9v6"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/>'),
     list: ic('<path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>')
   };
 
@@ -198,9 +199,10 @@
     sched: { title: 'إنشاء جدول دراسي', desc: 'وزّع موادك تلقائياً على أيامك وأوقات فراغك', icon: I.cal },
     pomo: { title: 'مؤقت بومودورو', desc: 'ركّز بجلسات دراسة وراحة منتظمة', icon: I.timer },
     gpa: { title: 'حساب المعدل الفصلي', desc: 'معدل السداسي بالمعاملات مع حفظ كشف النقاط', icon: I.calc },
-    todo: { title: 'قائمة المهام', desc: 'نظّم واجباتك وامتحاناتك ومواعيد تسليمها', icon: I.list }
+    todo: { title: 'قائمة المهام', desc: 'نظّم واجباتك وامتحاناتك ومواعيد تسليمها', icon: I.list },
+    fit: { title: 'الحاسبات الرياضية والتغذوية', desc: 'BMI والسعرات والبروتين والمغذيات وغيرها: 9 حاسبات لطالب التربية البدنية', icon: I.dumb }
   };
-  var ORDER = ['sched', 'pomo', 'gpa', 'todo'];
+  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit'];
   var curTool = null, hub, views = {};
 
   function buildShell() {
@@ -992,5 +994,235 @@
   };
   REFRESH.todo = function () { tdRender(); };
   setInterval(function () { if (tdEl && !root.hidden && !views.todo.hidden && !mbg.classList.contains('open')) tdRender(); }, 60000);
+
+
+  /* ==========================================================================
+     5) الحاسبات الرياضية والتغذوية — 9 حاسبات تعمل محلياً بـ JavaScript فقط (بلا ذكاء اصطناعي)
+        كل حاسبة: مدخلاتها ومعادلتها ونتيجتها المستقلة. النتائج تقديرية وليست تشخيصاً طبياً.
+        لا تحفظ شيئاً في التخزين، وكل الأسماء هنا بالبادئة fit/tc فلا تتعارض مع بقية الأدوات.
+     ========================================================================== */
+  var FI = {
+    bmi: ic('<path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'),
+    fat: ic('<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>'),
+    bmr: ic('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'),
+    tdee: ic('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'),
+    macro: ic('<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>'),
+    prot: I.dumb,
+    carb: ic('<path d="M12 22V8"/><path d="M12 8c-2-1-3-3-3-5 2 0 3 2 3 5z"/><path d="M12 8c2-1 3-3 3-5-2 0-3 2-3 5z"/><path d="M12 14c-2-1-4-1-5-3 2 0 4 1 5 3z"/><path d="M12 14c2-1 4-1 5-3-2 0-4 1-5 3z"/><path d="M12 19c-2-1-4-1-5-3 2 0 4 1 5 3z"/><path d="M12 19c2-1 4-1 5-3-2 0-4 1-5 3z"/>'),
+    lipid: ic('<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>'),
+    kcal: ic('<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>')
+  };
+  function fx(x, d) { return String(parseFloat(Number(x).toFixed(d == null ? 1 : d))); }
+  function optLabel(list, v) { var r = list.filter(function (o) { return o[0] === v; })[0]; return r ? r[1] : v; }
+  var SEX = [['m', 'ذكر'], ['f', 'أنثى']];
+  var F_SEX = { id: 'sex', t: 's', l: 'الجنس', o: SEX };
+  var F_AGE = { id: 'age', l: 'العمر', u: 'سنة', min: 10, max: 100, ph: 'مثال: 21' };
+  var F_W = { id: 'w', l: 'الوزن', u: 'كغ', min: 20, max: 300, ph: 'مثال: 70' };
+  var F_H = { id: 'h', l: 'الطول', u: 'سم', min: 100, max: 250, ph: 'مثال: 175' };
+  var ACT = [['1.2', 'قليل النشاط (عمل مكتبي، بلا تمارين)'], ['1.375', 'نشاط خفيف (تمارين 1–3 أيام أسبوعياً)'], ['1.55', 'نشاط متوسط (تمارين 3–5 أيام أسبوعياً)'], ['1.725', 'نشاط مرتفع (تمارين 6–7 أيام أسبوعياً)'], ['1.9', 'نشاط مرتفع جداً (تدريب شاق يومياً أو مرتين في اليوم)']];
+  var DISC = 'النتيجة تقديرية للتوجيه العام ولا تُعد تشخيصاً طبياً؛ استشر مختصاً عند الحاجة.';
+
+  function mifflin(sex, w, h, a) { return 10 * w + 6.25 * h - 5 * a + (sex === 'm' ? 5 : -161); }
+  function ageNote(a, arr) { if (a < 18) arr.push('المعادلة مبنية على بيانات البالغين، فالنتيجة أقل دقة لمن هم دون 18 سنة.'); }
+
+  var CALCS = [
+    { id: 'bmi', ic: FI.bmi, title: 'مؤشر كتلة الجسم (BMI)', desc: 'قيّم علاقة وزنك بطولك واعرف التصنيف حسب منظمة الصحة العالمية.',
+      fields: [F_W, F_H],
+      how: 'المعادلة (منظمة الصحة العالمية): BMI = الوزن (كغ) ÷ مربع الطول (م²). التصنيف: أقل من 18.5 نحافة، 18.5–24.9 وزن طبيعي، 25–29.9 زيادة وزن، 30 فأكثر سمنة. المؤشر لا يفرّق بين الكتلة العضلية والدهون، فقد يبدو الرياضي ذو العضلات الكبيرة «زائد الوزن» وهو ليس كذلك.',
+      calc: function (v) {
+        var m = v.h / 100, b = v.w / (m * m), c, t;
+        if (b < 16) { c = 'نحافة شديدة'; t = 'bad'; } else if (b < 17) { c = 'نحافة متوسطة'; t = 'warn'; } else if (b < 18.5) { c = 'نحافة خفيفة'; t = 'warn'; }
+        else if (b < 25) { c = 'وزن طبيعي'; t = 'ok'; } else if (b < 30) { c = 'زيادة في الوزن'; t = 'warn'; } else if (b < 35) { c = 'سمنة من الدرجة الأولى'; t = 'bad'; } else if (b < 40) { c = 'سمنة من الدرجة الثانية'; t = 'bad'; } else { c = 'سمنة من الدرجة الثالثة'; t = 'bad'; }
+        var lo = 18.5 * m * m, hi = 24.9 * m * m, rows = [['الوزن الطبيعي لطولك', fx(lo) + ' – ' + fx(hi) + ' كغ']];
+        if (v.w < lo) rows.push(['ينقصك للوصول إلى الحد الأدنى', fx(lo - v.w) + ' كغ']); else if (v.w > hi) rows.push(['الزيادة عن الحد الأعلى', fx(v.w - hi) + ' كغ']);
+        return { label: 'مؤشر كتلة الجسم', value: fx(b), unit: 'كغ/م²', tag: c, tt: t, rows: rows, detail: fx(v.w) + ' ÷ (' + fx(m, 2) + ')² = ' + fx(b, 2),
+          notes: ['المؤشر مخصص للبالغين؛ وللرياضيين ذوي الكتلة العضلية العالية يُستحسن الاعتماد أيضاً على نسبة الدهون.'] };
+      } },
+    { id: 'fat', ic: FI.fat, title: 'نسبة الدهون في الجسم', desc: 'قدّر نسبة الدهون المئوية بطريقة البحرية الأمريكية أو بمعادلة BMI.',
+      fields: [F_SEX, { id: 'm', t: 's', l: 'طريقة الحساب', o: [['navy', 'قياسات المحيطات (البحرية الأمريكية)'], ['bmi', 'معادلة BMI (ديورنبيرغ)']] },
+        { id: 'age', l: 'العمر', u: 'سنة', min: 10, max: 100, ph: 'مثال: 21', show: function (r) { return r.m === 'bmi'; } }, F_W, F_H,
+        { id: 'neck', l: 'محيط الرقبة', u: 'سم', min: 20, max: 80, ph: 'مثال: 38', show: function (r) { return r.m === 'navy'; } },
+        { id: 'waist', l: 'محيط الخصر (عند السرّة)', u: 'سم', min: 40, max: 200, ph: 'مثال: 82', show: function (r) { return r.m === 'navy'; } },
+        { id: 'hip', l: 'محيط الأرداف (أوسع نقطة)', u: 'سم', min: 50, max: 200, ph: 'مثال: 98', show: function (r) { return r.m === 'navy' && r.sex === 'f'; } }],
+      how: 'طريقة البحرية الأمريكية (قياسات بالسنتيمتر): للرجال %الدهون = 495 ÷ (1.0324 − 0.19077×log10(الخصر − الرقبة) + 0.15456×log10(الطول)) − 450. للنساء = 495 ÷ (1.29579 − 0.35004×log10(الخصر + الأرداف − الرقبة) + 0.22100×log10(الطول)) − 450. معادلة ديورنبيرغ: %الدهون = 1.20×BMI + 0.23×العمر − 10.8×(1 للذكر، 0 للأنثى) − 5.4. التصنيف حسب مجلس التمارين الأمريكي (ACE). الطريقتان تقديريتان وقد تختلفان عن القياس المخبري.',
+      calc: function (v) {
+        var bf, f, nt = [], det;
+        if (v.m === 'navy') {
+          var d = v.sex === 'm' ? v.waist - v.neck : v.waist + v.hip - v.neck;
+          if (!(d > 0)) return { err: v.sex === 'm' ? 'محيط الخصر يجب أن يكون أكبر من محيط الرقبة.' : 'مجموع محيطي الخصر والأرداف يجب أن يكون أكبر من محيط الرقبة.' };
+          bf = v.sex === 'm' ? 495 / (1.0324 - 0.19077 * Math.log10(d) + 0.15456 * Math.log10(v.h)) - 450 : 495 / (1.29579 - 0.35004 * Math.log10(d) + 0.221 * Math.log10(v.h)) - 450;
+          det = 'طريقة البحرية الأمريكية (' + (v.sex === 'm' ? 'رجال' : 'نساء') + ')';
+        } else {
+          var bmi = v.w / Math.pow(v.h / 100, 2); bf = 1.2 * bmi + 0.23 * v.age - 10.8 * (v.sex === 'm' ? 1 : 0) - 5.4;
+          det = 'معادلة ديورنبيرغ: 1.20×' + fx(bmi, 2) + ' + 0.23×' + v.age + ' − 10.8×' + (v.sex === 'm' ? 1 : 0) + ' − 5.4'; ageNote(v.age, nt);
+        }
+        if (!(bf > 0 && bf < 65)) return { err: 'النتيجة (' + fx(bf) + '%) غير منطقية؛ راجع القياسات المُدخلة (الوحدة بالسنتيمتر).' };
+        var T = v.sex === 'm' ? [[6, 'دهون أساسية', 'warn'], [14, 'مستوى رياضيين', 'ok'], [18, 'لياقة جيدة', 'ok'], [25, 'متوسط', 'warn'], [999, 'مرتفع (سمنة)', 'bad']] : [[14, 'دهون أساسية', 'warn'], [21, 'مستوى رياضيات', 'ok'], [25, 'لياقة جيدة', 'ok'], [32, 'متوسط', 'warn'], [999, 'مرتفع (سمنة)', 'bad']];
+        var c = T.filter(function (x) { return bf < x[0]; })[0], fm = v.w * bf / 100;
+        return { label: 'نسبة الدهون', value: fx(bf), unit: '%', tag: c[1], tt: c[2], rows: [['كتلة الدهون', fx(fm) + ' كغ'], ['الكتلة الخالية من الدهون', fx(v.w - fm) + ' كغ'], ['الطريقة المعتمدة', v.m === 'navy' ? 'البحرية الأمريكية' : 'ديورنبيرغ']], detail: det, notes: nt };
+      } },
+    { id: 'bmr', ic: FI.bmr, title: 'معدل الأيض الأساسي (BMR)', desc: 'السعرات التي يحرقها جسمك في الراحة التامة خلال اليوم.',
+      fields: [F_SEX, F_AGE, F_W, F_H],
+      how: 'معادلة ميفلين–سانت جور (Mifflin-St Jeor): للرجال BMR = 10×الوزن(كغ) + 6.25×الطول(سم) − 5×العمر + 5. للنساء BMR = 10×الوزن + 6.25×الطول − 5×العمر − 161. النتيجة بالسعرات الحرارية في اليوم (kcal/day)، وهي تُعدّ من أدق المعادلات التقديرية للبالغين.',
+      calc: function (v) {
+        var b = mifflin(v.sex, v.w, v.h, v.age), nt = []; ageNote(v.age, nt);
+        return { label: 'معدل الأيض الأساسي', value: String(Math.round(b)), unit: 'سعرة/يوم', rows: [['في الساعة الواحدة', fx(b / 24, 0) + ' سعرة']],
+          detail: '10×' + fx(v.w) + ' + 6.25×' + fx(v.h) + ' − 5×' + v.age + (v.sex === 'm' ? ' + 5' : ' − 161') + ' = ' + fx(b, 1), notes: nt.concat(['هذا ما يحتاجه الجسم للحفاظ على وظائفه الحيوية فقط، ولا يشمل الحركة والتمارين (استعمل حاسبة TDEE لذلك).']) };
+      } },
+    { id: 'tdee', ic: FI.tdee, title: 'الاحتياج اليومي من السعرات (TDEE)', desc: 'إجمالي ما تحرقه يومياً بحسب مستوى نشاطك البدني.',
+      fields: [{ id: 'mode', t: 's', l: 'مصدر BMR', o: [['auto', 'احسب BMR من بياناتي'], ['man', 'لدي قيمة BMR جاهزة']] },
+        { id: 'sex', t: 's', l: 'الجنس', o: SEX, show: function (r) { return r.mode === 'auto'; } },
+        { id: 'age', l: 'العمر', u: 'سنة', min: 10, max: 100, ph: 'مثال: 21', show: function (r) { return r.mode === 'auto'; } },
+        { id: 'w', l: 'الوزن', u: 'كغ', min: 20, max: 300, ph: 'مثال: 70', show: function (r) { return r.mode === 'auto'; } },
+        { id: 'h', l: 'الطول', u: 'سم', min: 100, max: 250, ph: 'مثال: 175', show: function (r) { return r.mode === 'auto'; } },
+        { id: 'bmr', l: 'معدل الأيض الأساسي BMR', u: 'سعرة/يوم', min: 600, max: 5000, ph: 'مثال: 1700', show: function (r) { return r.mode === 'man'; } },
+        { id: 'act', t: 's', l: 'مستوى النشاط البدني', o: ACT, d: '1.55' }],
+      how: 'TDEE = BMR × معامل النشاط. المعاملات: 1.2 قليل النشاط، 1.375 خفيف، 1.55 متوسط، 1.725 مرتفع، 1.9 مرتفع جداً. يُحسب BMR بمعادلة ميفلين–سانت جور (أو تدخله بنفسك). النتيجة تقريبية؛ راقب وزنك أسبوعين وعدّل بحسبه.',
+      calc: function (v) {
+        var b, nt = [], det; if (v.mode === 'auto') { b = mifflin(v.sex, v.w, v.h, v.age); ageNote(v.age, nt); } else b = v.bmr;
+        var f = parseFloat(v.act), t = b * f, loss = t - 500, gain = t + 300;
+        det = 'BMR (' + Math.round(b) + ') × ' + f + ' = ' + fx(t, 1);
+        if (loss < b) nt.push('هدف إنقاص الوزن (' + Math.round(loss) + ') أقل من BMR؛ لا يُنصح بالنزول تحت BMR دون إشراف مختص.');
+        return { label: 'الاحتياج اليومي (TDEE)', value: String(Math.round(t)), unit: 'سعرة/يوم', rows: [['معدل الأيض الأساسي BMR', Math.round(b) + ' سعرة'], ['معامل النشاط', String(f)], ['للحفاظ على الوزن', Math.round(t) + ' سعرة'], ['لإنقاص الوزن تدريجياً (−500)', Math.round(loss) + ' سعرة'], ['لزيادة الوزن تدريجياً (+300)', Math.round(gain) + ' سعرة']],
+          detail: det, notes: nt.concat(['عجز 500 سعرة يومياً يعادل نحو نصف كيلوغرام أسبوعياً تقريباً، وهو تقدير عام.']) };
+      } },
+    { id: 'macro', ic: FI.macro, title: 'توزيع المغذيات الكبرى', desc: 'وزّع سعراتك على البروتين والكربوهيدرات والدهون بالغرام.',
+      fields: [{ id: 'kcal', l: 'السعرات المستهدفة يومياً', u: 'سعرة', min: 800, max: 8000, ph: 'مثال: 2500' },
+        { id: 'pre', t: 's', l: 'نمط جاهز (اختياري)', o: [['', 'نسب مخصصة'], ['30-40-30', 'متوازن: 30 / 40 / 30'], ['25-50-25', 'رياضات التحمل: 25 / 50 / 25'], ['35-40-25', 'بناء العضلات: 35 / 40 / 25'], ['40-30-30', 'تنشيف: 40 / 30 / 30']], fill: true },
+        { id: 'p', l: 'نسبة البروتين', u: '%', min: 0, max: 100, ph: '30', reset: true },
+        { id: 'c', l: 'نسبة الكربوهيدرات', u: '%', min: 0, max: 100, ph: '40', reset: true },
+        { id: 'f', l: 'نسبة الدهون', u: '%', min: 0, max: 100, ph: '30', reset: true }],
+      how: 'غرام المغذي = (السعرات × نسبته) ÷ سعراته لكل غرام. معاملات أتواتر (Atwater) المعتمدة: البروتين 4 سعرات/غ، الكربوهيدرات 4 سعرات/غ، الدهون 9 سعرات/غ. يجب أن يكون مجموع النسب الثلاث 100%. النطاقات المقبولة (AMDR): بروتين 10–35%، كربوهيدرات 45–65%، دهون 20–35%.',
+      calc: function (v) {
+        var s = v.p + v.c + v.f; if (Math.abs(s - 100) > 0.01) return { err: 'مجموع النسب يجب أن يساوي 100% (مجموعها الحالي ' + fx(s, 2) + '%).' };
+        var kp = v.kcal * v.p / 100, kc = v.kcal * v.c / 100, kf = v.kcal * v.f / 100, nt = [];
+        if (v.f < 20 || v.f > 35) nt.push('نسبة الدهون خارج المدى الموصى به (20–35%).'); if (v.p > 35) nt.push('نسبة البروتين مرتفعة (أعلى من 35%)؛ تأكد أنها تناسب نظامك الرياضي.');
+        return { label: 'توزيع السعرات', value: Math.round(v.kcal) + '', unit: 'سعرة/يوم', rows: [['البروتين', fx(kp / 4, 0) + ' غ  (' + Math.round(kp) + ' سعرة · ' + fx(v.p) + '%)'], ['الكربوهيدرات', fx(kc / 4, 0) + ' غ  (' + Math.round(kc) + ' سعرة · ' + fx(v.c) + '%)'], ['الدهون', fx(kf / 9, 0) + ' غ  (' + Math.round(kf) + ' سعرة · ' + fx(v.f) + '%)']],
+          detail: 'بروتين ' + fx(kp, 0) + '÷4 ، كربوهيدرات ' + fx(kc, 0) + '÷4 ، دهون ' + fx(kf, 0) + '÷9', notes: nt };
+      } },
+    { id: 'prot', ic: FI.prot, title: 'الاحتياج اليومي من البروتين', desc: 'كمية البروتين اليومية بالغرام بحسب وزنك ونوع تدريبك وهدفك.',
+      fields: [F_W, { id: 'tr', t: 's', l: 'مستوى النشاط / نوع التدريب', o: [['light', 'خفيف أو غير رياضي (0.8–1.0 غ/كغ)'], ['endu', 'تحمّل: جري، سباحة، دراجات (1.2–1.6 غ/كغ)'], ['team', 'رياضات جماعية ومختلطة (1.4–1.8 غ/كغ)'], ['str', 'قوة وبناء عضلي (1.6–2.2 غ/كغ)']], d: 'team' },
+        { id: 'g', t: 's', l: 'الهدف الرياضي', o: [['keep', 'الحفاظ على الوزن'], ['gain', 'زيادة الكتلة العضلية'], ['loss', 'خسارة الدهون مع الحفاظ على العضلات']], d: 'keep' }],
+      how: 'البروتين (غ/يوم) = الوزن (كغ) × المعدل (غ/كغ). النطاقات من توصيات الكلية الأمريكية للطب الرياضي ومنصّة ISSN 2017: غير رياضي 0.8–1.0، تحمّل 1.2–1.6، رياضات جماعية 1.4–1.8، قوة 1.6–2.2. الهدف يحدد موضع المعدل داخل النطاق: الحفاظ = منتصف النطاق، زيادة العضلات = ثلاثة أرباع النطاق، خسارة الدهون = أعلى النطاق للمحافظة على الكتلة العضلية.',
+      calc: function (v) {
+        var R = { light: [0.8, 1.0], endu: [1.2, 1.6], team: [1.4, 1.8], str: [1.6, 2.2] }[v.tr], lo = R[0], hi = R[1];
+        var k = v.g === 'keep' ? (lo + hi) / 2 : v.g === 'gain' ? lo + 0.75 * (hi - lo) : hi, g = v.w * k;
+        return { label: 'البروتين اليومي', value: fx(g, 0), unit: 'غرام/يوم', rows: [['المعدل المعتمد', fx(k, 2) + ' غ/كغ'], ['النطاق المناسب لك', fx(v.w * lo, 0) + ' – ' + fx(v.w * hi, 0) + ' غ'], ['السعرات من البروتين', Math.round(g * 4) + ' سعرة'], ['موزّعة على 4 وجبات', fx(g / 4, 0) + ' غ للوجبة تقريباً']],
+          detail: fx(v.w) + ' كغ × ' + fx(k, 2) + ' غ/كغ = ' + fx(g, 1) + ' غ', notes: ['توزيع البروتين على وجبات اليوم أفضل للاستفادة منه. الإفراط الدائم فوق 2.2 غ/كغ غير ضروري.'] };
+      } },
+    { id: 'carb', ic: FI.carb, title: 'الاحتياج اليومي من الكربوهيدرات', desc: 'كمية الكربوهيدرات اليومية بحسب وزنك ومدة وشدة تدريبك.',
+      fields: [F_W, { id: 'ld', t: 's', l: 'حمل التدريب اليومي', o: [['l1', 'خفيف: تمارين خفيفة أو مهارية (3–5 غ/كغ)'], ['l2', 'متوسط: نحو ساعة يومياً (5–7 غ/كغ)'], ['l3', 'مرتفع: 1–3 ساعات يومياً (6–10 غ/كغ)'], ['l4', 'مرتفع جداً: أكثر من 4 ساعات يومياً (8–12 غ/كغ)']], d: 'l2' }],
+      how: 'الكربوهيدرات (غ/يوم) = الوزن (كغ) × المعدل (غ/كغ). النطاقات من توصيات الكلية الأمريكية للطب الرياضي والأكاديمية الأمريكية للتغذية (2016) واللجنة الأولمبية الدولية: تمارين خفيفة 3–5، نحو ساعة يومياً 5–7، من 1 إلى 3 ساعات 6–10، أكثر من 4 ساعات 8–12 غ/كغ. يُعتمد منتصف النطاق.',
+      calc: function (v) {
+        var R = { l1: [3, 5], l2: [5, 7], l3: [6, 10], l4: [8, 12] }[v.ld], k = (R[0] + R[1]) / 2, g = v.w * k;
+        return { label: 'الكربوهيدرات اليومية', value: fx(g, 0), unit: 'غرام/يوم', rows: [['المعدل المعتمد', fx(k, 1) + ' غ/كغ'], ['النطاق المناسب لك', fx(v.w * R[0], 0) + ' – ' + fx(v.w * R[1], 0) + ' غ'], ['السعرات من الكربوهيدرات', Math.round(g * 4) + ' سعرة']],
+          detail: fx(v.w) + ' كغ × ' + fx(k, 1) + ' غ/كغ = ' + fx(g, 1) + ' غ', notes: ['ارفع الكمية نحو أعلى النطاق في أيام التدريب الشاق أو قبل المنافسات، وخفّضها في أيام الراحة.'] };
+      } },
+    { id: 'lipid', ic: FI.lipid, title: 'الاحتياج اليومي من الدهون', desc: 'حوّل نسبة الطاقة المخصصة للدهون إلى غرامات يومية.',
+      fields: [{ id: 'kcal', l: 'السعرات المستهدفة يومياً', u: 'سعرة', min: 800, max: 8000, ph: 'مثال: 2500' }, { id: 'pc', l: 'نسبة الطاقة من الدهون', u: '%', min: 10, max: 60, ph: 'الموصى به 20–35', d: '25' }],
+      how: 'الدهون (غ) = (السعرات × النسبة ÷ 100) ÷ 9، لأن كل غرام دهون يعطي 9 سعرات. النسبة الموصى بها للبالغين 20–35% من الطاقة (AMDR)، ولا يُنصح عادة بأقل من 20% للرياضيين لأهمية الدهون للهرمونات والفيتامينات الذائبة فيها.',
+      calc: function (v) {
+        var kf = v.kcal * v.pc / 100, g = kf / 9, nt = [];
+        if (v.pc < 20) nt.push('النسبة أقل من 20% وهي دون المدى الموصى به.'); else if (v.pc > 35) nt.push('النسبة أعلى من 35% وهي فوق المدى الموصى به.');
+        return { label: 'الدهون اليومية', value: fx(g, 0), unit: 'غرام/يوم', rows: [['السعرات من الدهون', Math.round(kf) + ' سعرة'], ['النطاق الموصى به (20–35%)', fx(v.kcal * 0.2 / 9, 0) + ' – ' + fx(v.kcal * 0.35 / 9, 0) + ' غ']],
+          detail: '(' + Math.round(v.kcal) + ' × ' + fx(v.pc) + '%) ÷ 9 = ' + fx(g, 1) + ' غ', notes: nt.concat(['يُفضّل أن تأتي معظم الدهون من مصادر غير مشبعة (زيت الزيتون، المكسرات، الأسماك).']) };
+      } },
+    { id: 'nutr', ic: FI.kcal, title: 'السعرات من المغذيات', desc: 'احسب سعرات وجبتك أو يومك من غرامات البروتين والكربوهيدرات والدهون.',
+      fields: [{ id: 'p', l: 'البروتين', u: 'غ', min: 0, max: 2000, ph: 'مثال: 150' }, { id: 'c', l: 'الكربوهيدرات', u: 'غ', min: 0, max: 2000, ph: 'مثال: 300' }, { id: 'f', l: 'الدهون', u: 'غ', min: 0, max: 1000, ph: 'مثال: 70' }],
+      how: 'السعرات = (بروتين × 4) + (كربوهيدرات × 4) + (دهون × 9) حسب معاملات أتووتر. تُحسب سعرات كل مغذٍّ على حدة ثم تُجمع، وتظهر نسبة كل مغذٍّ من المجموع.',
+      calc: function (v) {
+        var a = v.p * 4, b = v.c * 4, c = v.f * 9, t = a + b + c; if (!(t > 0)) return { err: 'أدخل كمية أكبر من صفر في مغذٍّ واحد على الأقل.' };
+        function pc(x) { return fx(x * 100 / t, 1) + '%'; }
+        return { label: 'مجموع السعرات', value: fx(t, 0), unit: 'سعرة', rows: [['من البروتين', fx(a, 0) + ' سعرة · ' + pc(a)], ['من الكربوهيدرات', fx(b, 0) + ' سعرة · ' + pc(b)], ['من الدهون', fx(c, 0) + ' سعرة · ' + pc(c)]],
+          detail: fx(v.p) + '×4 + ' + fx(v.c) + '×4 + ' + fx(v.f) + '×9 = ' + fx(t, 1), notes: ['لا تشمل الحاسبة الكحول (7 سعرات/غ) ولا الألياف.'] };
+      } }
+  ];
+  var FITM = {}; CALCS.forEach(function (c) { FITM[c.id] = c; });
+  var fitCur = null, fitEl = null;
+  function fid(c, f) { return 'fc_' + c.id + '_' + f.id; }
+
+  function fitListHtml() {
+    var h = '<p class="tl-sub">تسع حاسبات علمية لطلبة التربية البدنية والرياضة. اختر الحاسبة، أدخل بياناتك، واحصل على نتيجة فورية بمعادلة معروفة.</p><div class="tc-grid">';
+    CALCS.forEach(function (c) { h += '<div class="tc-card"><span class="tl-ic">' + c.ic + '</span><b>' + c.title + '</b><small>' + c.desc + '</small><button type="button" class="tl-btn pri" data-open="' + c.id + '">ابدأ الحساب</button></div>'; });
+    return h + '</div><p class="tl-hint" style="text-align:center">' + DISC + '</p>';
+  }
+  function fitFieldHtml(c, f) {
+    var id = fid(c, f), h = '<div class="tl-fld" data-f="' + f.id + '"><label class="tl-lbl" for="' + id + '">' + f.l + (f.u ? ' <span class="tc-u">(' + f.u + ')</span>' : '') + '</label>';
+    if (f.t === 's') {
+      h += '<select class="tl-sel" id="' + id + '">' + f.o.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === (f.d != null ? f.d : f.o[0][0]) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+    } else h += '<input class="tl-in num" id="' + id + '" inputmode="decimal" autocomplete="off" placeholder="' + esc(f.ph || '') + '" value="' + esc(f.d || '') + '"' + (f.reset ? ' data-preset="1"' : '') + '>';
+    return h + '<div class="tl-err" data-e></div></div>';
+  }
+  function fitRaw(c) { var r = {}; c.fields.forEach(function (f) { var el = $('#' + fid(c, f), fitEl); r[f.id] = el ? el.value : ''; }); return r; }
+  function fitVis(c) {
+    var r = fitRaw(c);
+    c.fields.forEach(function (f) { var w = $('[data-f="' + f.id + '"]', fitEl); if (w) w.hidden = f.show ? !f.show(r) : false; });
+  }
+  function fitCalcHtml(c) {
+    var h = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button><button type="button" class="back tc-back">كل الحاسبات</button></div>';
+    h += '<h2 class="ptitle">' + c.title + '</h2><div class="tl-wrap"><div class="tl-box tc-head"><span class="tl-ic">' + c.ic + '</span><p>' + c.desc + '</p></div>';
+    h += '<div class="tl-box"><h3>المدخلات</h3><div class="tl-row tc-form" id="tcForm">' + c.fields.map(function (f) { return fitFieldHtml(c, f); }).join('') + '</div><div id="tcMsg" aria-live="polite"></div><div class="tl-btns"><button type="button" class="tl-btn pri" id="tcGo" style="min-height:54px;font-size:17px">' + I.calc + '<span>احسب</span></button><button type="button" class="tl-btn" id="tcReset">' + I.refresh + '<span>إعادة تعيين</span></button></div></div>';
+    h += '<div id="tcRes" aria-live="polite"></div><div class="tl-box"><h3>طريقة الحساب</h3><p class="tc-how">' + c.how + '</p></div></div>';
+    return h;
+  }
+  function fitOpen(id) {
+    fitCur = id && FITM[id] ? FITM[id] : null;
+    var v = views.fit;
+    if (!fitCur) v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><h2 class="ptitle">' + TOOLS.fit.title + '</h2>' + fitListHtml();
+    else { v.innerHTML = fitCalcHtml(fitCur); fitVis(fitCur); }
+    scrollTo(0, 0);
+  }
+  function fitMsg(t) { $('#tcMsg', fitEl).innerHTML = t ? '<div class="tl-msg bad" role="alert">' + esc(t) + '</div>' : ''; }
+  function fitResHtml(r) {
+    var h = '<div class="tl-box tc-res"><h3>النتيجة</h3><div class="tc-main"><small>' + r.label + '</small><b><span dir="ltr">' + r.value + '</span> <i>' + r.unit + '</i></b>' + (r.tag ? '<span class="tl-tag ' + r.tt + '" style="font-size:15px;padding:2px 16px">' + r.tag + '</span>' : '') + '</div><div class="tc-rows">';
+    r.rows.forEach(function (x) { h += '<div><span>' + x[0] + '</span><b>' + x[1] + '</b></div>'; });
+    h += '</div>' + (r.detail ? '<div class="tc-det"><small>تفاصيل الحساب</small><span dir="ltr">' + esc(r.detail) + '</span></div>' : '');
+    (r.notes || []).forEach(function (n) { h += '<div class="tl-msg warn" style="color:var(--text)">' + esc(n) + '</div>'; });
+    return h + '<p class="tl-hint">' + DISC + '</p></div>';
+  }
+  function fitRun() {
+    var c = fitCur, raw = fitRaw(c), vals = {}, bad = 0;
+    fitMsg(''); $('#tcRes', fitEl).innerHTML = '';
+    c.fields.forEach(function (f) {
+      var w = $('[data-f="' + f.id + '"]', fitEl), el = $('#' + fid(c, f), fitEl), er = $('[data-e]', w), m = '';
+      el.classList.remove('bad'); er.textContent = '';
+      if (w.hidden) return;
+      if (f.t === 's') { vals[f.id] = el.value; return; }
+      var s = String(el.value).trim(), n = num(s);
+      if (s === '') m = 'هذا الحقل مطلوب.'; else if (isNaN(n)) m = 'أدخل رقماً صحيحاً (مثل 70 أو 70.5).'; else if (n < f.min || n > f.max) m = 'القيمة يجب أن تكون بين ' + f.min + ' و' + f.max + (f.u ? ' ' + f.u : '') + '.';
+      if (m) { el.classList.add('bad'); er.textContent = m; bad++; } else vals[f.id] = n;
+    });
+    if (bad) { fitMsg('يرجى إكمال الحقول المعلّمة بالأحمر وتصحيحها.'); var b0 = $('.tl-in.bad', fitEl); if (b0) b0.focus(); return; }
+    var r = c.calc(vals);
+    if (r.err) { fitMsg(r.err); return; }
+    var box = $('#tcRes', fitEl); box.innerHTML = fitResHtml(r); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function fitReset() {
+    var c = fitCur;
+    c.fields.forEach(function (f) { var el = $('#' + fid(c, f), fitEl), w = $('[data-f="' + f.id + '"]', fitEl); el.value = f.t === 's' ? (f.d != null ? f.d : f.o[0][0]) : (f.d || ''); el.classList.remove('bad'); $('[data-e]', w).textContent = ''; });
+    fitMsg(''); $('#tcRes', fitEl).innerHTML = ''; fitVis(c); var f0 = $('input:not([hidden])', fitEl); if (f0 && !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) f0.focus();
+  }
+  INIT.fit = function () {
+    var v = views.fit; fitEl = v; fitOpen(null);
+    v.addEventListener('click', function (e) {
+      var t = e.target, b;
+      if ((b = t.closest('[data-open]'))) { fitOpen(b.dataset.open); return; }
+      if (t.closest('.tc-back')) { fitOpen(null); return; }
+      if (t.closest('#tcGo')) { fitRun(); return; }
+      if (t.closest('#tcReset')) { fitReset(); }
+    });
+    v.addEventListener('change', function (e) {
+      var t = e.target; if (!fitCur || t.tagName !== 'SELECT') return;
+      var f = fitCur.fields.filter(function (x) { return fid(fitCur, x) === t.id; })[0];
+      if (f && f.fill && t.value) { var p = t.value.split('-'); ['p', 'c', 'f'].forEach(function (k, i) { var el = $('#fc_' + fitCur.id + '_' + k, v); if (el) { el.value = p[i]; el.classList.remove('bad'); } }); }
+      fitVis(fitCur);
+    });
+    v.addEventListener('input', function (e) {
+      var t = e.target; if (!fitCur || !t.dataset.preset) return;
+      var s = $('#fc_' + fitCur.id + '_pre', v); if (s) s.value = '';
+    });
+    v.addEventListener('keydown', function (e) { if (e.key === 'Enter' && fitCur && e.target.tagName === 'INPUT') { e.preventDefault(); fitRun(); } });
+  };
+  REFRESH.fit = function () { if (fitCur) fitOpen(null); };
 
 })();
