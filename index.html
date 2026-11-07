@@ -401,6 +401,61 @@ textarea.sp-in{min-height:130px;resize:vertical;line-height:1.9}
 .sp-modal p{font-size:13.5px;color:var(--muted);font-weight:300;margin:6px 0 16px}
 .sp-modal .sp-actions{margin-top:0}
 .sp-toast.err{border-color:#F87171}
+/* ===== تطوير ملاحظاتي: بحث / تصنيفات / تثبيت / سلة / تصدير ===== */
+#v-notes{--nbw:560px}
+@media(min-width:700px){#v-notes{--nbw:720px}}
+@media(min-width:1000px){#v-notes{--nbw:980px}.nb-list{grid-template-columns:1fr 1fr}}
+.nb-add,.nb-list,.nb-tools,.nb-hint,.nb-emptybtn{max-width:var(--nbw)}
+.nb-tools{margin:0 auto 14px}
+.nb-search{position:relative;margin-bottom:10px}
+.nb-search>svg{position:absolute;inset-inline-start:14px;top:14px;width:20px;height:20px;color:var(--muted);pointer-events:none}
+.nb-search .sp-in{padding-inline:44px 44px;border-radius:99px}
+.nb-sclr{position:absolute;inset-inline-end:6px;top:4px;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.nb-sclr svg{width:18px;height:18px}
+.nb-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.nb-chips::-webkit-scrollbar{display:none}
+.nb-chip{flex:none;min-height:40px;padding:0 16px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .2s,color .2s,background .2s}
+.nb-chip svg{width:16px;height:16px}
+.nb-chip.on{border-color:var(--g);color:var(--g);background:color-mix(in srgb,var(--g) 12%,transparent)}
+.nb-pinbtn.on svg{fill:currentColor}
+.nb-row{display:flex;gap:10px;align-items:center}
+.nb-sort{position:relative;flex:1;display:block}
+.nb-sort>svg{position:absolute;inset-inline-start:14px;top:14px;width:20px;height:20px;color:var(--muted);pointer-events:none}
+.nb-sort select{padding-inline:44px 14px;border-radius:99px;font-size:15px;cursor:pointer}
+.nb-trashbtn{flex:none;position:relative;min-height:48px;padding:0 18px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.nb-trashbtn svg{width:20px;height:20px}
+.nb-trashbtn b{min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#EF4444;color:#fff;font-size:12px;display:grid;place-items:center}
+.nb-count{min-height:1.6em;margin-top:8px;font-size:13px;color:var(--muted);text-align:center}
+.nb-card{position:relative;list-style:none}
+.nb-card.pinned .nb-item{border-color:color-mix(in srgb,var(--g) 60%,var(--line))}
+.nb-item{padding-inline-end:56px}
+.nb-static{padding-inline-end:16px;cursor:default}
+.nb-snip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:4px;color:var(--muted);font-weight:300;font-size:14px;line-height:1.8}
+.nb-snip:empty{display:none}
+.nb-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:10px}
+.nb-meta small{margin:0!important;display:inline!important}
+.nb-cat{--cc:#A855F7;display:inline-block;padding:1px 12px;border-radius:99px;font-size:12.5px;font-weight:600;color:var(--cc);background:color-mix(in srgb,var(--cc) 16%,transparent);border:1px solid color-mix(in srgb,var(--cc) 40%,transparent)}
+.c-lec{--cc:#C084FC}.c-res{--cc:#38BDF8}.c-rev{--cc:#34D399}.c-oth{--cc:#FBBF24}
+:root[data-theme="light"] .c-lec{--cc:#7E22CE}:root[data-theme="light"] .c-res{--cc:#0369A1}:root[data-theme="light"] .c-rev{--cc:#047857}:root[data-theme="light"] .c-oth{--cc:#B45309}
+.nb-pin{position:absolute;top:8px;inset-inline-end:8px;width:42px;height:42px;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:color .2s,transform .15s}
+.nb-pin svg{width:20px;height:20px}
+.nb-pin.on{color:var(--g)}.nb-pin.on svg{fill:currentColor}
+@media(hover:hover){.nb-pin:hover{color:var(--g);transform:scale(1.1)}}
+mark{background:color-mix(in srgb,var(--g) 38%,transparent);color:inherit;border-radius:4px;padding:0 2px}
+.nb-empty svg{display:block;width:56px;height:56px;margin:0 auto 10px;color:var(--p2);opacity:.8}
+.nb-empty b{display:block;font-size:17px;color:var(--text);margin-bottom:4px}
+.nb-empty .nb-btn{display:inline-flex;flex:none;margin-top:14px;padding:0 24px}
+#nbEdit,#nbTrash{max-width:760px;margin-inline:auto}
+.nb-edtools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.nb-cats{display:flex;flex-wrap:wrap;gap:8px;flex:1}
+.nb-dates{margin-top:10px;font-size:13px;color:var(--muted);text-align:center;min-height:1.6em}
+.nb-actions .nb-btn{min-width:0;padding:0 8px}
+.nb-btn:disabled{opacity:.6;cursor:wait}
+.nb-hint{margin:0 auto 12px;text-align:center;color:var(--muted);font-size:14px;font-weight:300}
+.nb-emptybtn{display:flex;width:100%;margin:0 auto 14px;flex:none}
+.nb-emptybtn[hidden]{display:none}
+.nb-tractions{display:flex;gap:10px;margin-top:12px}
+.nb-tractions .nb-btn{min-height:44px;font-size:14px}
 </style>
 <link rel="stylesheet" href="tools.css">
 <link rel="stylesheet" href="home.css">
@@ -478,24 +533,54 @@ textarea.sp-in{min-height:130px;resize:vertical;line-height:1.9}
 <!-- Tools (فارغة عمداً) -->
 <main class="wrap page-empty" id="v-tools" aria-label="الأدوات" hidden></main>
 
-<!-- My notes (فارغة عمداً) -->
+<!-- My notes -->
 <main class="wrap" id="v-notes" aria-label="ملاحظاتي" hidden>
   <section id="nbList">
     <h2 class="ptitle">ملاحظاتي</h2>
     <button class="nb-add" id="nbAdd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>إضافة ملاحظة جديدة</span></button>
+    <div class="nb-tools">
+      <div class="nb-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="sp-in" id="nbSearch" type="search" placeholder="ابحث في العناوين والمحتوى…" autocomplete="off" aria-label="بحث في الملاحظات"><button class="nb-sclr" id="nbSearchClr" type="button" hidden aria-label="مسح البحث"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+      <div class="nb-chips" id="nbChips" role="group" aria-label="تصفية الملاحظات"><button class="nb-chip" type="button" data-f="all" aria-pressed="false">الكل</button><button class="nb-chip" type="button" data-f="pin" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg><span>المثبتة</span></button><button class="nb-chip" type="button" data-f="lec" aria-pressed="false">محاضرات</button><button class="nb-chip" type="button" data-f="res" aria-pressed="false">بحوث</button><button class="nb-chip" type="button" data-f="rev" aria-pressed="false">مراجعة</button><button class="nb-chip" type="button" data-f="oth" aria-pressed="false">أخرى</button></div>
+      <div class="nb-row">
+        <label class="nb-sort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg><select class="sp-in" id="nbSort" aria-label="ترتيب الملاحظات"><option value="new">الأحدث أولاً</option><option value="old">الأقدم أولاً</option><option value="name">حسب الاسم (أبجدياً)</option></select></label>
+        <button class="nb-trashbtn" id="nbTrashBtn" type="button" aria-label="سلة المحذوفات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>السلة</span><b id="nbTrashCnt" hidden>0</b></button>
+      </div>
+      <div class="nb-count" id="nbCount" aria-live="polite"></div>
+    </div>
     <ul class="nb-list" id="nbItems"></ul>
-    <p class="nb-empty" id="nbEmpty" hidden>لا توجد ملاحظات حالياً، ابدأ بإنشاء ملاحظتك الأولى</p>
+    <div class="nb-empty" id="nbEmpty" hidden></div>
   </section>
   <section id="nbEdit" hidden>
     <button class="back" id="nbBack" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span>العودة للملاحظات</span></button>
     <input class="nb-title" id="nbTitle" type="text" maxlength="120" placeholder="عنوان الملاحظة" autocomplete="off">
+    <div class="nb-edtools">
+      <div class="nb-cats" id="nbCats" role="radiogroup" aria-label="تصنيف الملاحظة"><button class="nb-chip" type="button" role="radio" aria-checked="false" data-c="lec">محاضرات</button><button class="nb-chip" type="button" role="radio" aria-checked="false" data-c="res">بحوث</button><button class="nb-chip" type="button" role="radio" aria-checked="false" data-c="rev">مراجعة</button><button class="nb-chip" type="button" role="radio" aria-checked="false" data-c="oth">أخرى</button></div>
+      <button class="nb-chip nb-pinbtn" id="nbEdPin" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg><span>تثبيت</span></button>
+    </div>
     <textarea class="nt-in nb-body" id="nbBody" placeholder="اكتب ملاحظتك هنا..."></textarea>
+    <div class="nb-dates" id="nbDates"></div>
     <div class="nb-actions">
       <button class="nb-btn pri" id="nbSave" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span>حفظ</span></button>
+      <button class="nb-btn" id="nbPdf" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg><span>تصدير PDF</span></button>
       <button class="nb-btn del" id="nbDel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>حذف</span></button>
     </div>
   </section>
+  <section id="nbTrash" hidden>
+    <button class="back" id="nbTrBack" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span>العودة للملاحظات</span></button>
+    <h2 class="ptitle">سلة المحذوفات</h2>
+    <p class="nb-hint">تُحفظ الملاحظات المحذوفة 30 يوماً ثم تُحذف نهائياً بشكل تلقائي.</p>
+    <button class="nb-btn del nb-emptybtn" id="nbTrEmpty" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>إفراغ سلة المحذوفات</span></button>
+    <ul class="nb-list" id="nbTrItems"></ul>
+    <div class="nb-empty" id="nbTrNone" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><b>سلة المحذوفات فارغة</b>الملاحظات التي تحذفها تظهر هنا لمدة 30 يوماً</div>
+  </section>
   <div class="nb-toast" id="nbToast" role="status" aria-live="polite"></div>
+  <div class="sp-mbg" id="nbModal" role="dialog" aria-modal="true" aria-labelledby="nbMT" hidden>
+    <div class="sp-modal">
+      <div class="sp-mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+      <h3 id="nbMT"></h3><p id="nbMP"></p>
+      <div class="sp-actions"><button class="nb-btn" id="nbMNo" type="button">إلغاء</button><button class="nb-btn del" id="nbMYes" type="button">حذف نهائي</button></div>
+    </div>
+  </div>
 </main>
 
 <!-- 4. Settings -->
@@ -1538,27 +1623,121 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   };
 
 
-  /* ===== نظام الملاحظات (LocalStorage: المفتاح hub_notes_v1) ===== */
-  var NB_KEY='hub_notes_v1',nbCur=null;
-  function nbLoad(){try{var a=JSON.parse(localStorage.getItem(NB_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
-  function nbStore(a){try{localStorage.setItem(NB_KEY,JSON.stringify(a));return true}catch(e){return false}}
-  function nbEsc(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  /* ===== نظام الملاحظات (LocalStorage) =====
+     hub_notes_v1        : الملاحظات النشطة {id,title,body,created,updated, cat?,pin?}  (الحقول الجديدة اختيارية فتبقى البيانات القديمة صالحة)
+     hub_notes_trash_v1  : سلة المحذوفات (نفس الشكل + deletedAt) وتُفرَّغ تلقائياً بعد 30 يوماً
+     hub_notes_prefs_v1  : آخر ترتيب وتصفية اختارهما الطالب */
+  var NB_KEY='hub_notes_v1',NB_TR='hub_notes_trash_v1',NB_PREF='hub_notes_prefs_v1',NB_DAYS=30,NB_DAY=864e5,nbCur=null;
+  var NB_CATS={lec:'محاضرات',res:'بحوث',rev:'مراجعة',oth:'أخرى'},NB_CATK=['lec','res','rev','oth'];
+  var nbQ='',nbFilter='all',nbSort='new',nbEdCat='oth',nbEdPin=false;
+  function nbRead(k){try{var a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function nbWrite(k,a){try{localStorage.setItem(k,JSON.stringify(a));return true}catch(e){return false}}
+  function nbLoad(){return nbRead(NB_KEY)}
+  function nbStore(a){return nbWrite(NB_KEY,a)}
+  function nbEsc(t){return String(t).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
   var nbTt=0;
-  function nbToast(m){var t=$('nbToast');t.textContent=m;t.classList.add('show');clearTimeout(nbTt);nbTt=setTimeout(function(){t.classList.remove('show')},2200)}
+  function nbToast(m){var t=$('nbToast');t.textContent=m;t.classList.add('show');clearTimeout(nbTt);nbTt=setTimeout(function(){t.classList.remove('show')},2400)}
   function nbDate(t){try{return new Date(t).toLocaleDateString('ar-DZ-u-nu-latn',{day:'numeric',month:'long',year:'numeric'})}catch(e){return ''}}
-  function nbRender(){
-    var a=nbLoad().sort(function(x,y){return y.updated-x.updated});
-    $('nbEmpty').hidden=a.length>0;
-    $('nbItems').innerHTML=a.map(function(n){return '<li><button class="nb-item" type="button" data-id="'+nbEsc(n.id)+'"><b>'+nbEsc(n.title||'بدون عنوان')+'</b><small>'+nbDate(n.updated)+'</small></button></li>'}).join('');
+  function nbDT(t){try{return new Date(t).toLocaleString('ar-DZ-u-nu-latn',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}}
+  function nbCat(n){return NB_CATS[n.cat]?n.cat:'oth'}
+  function nbIc(p){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'}
+  var IC_PIN='<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>';
+  var IC_RESTORE='<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>';
+  var IC_TRASH='<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>';
+  var IC_FILE='<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>';
+  var IC_SEARCH='<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>';
+
+  /* تفضيلات العرض */
+  (function(){try{var p=JSON.parse(localStorage.getItem(NB_PREF)||'{}');if(p.sort&&{new:1,old:1,name:1}[p.sort])nbSort=p.sort;if(p.filter&&(p.filter==='all'||p.filter==='pin'||NB_CATS[p.filter]))nbFilter=p.filter}catch(e){}})();
+  function nbSavePrefs(){try{localStorage.setItem(NB_PREF,JSON.stringify({sort:nbSort,filter:nbFilter}))}catch(e){}}
+
+  /* حذف ما مضى عليه 30 يوماً في السلة تلقائياً */
+  function nbPurge(){
+    var tr=nbRead(NB_TR),now=Date.now(),keep=tr.filter(function(n){return n&&n.deletedAt&&now-n.deletedAt<NB_DAYS*NB_DAY});
+    if(keep.length!==tr.length)nbWrite(NB_TR,keep);
+    return keep;
   }
-  /* id: null = القائمة، 'new' = ملاحظة جديدة، غير ذلك = تعديل ملاحظة */
+  function nbDays(d){return d<=1?'يوم واحد':d===2?'يومين':d<=10?d+' أيام':d+' يوماً'}
+
+  /* بحث: تجاهل التشكيل وتوحيد الألف والياء والهاء/التاء المربوطة */
+  function nbNorm(s){return String(s||'').toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه')}
+  function nbTokens(){return nbNorm(nbQ).split(/\s+/).filter(Boolean)}
+  function nbRegex(toks){
+    if(!toks.length)return null;
+    var gap='[\\u064B-\\u065F\\u0670\\u0640]*';
+    var parts=toks.map(function(t){return t.split('').map(function(c){
+      if(c==='ا')return '[اأإآٱ]';if(c==='ي')return '[يى]';if(c==='ه')return '[هة]';
+      return c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}).join(gap)});
+    try{return new RegExp(parts.join('|'),'gi')}catch(e){return null}
+  }
+  function nbMark(text,re){
+    if(!re)return nbEsc(text);
+    var out='',last=0,m;re.lastIndex=0;
+    while((m=re.exec(text))){
+      if(!m[0]){re.lastIndex++;continue}
+      out+=nbEsc(text.slice(last,m.index))+'<mark>'+nbEsc(m[0])+'</mark>';last=m.index+m[0].length;
+    }
+    return out+nbEsc(text.slice(last));
+  }
+  function nbSnip(body,re){
+    var f=String(body||'').replace(/\s+/g,' ').trim(),st=0;
+    if(re){re.lastIndex=0;var m=re.exec(f);if(m)st=Math.max(0,m.index-30)}
+    var s=f.slice(st,st+120);
+    return (st>0?'…':'')+nbMark(s,re)+(f.length>st+120?'…':'');
+  }
+  function nbCmp(a,b){
+    if(!!b.pin!==!!a.pin)return a.pin?-1:1;       /* المثبتة دائماً في الأعلى */
+    if(nbSort==='old')return (a.updated||0)-(b.updated||0);
+    if(nbSort==='name')return String(a.title||'').localeCompare(String(b.title||''),'ar');
+    return (b.updated||0)-(a.updated||0);
+  }
+  function nbBadge(n){var c=nbCat(n);return '<span class="nb-cat c-'+c+'">'+NB_CATS[c]+'</span>'}
+
+  function nbRender(){
+    var all=nbLoad(),toks=nbTokens(),re=nbRegex(toks),tr=nbPurge();
+    var a=all.filter(function(n){
+      if(nbFilter==='pin'&&!n.pin)return false;
+      if(NB_CATS[nbFilter]&&nbCat(n)!==nbFilter)return false;
+      if(toks.length){var h=nbNorm((n.title||'')+' '+(n.body||''));for(var i=0;i<toks.length;i++)if(h.indexOf(toks[i])<0)return false}
+      return true;
+    }).sort(nbCmp);
+    $('nbItems').innerHTML=a.map(function(n){
+      return '<li class="nb-card'+(n.pin?' pinned':'')+'"><button class="nb-item" type="button" data-id="'+nbEsc(n.id)+'"><b>'+nbMark(n.title||'بدون عنوان',re)+'</b>'
+        +'<span class="nb-snip">'+nbSnip(n.body,re)+'</span><span class="nb-meta">'+nbBadge(n)+'<small>آخر تعديل: '+nbDate(n.updated)+'</small></span></button>'
+        +'<button class="nb-pin'+(n.pin?' on':'')+'" type="button" data-pin="'+nbEsc(n.id)+'" aria-pressed="'+(n.pin?'true':'false')+'" aria-label="'+(n.pin?'إلغاء تثبيت الملاحظة':'تثبيت الملاحظة')+'" title="'+(n.pin?'إلغاء التثبيت':'تثبيت')+'">'+nbIc(IC_PIN)+'</button></li>';
+    }).join('');
+    /* حالات فارغة */
+    var e=$('nbEmpty'),filtered=toks.length||nbFilter!=='all';
+    e.hidden=a.length>0;
+    if(!a.length){
+      if(!all.length)e.innerHTML=nbIc(IC_FILE)+'<b>لا توجد ملاحظات حالياً</b>ابدأ بإنشاء ملاحظتك الأولى';
+      else if(toks.length)e.innerHTML=nbIc(IC_SEARCH)+'<b>لا توجد نتائج مطابقة</b>لم نجد ملاحظة تحتوي على «'+nbEsc(nbQ.trim())+'»'+(nbFilter!=='all'?' ضمن هذا التصنيف':'')+'<br><button class="nb-btn" type="button" data-reset="1">عرض كل الملاحظات</button>';
+      else if(nbFilter==='pin')e.innerHTML=nbIc(IC_PIN)+'<b>لا توجد ملاحظات مثبتة</b>اضغط على أيقونة الدبوس في أي ملاحظة لتثبيتها في أعلى القائمة<br><button class="nb-btn" type="button" data-reset="1">عرض كل الملاحظات</button>';
+      else e.innerHTML=nbIc(IC_FILE)+'<b>لا توجد ملاحظات في تصنيف «'+NB_CATS[nbFilter]+'»</b>غيّر تصنيف ملاحظة أو أنشئ ملاحظة جديدة<br><button class="nb-btn" type="button" data-reset="1">عرض كل الملاحظات</button>';
+    }
+    $('nbCount').textContent=all.length?(filtered?a.length+' نتيجة من '+all.length+' ملاحظة':all.length+' ملاحظة'):'';
+    Array.prototype.forEach.call(document.querySelectorAll('#nbChips .nb-chip'),function(c){var on=c.dataset.f===nbFilter;c.classList.toggle('on',on);c.setAttribute('aria-pressed',on?'true':'false')});
+    $('nbSort').value=nbSort;
+    var tc=$('nbTrashCnt');tc.hidden=!tr.length;tc.textContent=tr.length;
+  }
+  function nbReset(){nbQ='';nbFilter='all';$('nbSearch').value='';$('nbSearchClr').hidden=true;nbSavePrefs();nbRender()}
+
+  function nbSections(w){$('nbList').hidden=w!=='list';$('nbEdit').hidden=w!=='edit';$('nbTrash').hidden=w!=='trash'}
+  function nbPaintEd(){
+    Array.prototype.forEach.call(document.querySelectorAll('#nbCats .nb-chip'),function(c){var on=c.dataset.c===nbEdCat;c.classList.toggle('on',on);c.setAttribute('aria-checked',on?'true':'false')});
+    var p=$('nbEdPin');p.classList.toggle('on',nbEdPin);p.setAttribute('aria-pressed',nbEdPin?'true':'false');p.querySelector('span').textContent=nbEdPin?'مثبّتة':'تثبيت';
+  }
+  function nbDatesTxt(n){$('nbDates').textContent=n?('أُنشئت: '+nbDT(n.created||n.updated)+'  ·  آخر تعديل: '+nbDT(n.updated)):'ملاحظة جديدة — سيُسجَّل تاريخ الإنشاء والتعديل عند الحفظ'}
+  /* id: null = القائمة، 'new' = ملاحظة جديدة، 'trash' = سلة المحذوفات، غير ذلك = تعديل ملاحظة */
   function notesShow(id){
     nbCur=id;
-    $('nbList').hidden=id!=null;$('nbEdit').hidden=id==null;
-    if(id==null){nbRender();return}
+    if(id==null){nbSections('list');nbRender();return}
+    if(id==='trash'){nbSections('trash');nbTrRender();scrollTo(0,0);return}
     var n=id==='new'?null:nbLoad().filter(function(x){return x.id===id})[0];
-    if(id!=='new'&&!n){nbCur=null;$('nbList').hidden=false;$('nbEdit').hidden=true;nbRender();return}
+    if(id!=='new'&&!n){nbCur=null;nbSections('list');nbRender();return}
+    nbSections('edit');
     $('nbTitle').value=n?n.title:'';$('nbBody').value=n?n.body:'';
+    nbEdCat=n?nbCat(n):(NB_CATS[nbFilter]?nbFilter:'oth');nbEdPin=n?!!n.pin:false;nbPaintEd();nbDatesTxt(n);
     $('nbDel').style.display=n?'':'none';
     scrollTo(0,0);
   }
@@ -1569,25 +1748,199 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
   function nbClose(){
     if(history.state&&history.state.n!=null)history.back();else notesShow(null);
   }
+  function nbTogglePin(id){
+    var a=nbLoad(),n=a.filter(function(x){return x.id===id})[0];if(!n)return null;
+    n.pin=!n.pin;
+    if(!nbStore(a)){nbToast('تعذّر الحفظ: مساحة التخزين ممتلئة');return null}
+    nbToast(n.pin?'تم تثبيت الملاحظة':'تم إلغاء تثبيت الملاحظة');return n.pin;
+  }
   $('nbAdd').onclick=function(){nbOpen('new')};
-  $('nbItems').onclick=function(e){var b=e.target.closest('.nb-item');if(b)nbOpen(b.dataset.id)};
+  $('nbItems').onclick=function(e){
+    var p=e.target.closest('.nb-pin');if(p){nbTogglePin(p.dataset.pin);nbRender();return}
+    var b=e.target.closest('.nb-item');if(b)nbOpen(b.dataset.id);
+  };
+  $('nbEmpty').onclick=function(e){if(e.target.closest('[data-reset]'))nbReset()};
+  $('nbSearch').oninput=function(){nbQ=this.value;$('nbSearchClr').hidden=!nbQ;nbRender()};
+  $('nbSearch').onkeydown=function(e){if(e.key==='Escape'&&nbQ){e.preventDefault();nbQ='';this.value='';$('nbSearchClr').hidden=true;nbRender()}};
+  $('nbSearchClr').onclick=function(){nbQ='';$('nbSearch').value='';this.hidden=true;nbRender();$('nbSearch').focus()};
+  $('nbChips').onclick=function(e){var c=e.target.closest('.nb-chip');if(!c)return;nbFilter=c.dataset.f;nbSavePrefs();nbRender()};
+  $('nbSort').onchange=function(){nbSort=this.value;nbSavePrefs();nbRender()};
+  $('nbTrashBtn').onclick=function(){nbOpen('trash')};
   $('nbBack').onclick=nbClose;
+  $('nbTrBack').onclick=nbClose;
+
+  /* محرر الملاحظة */
+  $('nbCats').onclick=function(e){var c=e.target.closest('.nb-chip');if(!c)return;nbEdCat=c.dataset.c;nbPaintEd()};
+  $('nbEdPin').onclick=function(){
+    if(nbCur&&nbCur!=='new'){var r=nbTogglePin(nbCur);if(typeof r==='boolean')nbEdPin=r}
+    else nbEdPin=!nbEdPin;
+    nbPaintEd();
+  };
+  function nbDirty(){if(nbCur&&nbCur!=='new')$('nbDates').textContent='تعديلات لم تُحفظ بعد'}
+  $('nbTitle').addEventListener('input',nbDirty);$('nbBody').addEventListener('input',nbDirty);$('nbCats').addEventListener('click',nbDirty);
   $('nbSave').onclick=function(){
     var t=$('nbTitle').value.trim(),b=$('nbBody').value;
     if(!t&&!b.trim()){nbToast('اكتب عنواناً أو محتوى قبل الحفظ');return}
     if(!t)t=b.trim().split('\n')[0].slice(0,60);
     var a=nbLoad(),now=Date.now(),n=nbCur&&nbCur!=='new'?a.filter(function(x){return x.id===nbCur})[0]:null;
-    if(n){n.title=t;n.body=b;n.updated=now}
-    else a.push({id:'n'+now.toString(36)+Math.random().toString(36).slice(2,6),title:t,body:b,created:now,updated:now});
+    if(n){
+      var changed=n.title!==t||n.body!==b||nbCat(n)!==nbEdCat;
+      if(!n.created)n.created=n.updated||now;
+      n.title=t;n.body=b;n.cat=nbEdCat;n.pin=nbEdPin;
+      if(changed||!n.updated)n.updated=now;       /* تاريخ آخر تعديل يتحدث تلقائياً */
+    }else a.push({id:'n'+now.toString(36)+Math.random().toString(36).slice(2,6),title:t,body:b,cat:nbEdCat,pin:nbEdPin,created:now,updated:now});
     if(!nbStore(a)){nbToast('تعذّر الحفظ: مساحة التخزين ممتلئة');return}
     nbClose();nbToast('تم حفظ الملاحظة');
   };
+  /* الحذف ينقل الملاحظة إلى السلة (استرجاعها ممكن خلال 30 يوماً) */
   $('nbDel').onclick=function(){
     if(!nbCur||nbCur==='new')return;
-    if(!confirm('هل تريد حذف هذه الملاحظة نهائياً؟'))return;
-    var id=nbCur;nbStore(nbLoad().filter(function(x){return x.id!==id}));
-    nbClose();nbToast('تم حذف الملاحظة');
+    var id=nbCur,a=nbLoad(),n=a.filter(function(x){return x.id===id})[0];if(!n)return;
+    var tr=nbPurge();tr.push(Object.assign({},n,{deletedAt:Date.now()}));
+    if(!nbWrite(NB_TR,tr)){nbToast('تعذّر النقل إلى سلة المحذوفات');return}
+    if(!nbStore(a.filter(function(x){return x.id!==id}))){tr.pop();nbWrite(NB_TR,tr);nbToast('تعذّر حذف الملاحظة');return}
+    nbClose();nbToast('تم نقل الملاحظة إلى سلة المحذوفات');
   };
+
+  /* سلة المحذوفات */
+  function nbTrRender(){
+    var tr=nbPurge().sort(function(x,y){return y.deletedAt-x.deletedAt}),now=Date.now();
+    $('nbTrItems').innerHTML=tr.map(function(n){
+      var left=Math.max(1,Math.ceil((n.deletedAt+NB_DAYS*NB_DAY-now)/NB_DAY));
+      return '<li class="nb-card"><div class="nb-item nb-static"><b>'+nbEsc(n.title||'بدون عنوان')+'</b><span class="nb-snip">'+nbSnip(n.body,null)+'</span>'
+        +'<span class="nb-meta">'+nbBadge(n)+'<small>حُذفت: '+nbDate(n.deletedAt)+'</small><small>تُحذف نهائياً بعد '+nbDays(left)+'</small></span>'
+        +'<div class="nb-tractions"><button class="nb-btn pri" type="button" data-restore="'+nbEsc(n.id)+'">'+nbIc(IC_RESTORE)+'<span>استعادة</span></button>'
+        +'<button class="nb-btn del" type="button" data-purge="'+nbEsc(n.id)+'">'+nbIc(IC_TRASH)+'<span>حذف نهائي</span></button></div></div></li>';
+    }).join('');
+    $('nbTrNone').hidden=tr.length>0;$('nbTrEmpty').hidden=!tr.length;
+  }
+  $('nbTrItems').onclick=function(e){
+    var r=e.target.closest('[data-restore]'),p=e.target.closest('[data-purge]');
+    if(r){
+      var id=r.dataset.restore,tr=nbPurge(),n=tr.filter(function(x){return x.id===id})[0];if(!n)return;
+      var a=nbLoad(),m=Object.assign({},n);delete m.deletedAt;
+      if(a.some(function(x){return x.id===id}))m.id=id+'r'+Date.now().toString(36);
+      a.push(m);
+      if(!nbStore(a)){nbToast('تعذّرت الاستعادة: مساحة التخزين ممتلئة');return}
+      nbWrite(NB_TR,tr.filter(function(x){return x.id!==id}));
+      nbTrRender();nbToast('تمت استعادة الملاحظة');
+    }else if(p){
+      var pid=p.dataset.purge;
+      nbAsk('حذف الملاحظة نهائياً؟','لن يمكنك استرجاعها بعد ذلك.','حذف نهائي',function(){
+        nbWrite(NB_TR,nbPurge().filter(function(x){return x.id!==pid}));nbTrRender();nbToast('تم حذف الملاحظة نهائياً');
+      });
+    }
+  };
+  $('nbTrEmpty').onclick=function(){
+    var c=nbPurge().length;if(!c)return;
+    nbAsk('إفراغ سلة المحذوفات؟','سيتم حذف '+(c===1?'ملاحظة واحدة':c+' ملاحظات')+' نهائياً ولا يمكن التراجع.','إفراغ السلة',function(){
+      nbWrite(NB_TR,[]);nbTrRender();nbToast('تم إفراغ سلة المحذوفات');
+    });
+  };
+
+  /* نافذة التأكيد */
+  var nbAskFn=null,nbAskPrev=null;
+  function nbAsk(t,p,yes,fn){$('nbMT').textContent=t;$('nbMP').textContent=p;$('nbMYes').textContent=yes;nbAskFn=fn;nbAskPrev=document.activeElement;$('nbModal').hidden=false;$('nbMNo').focus()}
+  function nbAskClose(){$('nbModal').hidden=true;nbAskFn=null;if(nbAskPrev&&nbAskPrev.focus&&document.contains(nbAskPrev))nbAskPrev.focus();nbAskPrev=null}
+  $('nbMNo').onclick=nbAskClose;
+  $('nbModal').onclick=function(e){if(e.target===this)nbAskClose()};
+  $('nbMYes').onclick=function(){var f=nbAskFn;nbAskPrev=null;$('nbModal').hidden=true;nbAskFn=null;if(f)f()};
+  addEventListener('keydown',function(e){
+    if($('nbModal').hidden)return;
+    if(e.key==='Escape')nbAskClose();
+    else if(e.key==='Tab'){var a=$('nbMNo'),b=$('nbMYes'),f=document.activeElement;if(f!==a&&f!==b){e.preventDefault();a.focus()}else if(e.shiftKey&&f===a){e.preventDefault();b.focus()}else if(!e.shiftKey&&f===b){e.preventDefault();a.focus()}}
+  });
+
+  /* ===== تصدير PDF: تُرسم الصفحات على canvas (يتولى المتصفح تشكيل الحروف العربية واتجاه RTL) ثم تُجمَّع في ملف PDF حقيقي بلا مكتبات ===== */
+  function nbPdfBytes(jpgs,title,W,H){
+    var enc=function(s){var u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u};
+    var parts=[],off=0,xr=[],n=jpgs.length,i;
+    function push(u){parts.push(u);off+=u.length}
+    function str(s){push(enc(s))}
+    function obj(k,body){xr[k]=off;str(k+' 0 obj\n'+body+'\nendobj\n')}
+    str('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+    obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+    var kids=[];for(i=0;i<n;i++)kids.push((5+3*i)+' 0 R');
+    obj(2,'<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+n+' >>');
+    for(i=0;i<n;i++){
+      xr[3+3*i]=off;
+      str((3+3*i)+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+W+' /Height '+H+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpgs[i].length+' >>\nstream\n');
+      push(jpgs[i]);str('\nendstream\nendobj\n');
+      var c='q 595.28 0 0 841.89 0 0 cm /Im0 Do Q';
+      obj(4+3*i,'<< /Length '+c.length+' >>\nstream\n'+c+'\nendstream');
+      obj(5+3*i,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 '+(3+3*i)+' 0 R >> >> /Contents '+(4+3*i)+' 0 R >>');
+    }
+    var hex='FEFF';for(i=0;i<title.length;i++)hex+=('0000'+title.charCodeAt(i).toString(16)).slice(-4);
+    obj(3+3*n,'<< /Title <'+hex.toUpperCase()+'> /Producer (Student Platform) >>');
+    var total=4+3*n,sx=off;
+    str('xref\n0 '+total+'\n0000000000 65535 f \n');
+    for(i=1;i<total;i++)str(('0000000000'+xr[i]).slice(-10)+' 00000 n \n');
+    str('trailer\n<< /Size '+total+' /Root 1 0 R /Info '+(3+3*n)+' 0 R >>\nstartxref\n'+sx+'\n%%EOF');
+    return new Blob(parts,{type:'application/pdf'});
+  }
+  function nbB64(d){var b=atob(d.split(',')[1]),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+  async function nbExport(o){
+    nbToast('جارٍ تجهيز ملف PDF…');
+    var F='Alexandria, Tahoma, Arial, sans-serif';
+    try{await document.fonts.load('400 30px Alexandria');await document.fonts.load('700 46px Alexandria');await document.fonts.ready}catch(e){}
+    var W=1240,H=1754,M=110,CW=W-2*M,pages=[],cv,x,y,BOT=H-M-30;
+    function newPage(){
+      cv=document.createElement('canvas');cv.width=W;cv.height=H;x=cv.getContext('2d');
+      x.fillStyle='#fff';x.fillRect(0,0,W,H);
+      var g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'#7C3AED');g.addColorStop(1,'#C026D3');x.fillStyle=g;x.fillRect(0,0,W,14);
+      pages.push(cv);y=M;
+    }
+    function wrap(text,font,maxW){
+      x.font=font;var words=text.split(/\s+/).filter(Boolean),lines=[],cur='';
+      words.forEach(function(w){
+        var t=cur?cur+' '+w:w;
+        if(x.measureText(t).width<=maxW){cur=t;return}
+        if(cur)lines.push(cur);
+        if(x.measureText(w).width>maxW){var s='';Array.from(w).forEach(function(ch){if(x.measureText(s+ch).width>maxW){lines.push(s);s=ch}else s+=ch});cur=s}else cur=w;
+      });
+      if(cur)lines.push(cur);return lines;
+    }
+    function isLtr(s){var m=/[A-Za-z\u0590-\u08FF\u0750-\u077F]/.exec(s);return !!m&&/[A-Za-z]/.test(m[0])}
+    function put(text,font,color,lh,ltr){
+      var lines=wrap(text,font,CW);
+      lines.forEach(function(l){
+        if(y+lh>BOT)newPage();
+        x.font=font;x.fillStyle=color;x.direction=ltr?'ltr':'rtl';x.textAlign=ltr?'left':'right';x.textBaseline='alphabetic';
+        x.fillText(l,ltr?M:W-M,y+lh*0.7);y+=lh;
+      });
+    }
+    newPage();
+    put('منصة التعليم العالي للتربية البدنية والرياضة','400 24px '+F,'#6B5F86',40,false);y+=14;
+    var title=o.title||'بدون عنوان';
+    put(title,'700 46px '+F,'#1A1030',74,isLtr(title));y+=6;
+    put('التصنيف: '+NB_CATS[o.cat||'oth']+'   •   آخر تعديل: '+nbDT(o.updated)+(o.created?'   •   أُنشئت: '+nbDate(o.created):''),'400 25px '+F,'#5E5378',42,false);
+    y+=14;x.fillStyle='#7C3AED';x.fillRect(M,y,CW,3);y+=34;
+    String(o.body||'').replace(/\r/g,'').split('\n').forEach(function(p){
+      p=p.replace(/\t/g,'    ').trim();
+      if(!p){y+=26;return}
+      put(p,'400 30px '+F,'#1A1030',56,isLtr(p));y+=10;
+    });
+    pages.forEach(function(c,i){
+      var k=c.getContext('2d');k.font='400 22px '+F;k.fillStyle='#8A7FA3';k.textAlign='center';k.direction='rtl';
+      k.fillText('صفحة '+(i+1)+' من '+pages.length,W/2,H-52);
+    });
+    var blob=nbPdfBytes(pages.map(function(c){return nbB64(c.toDataURL('image/jpeg',0.92))}),title,W,H);
+    var name=(title.replace(/[\\\/:*?"<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim().slice(0,80)||'ملاحظة')+'.pdf';
+    var url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url)},60000);
+    nbToast('تم تصدير الملاحظة إلى PDF');
+  }
+  $('nbPdf').onclick=function(){
+    var t=$('nbTitle').value.trim(),b=$('nbBody').value;
+    if(!t&&!b.trim()){nbToast('اكتب عنواناً أو محتوى قبل التصدير');return}
+    if(!t)t=b.trim().split('\n')[0].slice(0,60);
+    var n=nbCur&&nbCur!=='new'?nbLoad().filter(function(x){return x.id===nbCur})[0]:null,now=Date.now();
+    var btn=this;btn.disabled=true;
+    nbExport({title:t,body:b,cat:nbEdCat,created:n?(n.created||n.updated):now,updated:n?n.updated:now}).then(function(){btn.disabled=false},function(){btn.disabled=false;nbToast('تعذّر تصدير الملف')});
+  };
+  nbPurge();   /* تنظيف السلة عند فتح التطبيق */
+
 
   /* Make both name lines equal in width using letter-spacing on the narrower one */
   function fitName(){
