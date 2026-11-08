@@ -12,7 +12,7 @@
 (function (root) {
   'use strict';
 
-  var VERSION = 4; /* ارفعه عند تغيير منطق التقطيع أو الجذور، فيُعاد بناء الفهارس المخزنة */
+  var VERSION = 5; /* ارفعه عند تغيير منطق التقطيع أو الجذور، فيُعاد بناء الفهارس المخزنة */
   var Dict = root.ChatDict || (typeof require === 'function' ? require('./chat-dict.js') : null);
 
   var MSG = {
@@ -151,7 +151,7 @@
    * 4) التقطيع: markdown / lesson / plain-text  →  وثيقة جاهزة للفهرسة
    * ------------------------------------------------------------------ */
   function cleanMd(s) {
-    return String(s).replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1').replace(/\s+/g, ' ').trim();
+    return String(s).replace(/<[^>]+>/g, ' ').replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1').replace(/\s+/g, ' ').trim();
   }
 
   var INCLUDE_TOP = ['نص المحاضرة'];  /* الأقسام التي تُفهرَس من lectures.json (غيّرها إن أردت إضافة «ملخص» مثلاً) */
@@ -1333,7 +1333,7 @@
     return res;
   }
 
-  function answer(scope, question, opts) {
+  function answerCore(scope, question, opts) {
     opts = opts || {};
     var ctx = opts.ctx || null;
     var parts = splitCompound(question);
@@ -1357,6 +1357,127 @@
     });
     if (!found) return notFound(opts, 'compound_none');
     return { found: true, blocks: blocks, meta: { qtype: 'compound', topic: lastTopic || topic, items: items, docs: docs } };
+  }
+
+
+  /* ------------------------------------------------------------------ *
+   * 12) طبقات احتياطية: (1) الأسئلة الشائعة/الملخص  (2) أقرب المقاطع
+   * ------------------------------------------------------------------ */
+  function chunkPreview(ch, A, max) {
+    var t = ch.label ? ch.label + ': ' + ch.body : ch.text;
+    return t.length > max ? pickSentences(t, A, max) : t;
+  }
+
+  /* بحث متساهل: لا يشترط تغطية كاملة للسؤال، بل يعرض أقرب المقاطع مع نسبتها إلى المحاضرة */
+  function relatedAnswer(scope, question, opts, fromAux) {
+    if (!scope || !scope.N) return null;
+    var A = analyze(question);
+    bindQuery(scope, A);
+    var topic = A.units.filter(function (u) { return !u.light; });
+    if (!topic.length) return null;
+    /* مصطلح غير موجود في المحاضرات أصلًا: لا نعرض مقاطع بعيدة عنه */
+    var A0 = analyze(question), real = 0, unseenN = 0;
+    A0.units.forEach(function (u) {
+      if (u.light || u.facet) return;
+      var verbish = /^[ني][^ ]{4,}$/.test(u.text) && u.text.indexOf('ال') !== 0;
+      if (verbish) return;
+      real++;
+      var ok = false;
+      [u.stems].concat(u.syn || []).concat((u.alt || []).map(function (x) { return [x]; })).forEach(function (a) { a.forEach(function (st) { if (present(scope, st)) ok = true; }); });
+      if (!ok) unseenN++;
+    });
+    /* مصطلحات جوهرية غائبة عن المحاضرات: لا نخمّن */
+    if (real && unseenN && unseenN / real >= 0.33) return null;
+    var ranked = scoreChunks(scope, A, null).filter(function (r) { return r.nTopic >= 1 && r.score > 0; });
+    if (!ranked.length) return null;
+    var top = ranked[0], need = A.topicUnits.length > 1 ? 0.34 : 0.2, picked = [], seen = {};
+    for (var i = 0; i < ranked.length && picked.length < 3; i++) {
+      var r = ranked[i];
+      if (r.score < top.score * 0.45) break;
+      if (r.cov < need) continue;
+      var ch = scope.chunks[r.idx], key = norm(ch.text).slice(0, 90);
+      if (seen[key]) continue; seen[key] = 1;
+      picked.push(r);
+    }
+    if (!picked.length) return null;
+    var items = [], docs = [], list = [];
+    picked.forEach(function (r) {
+      var ch = scope.chunks[r.idx], sec = scope.sections[ch.sec];
+      if (docs.indexOf(ch.doc) === -1) docs.push(ch.doc);
+      var txt = chunkPreview(ch, A, 420);
+      var head = fromAux && sec && sec.heading && sec.heading !== 'حقائق من أسئلة التقييم' && ch.kind === 'p' && !ch.label ? sec.heading + ': ' : '';
+      var full = head + txt;
+      list.push(full); items.push(full);
+    });
+    var blocks = [{ t: 'p', text: 'لم أجد جوابًا مطابقًا تمامًا، وهذه أقرب المقاطع الواردة في المحاضرات:', muted: true }];
+    if (list.length === 1) blocks.push({ t: 'p', text: list[0] });
+    else blocks.push({ t: 'ul', items: list });
+    return { found: true, blocks: blocks, meta: { qtype: 'related', topic: A.topicText, items: items, docs: docs, related: true } };
+  }
+
+  /* الفهرس المساعد أصغر؛ إن كان في السؤال مصطلح جوهري موجود في المحاضرات ومفقود منه فلا نعتمد عليه */
+  function auxCovers(scope, question) {
+    var A = analyze(question), ok = true;
+    A.units.forEach(function (u) {
+      if (u.light || u.facet) return;
+      var inMain = false, inAux = false;
+      [u.stems].concat(u.syn || []).concat((u.alt || []).map(function (x) { return [x]; })).forEach(function (a) {
+        a.forEach(function (st) { if (present(scope, st)) inMain = true; if (present(scope.aux, st)) inAux = true; });
+      });
+      if (inMain && !inAux) ok = false;
+    });
+    return ok;
+  }
+
+  /* يتحقق أن جواب الفهرس المساعد يحوي (هو أو سؤاله الأصلي) كل مصطلح جوهري في السؤال */
+  function verifyAux(scope, question, res) {
+    var A0 = analyze(question), bn = ' ' + norm(blocksToText(res.blocks)) + ' ', heads = '';
+    scope.aux.chunks.forEach(function (ch) {
+      var t = norm(ch.text);
+      if (t.length > 3 && bn.indexOf(t) !== -1) heads += ' ' + scope.aux.sections[ch.sec].heading;
+    });
+    var have = {};
+    norm(bn + ' ' + heads).split(' ').forEach(function (t) {
+      if (!t) return;
+      var st = stemTok(t); have[st] = 1;
+      altStems(t, st).forEach(function (x) { have[x] = 1; });
+    });
+    var ok = true;
+    A0.units.forEach(function (u) {
+      if (u.light || u.facet) return;
+      var inMain = false, inRes = false;
+      [u.stems].concat(u.syn || []).concat((u.alt || []).map(function (x) { return [x]; })).forEach(function (a) {
+        if (a.every(function (st) { return have[st]; })) inRes = true;
+        a.forEach(function (st) { if (present(scope, st)) inMain = true; });
+      });
+      if (inMain && !inRes) ok = false;
+    });
+    return ok;
+  }
+
+  function answer(scope, question, opts) {
+    opts = opts || {};
+    var res = answerCore(scope, question, opts);
+    if (res && res.found) return res;
+    var reason = res && res.reason;
+    /* أسئلة لا تحتاج بحثًا إضافيًا (ضمائر بلا سياق، موضوع غامض) */
+    if (reason === 'no_topic' || reason === 'no_ctx' || reason === 'empty') {
+      if (!(scope && scope.aux)) return res;
+    }
+    try {
+      /* 1) الأسئلة الشائعة والملخص وحقائق الاختبارات */
+      if (scope && scope.aux && scope.aux.N && auxCovers(scope, question)) {
+        var ra = answerCore(scope.aux, question, opts);
+        if (ra && ra.found && verifyAux(scope, question, ra)) { ra.meta = ra.meta || {}; ra.meta.fromAux = true; return ra; }
+      }
+      /* 2) أقرب المقاطع (نص المحاضرة أولًا ثم الفهرس المساعد) */
+      if (reason !== 'no_topic' && reason !== 'no_ctx') {
+        var rl = relatedAnswer(scope, question, opts, false);
+        if (!rl && scope && scope.aux) rl = relatedAnswer(scope.aux, question, opts, true);
+        if (rl) return rl;
+      }
+    } catch (e) { /* أي خطأ في الطبقات الاحتياطية لا يكسر المحادثة */ }
+    return res;
   }
 
   /* نص عادي للتصدير/النسخ */

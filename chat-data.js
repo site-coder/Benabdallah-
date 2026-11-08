@@ -6,7 +6,7 @@
 (function (root) {
   'use strict';
   var E = root.ChatEngine, S = root.ChatStore;
-  var CHAT_DATA_REV = 1;
+  var CHAT_DATA_REV = 2;
   var memScopes = {}, lecJson = null, pdfTried = {};
 
   function loadLecJson() {
@@ -34,12 +34,42 @@
 
   function titleOf(key, entry) { return (entry && entry.title) || ('محاضرة ' + key.split('-')[1]); }
 
+  function plain(t) { return String(t == null ? '' : t).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+  /* مصادر مساعدة: الأسئلة الشائعة + الملخص + حقائق الاختيار من متعدد.
+     تُبنى في فهرس منفصل (scope.aux) يُستعمل عندما لا يجد المحلل جوابًا في نص المحاضرة،
+     فلا تتأثر الإجابات التي تعمل جيدًا الآن. */
+  function auxSections(c) {
+    var secs = [];
+    if (!c) return secs;
+    (c.faq || []).forEach(function (row) {
+      if (!row || row.length < 2) return;
+      var q = plain(row[0]).replace(/[؟?]\s*$/, ''), a = plain(row[1]);
+      if (q && a) secs.push({ heading: q, items: [{ kind: 'p', text: a }] });
+    });
+    (c.summary || []).forEach(function (sm) {
+      if (!sm) return;
+      var items = (sm.l || []).map(function (t) { return { kind: 'li', text: plain(t) }; }).filter(function (x) { return x.text; });
+      if (items.length) secs.push({ heading: plain(sm.h), items: items });
+    });
+    var facts = [];
+    (c.mcq || []).forEach(function (m) {
+      if (!m || !m.q || !m.o || m.a == null || m.o[m.a] == null) return;
+      var q = plain(m.q), ans = plain(m.o[m.a]);
+      if (/(ليس|ليست|عدا|غير\s)/.test(q)) return; /* أسئلة النفي لا تُحوَّل إلى حقيقة */
+      q = q.replace(/[:：؟?]\s*$/, '');
+      if (q && ans) facts.push({ kind: 'p', text: q + ': ' + ans });
+    });
+    if (facts.length) secs.push({ heading: 'حقائق من أسئلة التقييم', items: facts });
+    return secs;
+  }
+
   function sourceSections(key) {
     return loadLecJson().then(function (m) {
       var ent = m[key], c = content()[key], secs = [];
       if (ent && ent.content) secs = E.parseMarkdown(ent.content);
       if (!secs.length && c && c.lesson) secs = E.parseLesson(c.lesson);
-      return { sections: secs, title: titleOf(key, ent) };
+      return { sections: secs, aux: auxSections(c), title: titleOf(key, ent) };
     });
   }
 
@@ -70,11 +100,12 @@
     var say = onStatus || function () {};
     return Promise.all([sourceSections(key), S.getDoc(key)]).then(function (arr) {
       var src = arr[0], rec = arr[1];
-      var srcText = JSON.stringify(src.sections);
+      var srcText = JSON.stringify(src.sections) + JSON.stringify(src.aux);
+      var auxDoc = function () { return src.aux.length ? E.prepareDoc({ id: key, title: src.title, sections: src.aux }) : null; };
       var srcHash = E.hashStr(srcText + '|' + CHAT_DATA_REV + '|' + E.VERSION);
-      var fresh = rec && rec.srcHash === srcHash && rec.prep && rec.prep.v === E.VERSION;
+      var fresh = rec && rec.srcHash === srcHash && ((rec.prep && rec.prep.v === E.VERSION) || (!rec.prep && rec.aux && rec.aux.v === E.VERSION));
       var retry = !fresh || (rec.pdf && (rec.pdf.status === 'error') && !pdfTried[key] && navigator.onLine !== false);
-      if (fresh && !retry) return { doc: rec.prep, pdf: rec.pdf };
+      if (fresh && !retry) return { doc: rec.prep, aux: rec.aux || null, pdf: rec.pdf };
       var url = pdfUrlFor(key);
       pdfTried[key] = 1;
       say('جارٍ تجهيز ' + src.title + '…');
@@ -93,7 +124,7 @@
         });
       return step.then(function () {
         /* offline مع نسخة سابقة صالحة: لا نستبدلها بنسخة أفقر */
-        if (rec && rec.prep && pdfInfo.status === 'error' && rec.pdf && rec.pdf.status === 'ok') return { doc: rec.prep, pdf: rec.pdf };
+        if (rec && rec.prep && pdfInfo.status === 'error' && rec.pdf && rec.pdf.status === 'ok') return { doc: rec.prep, aux: auxDoc(), pdf: rec.pdf };
         var sections = src.sections.slice();
         var seen = [];
         sections.forEach(function (s) { s.items.forEach(function (it) { seen.push(words(it.text)); }); });
@@ -101,10 +132,15 @@
           var items = s.items.filter(function (it) { var w = words(it.text); if (w.n < 3) return false; if (dupOf(w, seen)) return false; seen.push(w); return true; });
           if (items.length) sections.push({ heading: s.heading, items: items });
         });
-        if (!sections.length) { return { doc: null, pdf: pdfInfo }; }
+        if (!sections.length) {
+          var onlyAux = auxDoc();
+          if (onlyAux) S.putDoc({ key: key, srcHash: srcHash, prep: null, aux: onlyAux, pdf: pdfInfo, ts: Date.now() });
+          return { doc: null, aux: onlyAux, pdf: pdfInfo };
+        }
         var doc = E.prepareDoc({ id: key, title: src.title, sections: sections });
-        var out = { key: key, srcHash: srcHash, prep: doc, pdf: pdfInfo, ts: Date.now() };
-        return S.putDoc(out).then(function () { return { doc: doc, pdf: pdfInfo }; });
+        var aux = auxDoc();
+        var out = { key: key, srcHash: srcHash, prep: doc, aux: aux, pdf: pdfInfo, ts: Date.now() };
+        return S.putDoc(out).then(function () { return { doc: doc, aux: aux, pdf: pdfInfo }; });
       });
     });
   }
@@ -117,10 +153,14 @@
         return chain.then(function (acc) { return prepare(k, onStatus).then(function (r) { acc.push(r); return acc; }); });
       }, Promise.resolve([])).then(function (res) {
         var docs = res.filter(function (r) { return r.doc; }).map(function (r) { return r.doc; });
-        var sig = docs.map(function (d) { return d.id + ':' + d.hash; }).join('|');
+        var auxDocs = res.filter(function (r) { return r.aux; }).map(function (r) { return r.aux; });
+        var sig = docs.map(function (d) { return d.id + ':' + d.hash; }).join('|') + '||' + auxDocs.map(function (d) { return d.id + ':' + d.hash; }).join('|');
         var ck = kind + ':' + id;
         if (memScopes[ck] && memScopes[ck].sig === sig) return { scope: memScopes[ck].scope, info: infoOf(res, keys) };
         var scope = E.buildScope(docs);
+        scope.aux = auxDocs.length ? E.buildScope(auxDocs) : null;
+        /* محاضرة بلا نص أساسي لكن لها أسئلة/ملخص: نبحث فيها مباشرة */
+        if (!scope.N && scope.aux) { scope = scope.aux; scope.aux = null; }
         memScopes[ck] = { sig: sig, scope: scope };
         return { scope: scope, info: infoOf(res, keys) };
       });
@@ -130,7 +170,7 @@
   function infoOf(res, keys) {
     var scanned = res.filter(function (r) { return r.pdf && r.pdf.status === 'scanned'; }).length;
     var withPdf = res.filter(function (r) { return r.pdf && r.pdf.status === 'ok'; }).length;
-    return { lectures: res.filter(function (r) { return r.doc; }).length, requested: keys.length, scanned: scanned, withPdf: withPdf };
+    return { lectures: res.filter(function (r) { return r.doc || r.aux; }).length, requested: keys.length, scanned: scanned, withPdf: withPdf };
   }
 
   root.ChatData = { scopeFor: scopeFor, prepare: prepare, allKeys: allKeys, pdfUrlFor: pdfUrlFor };
