@@ -21,6 +21,17 @@
 /* اكتشاف الجلسة مبكراً: إن وُجدت جلسة صالحة لا تظهر بوابة الدخول إطلاقاً */
 (function(){try{var u=JSON.parse(localStorage.getItem('edu_user')||'null');if(u&&u.id&&Date.now()-(u.lastSeen||u.loginAt||0)<365*864e5)document.documentElement.setAttribute('data-signed','1')}catch(e){}})();
 </script>
+<script>
+/* ===== PWA Gate: اكتشاف البيئة مبكراً + التقاط beforeinstallprompt قبل أي شيء ===== */
+(function(){
+  var mm=function(q){try{return window.matchMedia&&matchMedia(q).matches}catch(e){return false}};
+  var standalone=mm('(display-mode: standalone)')||mm('(display-mode: fullscreen)')||mm('(display-mode: minimal-ui)')||mm('(display-mode: window-controls-overlay)')||navigator.standalone===true||(document.referrer||'').indexOf('android-app://')===0;
+  window.__pwaStandalone=standalone;
+  document.documentElement.setAttribute('data-pwa',standalone?'app':'browser');
+  window.__pwaDeferred=null;
+  addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__pwaDeferred=e;dispatchEvent(new Event('pwa-ready'))});
+})();
+</script>
 <style>
 :root{--bg:#08070C;--card:rgba(20,16,32,.62);--line:rgba(168,85,247,.22);--text:#fff;--muted:#B7AFCB;--p:#A855F7;--p2:#C084FC;--g:#F59E0B;--glow:0 0 22px rgba(192,132,252,.55),0 0 60px rgba(168,85,247,.3);--wave:.55;--r:16px}
 :root[data-theme="light"]{--bg:#F7F3FF;--card:rgba(255,255,255,.75);--line:rgba(126,34,206,.22);--text:#1A1030;--muted:#5E5378;--p:#7E22CE;--p2:#9333EA;--g:#D97706;--glow:0 0 18px rgba(168,85,247,.28);--wave:.2}
@@ -456,6 +467,32 @@ mark{background:color-mix(in srgb,var(--g) 38%,transparent);color:inherit;border
 .nb-emptybtn[hidden]{display:none}
 .nb-tractions{display:flex;gap:10px;margin-top:12px}
 .nb-tractions .nb-btn{min-height:44px;font-size:14px}
+
+/* ===== PWA Gate ===== */
+#installGate{display:none}
+html[data-pwa="browser"]{overflow:hidden}
+html[data-pwa="browser"] body>:not(#installGate){display:none!important}
+html[data-pwa="browser"] #installGate{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));background:radial-gradient(900px 500px at 80% -10%,rgba(168,85,247,.28),transparent 60%),radial-gradient(700px 480px at 0% 110%,rgba(245,158,11,.14),transparent 60%),var(--bg);overflow-y:auto}
+.ig-card{width:min(420px,100%);margin:auto;text-align:center;padding:34px 24px 26px;border-radius:26px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.45),var(--glow);animation:igIn .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes igIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.ig-logo{width:96px;height:96px;margin:0 auto 18px;border-radius:24px;display:grid;place-items:center;font-size:46px;background:linear-gradient(135deg,var(--p2),var(--p));box-shadow:var(--glow);overflow:hidden}
+.ig-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.ig-card h1{font-size:22px;font-weight:800;line-height:1.5;margin-bottom:6px}
+.ig-sub{font-size:13px;font-weight:300;color:var(--muted);margin-bottom:18px}
+.ig-msg{font-size:15.5px;font-weight:600;color:var(--g);margin-bottom:22px;line-height:1.8}
+.ig-btn{width:100%;min-height:54px;border:0;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16.5px;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--p2),var(--p));box-shadow:0 8px 26px rgba(168,85,247,.45);transition:transform .15s,box-shadow .15s}
+.ig-btn:active{transform:scale(.97)}
+.ig-btn svg{width:22px;height:22px;flex:none}
+.ig-help{display:none;margin-top:18px;text-align:start;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.ig-help.open{display:block}
+.ig-help h2{font-size:14.5px;font-weight:700;color:var(--g);margin-bottom:8px}
+.ig-help ol{list-style:none;counter-reset:s;display:grid;gap:9px}
+.ig-help li{counter-increment:s;display:flex;gap:10px;align-items:flex-start;font-size:13.5px;font-weight:400;line-height:1.7}
+.ig-help li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:var(--p);color:#fff;margin-top:2px}
+.ig-help li svg{width:18px;height:18px;vertical-align:-4px;display:inline-block}
+.ig-done{display:none;font-size:14.5px;font-weight:600;line-height:1.8;color:var(--text)}
+.ig-card.installed .ig-msg,.ig-card.installed .ig-btn,.ig-card.installed .ig-help{display:none}
+.ig-card.installed .ig-done{display:block}
 </style>
 <link rel="stylesheet" href="tools.css">
 <link rel="stylesheet" href="home.css">
@@ -2002,60 +2039,75 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 })();
 </script>
 
-<!-- ===== PWA install button ===== -->
-<div class="pwa" id="pwa" hidden>
-  <button class="pwa-btn" id="pwaBtn" type="button">
-    <span class="pwa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg></span>
-    <span>ثبّت تطبيق الموقع على هاتفك الآن</span>
-  </button>
-  <button class="pwa-x" id="pwaX" type="button" aria-label="إخفاء">✕</button>
+<!-- ===== PWA Gate: تظهر فقط في المتصفح العادي ===== -->
+<div id="installGate" role="dialog" aria-modal="true" aria-labelledby="igT">
+  <div class="ig-card" id="igCard">
+    <div class="ig-logo" aria-hidden="true"><img src="icon-192.png" alt="" onerror="this.replaceWith(document.createTextNode('🎓'))"></div>
+    <h1 id="igT">EPS Chlef Hub</h1>
+    <p class="ig-sub">منصة تعليمية للتربية البدنية والرياضية</p>
+    <p class="ig-msg">يرجى تثبيت التطبيق للوصول إلى المحتوى</p>
+    <button class="ig-btn" id="igBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
+      <span>تثبيت التطبيق</span>
+    </button>
+    <div class="ig-help" id="igIOS">
+      <h2>التثبيت على الآيفون / الآيباد</h2>
+      <ol>
+        <li>افتح الموقع في متصفح Safari ثم اضغط زر «مشاركة» <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></li>
+        <li>مرّر للأسفل واختر «إضافة إلى الشاشة الرئيسية» (Add to Home Screen)</li>
+        <li>اضغط «إضافة» ثم افتح التطبيق من الشاشة الرئيسية</li>
+      </ol>
+    </div>
+    <div class="ig-help" id="igOther">
+      <h2>التثبيت يدوياً</h2>
+      <ol>
+        <li>افتح قائمة المتصفح (⋮ أو ⋯)</li>
+        <li>اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»</li>
+        <li>افتح التطبيق من الشاشة الرئيسية</li>
+      </ol>
+    </div>
+    <p class="ig-done">✅ تم تثبيت التطبيق بنجاح.<br>افتحه الآن من الشاشة الرئيسية لهاتفك للوصول إلى المحتوى.</p>
+  </div>
 </div>
-<div class="ios-bg" id="iosSheet" aria-hidden="true"><div class="ios-box" role="dialog" aria-modal="true" aria-labelledby="iosT">
-  <h2 id="iosT">تثبيت التطبيق على الآيفون</h2>
-  <p>خطوات بسيطة من متصفح Safari:</p>
-  <ol>
-    <li>اضغط على زر «مشاركة» <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> أسفل الشاشة</li>
-    <li>مرّر للأسفل واختر «إضافة إلى الشاشة الرئيسية»</li>
-    <li>اضغط «إضافة» في أعلى الشاشة</li>
-  </ol>
-  <button class="ios-ok" id="iosOk" type="button">فهمت</button>
-</div></div>
 <script>
-/* ===== PWA: زر التثبيت العائم (Android + iOS) ===== */
+/* ===== PWA Gate: منطق التثبيت ===== */
 (function(){
-  var $=function(i){return document.getElementById(i)},bar=$('pwa'),KEY='pwa-hide-until',DAYS=7,deferred=null;
-  function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
-  function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-  var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
-  if(standalone)return; /* مثبّت مسبقًا: لا نعرض شيئًا */
+  if(window.__pwaStandalone)return; /* وضع التطبيق: لا شيء يُعرض، والمحتوى يظهر كاملاً */
+  var $=function(i){return document.getElementById(i)};
+  var card=$('igCard'),btn=$('igBtn'),ios=$('igIOS'),other=$('igOther');
   var ua=navigator.userAgent||'';
   var isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  function snoozed(){var t=+get(KEY);return t&&Date.now()<t}
-  function show(){if(snoozed()||!bar.hidden)return;bar.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){bar.classList.add('show')})})}
-  function hide(){bar.classList.remove('show');setTimeout(function(){bar.hidden=true},400)}
 
-  /* Android / Chrome / Edge / Samsung Internet */
-  addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show()});
-  addEventListener('appinstalled',function(){deferred=null;hide()});
+  function done(){window.__pwaDeferred=null;card.classList.add('installed')}
+  addEventListener('appinstalled',done);
 
-  /* iOS: لا يوجد beforeinstallprompt، نعرض الزر ثم إرشادات «مشاركة ← إضافة إلى الشاشة الرئيسية» */
-  if(isIOS)setTimeout(show,2500);
+  /* إن أصبح التطبيق يعمل Standalone أثناء الجلسة (مثلاً بعد التثبيت على سطح المكتب) */
+  try{
+    var mq=matchMedia('(display-mode: standalone)');
+    var onChange=function(e){if(e.matches)location.reload()};
+    mq.addEventListener?mq.addEventListener('change',onChange):mq.addListener&&mq.addListener(onChange);
+  }catch(e){}
 
-  var sheet=$('iosSheet');
-  function openIOS(){sheet.classList.add('open');sheet.setAttribute('aria-hidden','false')}
-  function closeIOS(){sheet.classList.remove('open');sheet.setAttribute('aria-hidden','true')}
-  $('iosOk').onclick=closeIOS;
-  sheet.onclick=function(e){if(e.target===sheet)closeIOS()};
-  addEventListener('keydown',function(e){if(e.key==='Escape')closeIOS()});
-
-  $('pwaBtn').onclick=function(){
-    if(deferred){
-      var d=deferred;deferred=null;hide();
+  btn.addEventListener('click',function(){
+    var d=window.__pwaDeferred;
+    if(d){
+      window.__pwaDeferred=null;
       d.prompt();
-      if(d.userChoice)d.userChoice.then(function(c){if(c&&c.outcome!=='accepted')set(KEY,Date.now()+DAYS*864e5)});
-    }else if(isIOS){openIOS()}
-  };
-  $('pwaX').onclick=function(){set(KEY,Date.now()+DAYS*864e5);hide()};
+      if(d.userChoice)d.userChoice.then(function(c){
+        if(!c||c.outcome!=='accepted'){ /* رفض المستخدم: نسمح بمحاولة جديدة عبر التعليمات اليدوية */
+          other.classList.add('open');
+        }
+      });
+    }else if(isIOS){
+      ios.classList.toggle('open');
+    }else{
+      /* المتصفح لم يطلق beforeinstallprompt (مثل Firefox أو متصفح مدمج) */
+      other.classList.toggle('open');
+    }
+  });
+
+  /* على iOS نعرض التعليمات فوراً لأن التثبيت التلقائي غير متاح */
+  if(isIOS)ios.classList.add('open');
 })();
 </script>
 <script>
