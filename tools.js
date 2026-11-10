@@ -39,7 +39,8 @@
     calc: ic('<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01"/><path d="M12 11h.01"/><path d="M16 11h.01"/><path d="M8 15h.01"/><path d="M12 15h.01"/><path d="M16 15h.01"/><path d="M8 19h8"/>'),
     dumb: ic('<path d="M6.5 6.5v11"/><path d="M17.5 6.5v11"/><path d="M3.5 9v6"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/>'),
     doc: ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/>'),
-    list: ic('<path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>')
+    list: ic('<path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>'),
+    refs: ic('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7"/><path d="M9 11h5"/>')
   };
 
   /* ---------- إشعار صغير ---------- */
@@ -202,9 +203,10 @@
     gpa: { title: 'حساب المعدل الفصلي', desc: 'معدل السداسي بالمعاملات مع حفظ كشف النقاط', icon: I.calc },
     todo: { title: 'قائمة المهام', desc: 'نظّم واجباتك وامتحاناتك ومواعيد تسليمها', icon: I.list },
     fit: { title: 'الحاسبات الرياضية والتغذوية', desc: 'BMI والسعرات والبروتين والمغذيات وغيرها: 9 حاسبات لطالب التربية البدنية', icon: I.dumb },
-    research: { title: 'إنشاء بحث جامعي', desc: 'اكتب بحثك بفصوله ومراجعه وغلافه، واحفظه على جهازك وصدّره PDF وWord وTXT', icon: I.doc }
+    research: { title: 'إنشاء بحث جامعي', desc: 'اكتب بحثك بفصوله ومراجعه وغلافه، واحفظه على جهازك وصدّره PDF وWord وTXT', icon: I.doc },
+    refs: { title: 'مولّد المراجع الأكاديمية', desc: 'وثّق مراجعك بنمط APA وHarvard وMLA وChicago، واحفظ قائمتك على جهازك', icon: I.refs }
   };
-  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit', 'research'];
+  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit', 'research', 'refs'];
   var curTool = null, hub, views = {};
 
   function buildShell() {
@@ -259,6 +261,14 @@
     else v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><div class="tl-box"><p class="tl-empty">تعذّر تحميل أداة البحث. حدّث الصفحة وأعد المحاولة.</p></div>';
   };
   REFRESH.research = function () { if (window.RS && RS.ui && RS.ui.refresh) RS.ui.refresh(); };
+
+  /* أداة «مولّد المراجع الأكاديمية»: الشيفرة في refs-core.js + refs-ui.js (تعمل دون إنترنت) */
+  INIT.refs = function () {
+    var v = views.refs;
+    if (window.RF && RF.ui && RF.ui.init) RF.ui.init(v);
+    else v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><div class="tl-box"><p class="tl-empty">تعذّر تحميل أداة المراجع. حدّث الصفحة وأعد المحاولة.</p></div>';
+  };
+  REFRESH.refs = function () { if (window.RF && RF.ui && RF.ui.refresh) RF.ui.refresh(); };
 
   /* ==========================================================================
      1) أداة إنشاء جدول دراسي أسبوعي

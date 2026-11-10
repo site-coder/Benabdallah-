@@ -1,0 +1,115 @@
+/* ==========================================================================
+   refs.css — تنسيق أداة «مولّد المراجع الأكاديمية» (بادئة rf-)
+   يعتمد على فئات الأدوات (tl-*) ومتغيرات المنصة: --bg --card --line --text --muted --p --p2 --g --r
+   ========================================================================== */
+.rf-root{--rf-bad:#F87171;--rf-ok:#34D399}
+:root[data-theme="light"] .rf-root{--rf-bad:#DC2626;--rf-ok:#059669}
+.rf-root .tl-box{max-width:820px}
+.rf-root .tl-top{max-width:820px}
+.rf-root .tl-chip i{display:block;margin:0;font-size:12px;line-height:1.4}
+.rf-root .tl-chip{line-height:1.5}
+.rf-sub{margin-top:10px}
+.rf-sub .tl-lbl{margin-top:0}
+.rf-chk{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:14px;line-height:1.7;color:var(--muted);cursor:pointer}
+.rf-req{color:var(--rf-bad)}
+#rfFormBox{scroll-margin-top:84px}
+
+/* لغة المرجع */
+.rf-langrow{margin-top:6px;max-width:340px}
+
+/* المؤلفون والمحررون */
+.rf-people{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.rf-ph{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rf-ph .tl-lbl{margin:0}
+.rf-prow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;gap:8px;margin:8px 0}
+.rf-prow .tl-x:disabled{opacity:.35;cursor:not-allowed}
+.rf-people>.tl-btn{margin-top:2px}
+
+/* حقول النموذج */
+.rf-grid{display:grid;grid-template-columns:1fr;gap:2px 12px;margin-top:12px}
+.rf-grid .tl-fld{margin-bottom:6px}
+.rf-w{grid-column:1/-1}
+@media(min-width:600px){.rf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rf-ltr{direction:ltr;text-align:left}
+.rf-root .tl-sel.bad,.rf-root .tl-in.bad{border-color:var(--rf-bad)}
+.rf-root select.tl-sel{appearance:auto}
+.rf-fbtns{margin-top:16px}
+.rf-fbtns>.tl-btn{flex:1 1 160px}
+
+/* المعاينة والمراجع */
+.rf-prev{min-height:60px;padding:14px;border:1px dashed var(--g);border-radius:14px;background:var(--bg)}
+.rf-prev .tl-empty{padding:10px 4px}
+.rf-ref{font-size:16px;line-height:2.05;overflow-wrap:anywhere;word-break:break-word;text-align:start}
+.rf-ref i{font-style:italic}
+.rf-ref bdi{unicode-bidi:isolate}
+.rf-note{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+.rf-note small{display:block;color:var(--p2);font-weight:600;font-size:12.5px;margin-bottom:2px}
+.rf-note .rf-ref{color:var(--muted);font-size:15px}
+
+/* القائمة */
+.rf-count{color:var(--muted);font-weight:400;font-size:15px}
+.rf-tools{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:4px}
+@media(min-width:600px){.rf-tools{grid-template-columns:1fr 240px}}
+.rf-lbtns{margin:10px 0 14px}
+.rf-lbtns>.tl-btn{flex:0 1 auto}
+.rf-item{display:grid;gap:8px;padding:14px;margin-bottom:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.rf-item.rf-editing{border-color:var(--g);box-shadow:0 0 0 2px color-mix(in srgb,var(--g) 25%,transparent)}
+.rf-itop{display:flex;gap:8px;flex-wrap:wrap}
+.rf-badge{display:inline-block;font-size:12px;line-height:1.8;padding:0 10px;border:1px solid var(--line);border-radius:99px;color:var(--p2)}
+.rf-badge.rf-on{color:var(--g);border-color:var(--g)}
+.rf-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.rf-acts>.tl-btn{flex:1 1 84px}
+.rf-flash{animation:rfFlash 1.6s ease-out}
+@keyframes rfFlash{0%{box-shadow:0 0 0 3px var(--g),0 0 24px rgba(245,158,11,.55)}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.rf-flash{animation:none;border-color:var(--g)}}
+
+/* نافذة التأكيد */
+.rf-dmsg{white-space:pre-line;color:var(--muted);line-height:1.9;margin:4px 0 6px;overflow-wrap:anywhere}
+.rf-dlg .tl-btns>.tl-btn{flex:1 1 120px}
+
+/* التوثيق داخل النص */
+.rf-acts>.tl-btn[aria-expanded="true"]{border-color:var(--g);color:var(--g)}
+.rf-cite{display:grid;gap:10px;padding:12px;border:1px dashed var(--g);border-radius:14px;background:var(--card)}
+.rf-ch{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:15px}
+.rf-cite .tl-hint{margin:0}
+.rf-cpg{max-width:260px}
+.rf-cpart{display:grid;gap:4px}
+.rf-cpart small{color:var(--p2);font-weight:600;font-size:12.5px}
+.rf-cline{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.rf-cline .rf-ref{padding:6px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:15.5px}
+@media(max-width:480px){.rf-cline{grid-template-columns:1fr}}
+
+/* تصدير القائمة */
+.rf-exp{margin:4px 0 14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.rf-exp .tl-lbl{margin-top:0}
+.rf-exp .rf-lbtns{margin:8px 0 4px}
+
+/* ---------- مشاريع البحث ---------- */
+.rf-plist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
+.rf-pitem{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.rf-pitem.cur{border-color:var(--g)}
+.rf-pinfo{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 180px}
+.rf-pname{color:var(--text);font-weight:700;overflow-wrap:anywhere;line-height:1.7}
+.rf-pinfo small{color:var(--muted);font-size:13px;line-height:1.8}
+.rf-pacts{display:flex;gap:6px;flex-wrap:wrap}
+.rf-pacts>.tl-btn{flex:0 0 auto}
+.rf-pbar>.tl-btn{flex:1 1 150px}
+.rf-pdlg .rf-implist{max-height:180px}
+.rf-modes{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.rf-agree{margin:8px 0}
+.rf-agree[hidden]{display:none}
+
+/* ---------- جلب بيانات المرجع تلقائياً (refs-fetch.js) ---------- */
+.rf-fetch{margin-top:14px;padding:12px;border:1px dashed var(--g);border-radius:14px;background:var(--bg)}
+.rf-fetch>.tl-lbl{margin-top:0}
+.rf-frow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.rf-frow .tl-btn{min-width:130px}
+@media(max-width:480px){.rf-frow{grid-template-columns:1fr}}
+.rf-fstat:empty{display:none}
+.rf-fstat .tl-msg b{font-weight:700}
+.rf-conf{display:grid;gap:8px;margin-top:10px}
+.rf-cf{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;cursor:pointer;line-height:1.8;background:var(--card)}
+.rf-cf small{display:block;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.rf-cf .rf-new{color:var(--text)}
+.rf-proxy{margin-top:10px}
+.rf-auto{outline:2px solid color-mix(in srgb,var(--rf-ok) 70%,transparent);outline-offset:3px;border-radius:12px}

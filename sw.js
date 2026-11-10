@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.10.0';
+const VERSION = 'v1.14.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -50,6 +50,12 @@ const PRECACHE = [
   './research-export.js',
   './research-ui.js',
   './research-ui2.js',
+  './refs-core.js',
+  './refs-projects.js',
+  './refs-ui.js',
+  './refs-export.js',
+  './refs-fetch.js',
+  './refs.css',
   './home.js',
   './home.css',
   './theme.css',
@@ -348,6 +354,10 @@ self.addEventListener('fetch', function (event) {
   if (isAuthHost(url)) return;
   if (url.origin === ORIGIN && url.pathname.slice(-6) === '/sw.js') return;
   if (url.origin !== ORIGIN && request.mode === 'navigate') return;
+  /* «جلب بيانات المرجع» (refs-fetch.js): طلبات Crossref والمواقع الخارجية تمرّ للشبكة مباشرة ولا تُخزَّن أبداً
+     (تُعلَّم بـ cache:'no-store'؛ وإلا أعاد التخزين نتائج قديمة وحفظ صفحات غريبة على جهاز الطالب) */
+  if (url.origin !== ORIGIN && request.cache === 'no-store') return;
+  if (url.hostname === 'api.crossref.org' || url.hostname === 'api.allorigins.win') return;
 
   if (isDocumentRequest(request, url)) {
     event.respondWith(handleNavigation(event));
