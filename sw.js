@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.9.0';
+const VERSION = 'v1.10.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -44,6 +44,12 @@ const PRECACHE = [
   './auth.js',
   './tools.js',
   './tools.css',
+  './research.css',
+  './research-core.js',
+  './research-layout.js',
+  './research-export.js',
+  './research-ui.js',
+  './research-ui2.js',
   './home.js',
   './home.css',
   './theme.css',
