@@ -1,0 +1,83 @@
+/* ==========================================================================
+   cmap-mobile.css — «منشئ الخرائط المفاهيمية» (المرحلة 5): الهاتف والأجهزة اللوحية
+   - لوحة الأدوات ولوحة الخصائص قابلتان للإظهار والإخفاء (أزرار عائمة داخل مساحة الرسم)
+   - مقابض وأهداف لمس أكبر، ومنع التمرير غير المقصود أثناء تحريك العناصر
+   ========================================================================== */
+.cm-fabs{position:absolute;top:10px;inset-inline-end:10px;z-index:6;display:flex;gap:8px}
+.cm-fab{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:42px;height:42px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--cm-panel);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.cm-fab svg{width:20px;height:20px;flex:none}
+.cm-fab[aria-pressed="false"]{color:var(--muted);border-style:dashed}
+.cm-fab:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+@media(hover:hover){.cm-fab:hover{border-color:var(--g)}}
+@media(max-width:820px){.cm-fab span{display:none}.cm-fab{padding:0}}
+
+/* الزر القديم لإظهار الخصائص (للهاتف فقط) يحلّ محله الزر العائم */
+.cm .cm-only-m{display:none!important}
+
+/* أعمدة اللوحات بمتغيرات: إخفاء اللوحة يمنح الرسم المساحة كلها */
+@media(min-width:821px){
+  .cm{grid-template-columns:var(--cm-tw,92px) minmax(0,1fr) var(--cm-pw,296px)}
+  .cm.cm-tools-off{--cm-tw:0px}
+  .cm.cm-props-off{--cm-pw:0px}
+}
+@media(min-width:821px) and (max-width:1100px){
+  .cm{--cm-tw:84px;--cm-pw:252px}
+  .cm-tool{min-height:58px}
+}
+.cm.cm-tools-off .cm-tools{display:none}
+.cm.cm-props-off .cm-props,.cm.cm-props-off .cm-style{display:none!important}
+
+/* الشاشات الضيقة: ترتيب الشريط العلوي دون تزاحم */
+@media(max-width:820px){
+  .cm-top{flex-wrap:nowrap}
+  .cm-name{min-width:60px}
+  .cm-topact{gap:5px;flex:none}
+  .cm-topact .cm-btn,.cm-backbtn{min-width:38px;padding:0 7px}
+}
+@media(max-width:420px){
+  .cm-top{gap:4px;padding-inline:6px}
+  .cm-topact{gap:3px}
+  .cm-topact .cm-btn,.cm-backbtn{min-width:36px;min-height:38px;padding:0 6px}
+  .cm-btn svg{width:18px;height:18px}
+}
+
+/* اللمس: أهداف أكبر ومنع التمرير/التكبير غير المقصود */
+.cm-canvas,.cm-node,.cm-label,.cm-h,.cm-fab,.cm-save{touch-action:none}
+.cm-fab{touch-action:manipulation}
+.cm-canvas{-webkit-tap-highlight-color:transparent}
+.cm-node,.cm-h{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+@media(pointer:coarse){
+  .cm-h{width:calc(20px * var(--inv));height:calc(20px * var(--inv));margin:calc(-10px * var(--inv)) 0 0 calc(-10px * var(--inv))}
+  .cm-h::after{inset:calc(-14px * var(--inv))}
+  .cm-lhit{stroke-width:calc(34px * var(--inv))!important}
+  .cm-btn,.cm-chip,.cm-sw{min-height:44px}
+  .cm-sw{min-width:38px}
+  .cm-tool{min-height:58px}
+}
+
+/* ---- الهاتف والجهاز اللوحي (عمودي): لوحة الخصائص والمظهر تظهران كورقة فوق الرسم لا تقتطع مساحته ---- */
+@media(max-width:820px){
+  .cm-props,.cm-style{grid-area:canvas;align-self:end;z-index:7;max-height:min(46vh,100%);margin-inline:6px;border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -8px 28px rgba(0,0,0,.4)}
+  .cm-style{align-self:end}
+}
+/* تلميح: يوجد تحديد لكن اللوحة مغلقة */
+.cm-has-sel .cm-fab[data-mb="props"][aria-pressed="false"]{border-color:var(--g);color:var(--g);border-style:solid}
+@media(max-width:820px){.cm-has-sel .cm-fab[data-mb="props"][aria-pressed="false"] span{display:inline}.cm-has-sel .cm-fab[data-mb="props"][aria-pressed="false"]{padding:0 12px}}
+
+/* ---- الهاتف أفقياً (ارتفاع قصير): أعمدة جانبية بدل الصفوف كي تبقى للرسم مساحة ---- */
+@media(max-height:520px) and (max-width:1000px) and (orientation:landscape){
+  .cm{grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"top top" "acts acts" "tools canvas" "tools bottom"}
+  .cm.cm-tools-off{grid-template-columns:0 minmax(0,1fr)}
+  .cm-tools{flex-direction:column;overflow-x:hidden;overflow-y:auto;border-top:0;border-inline-end:1px solid var(--line);padding:6px}
+  .cm-tool{min-height:50px}
+  .cm-top{padding-block:calc(3px + env(safe-area-inset-top,0px)) 3px}
+  .cm-acts{padding-block:3px}
+  .cm-bottom{padding-block:3px calc(3px + env(safe-area-inset-bottom,0px))}
+  .cm-top .cm-btn,.cm-acts .cm-btn,.cm-bottom .cm-btn{min-height:36px}
+  .cm-props,.cm-style{justify-self:end;align-self:stretch;width:min(300px,52%);max-height:none;margin:0;border-radius:0;border-width:0 0 0 1px;box-shadow:-8px 0 24px rgba(0,0,0,.35)}
+  .cm-fabs{top:6px}
+  .cm-save{top:6px}
+}
+
+/* شريط الإجراءات يلتفّ عند الحاجة (يُفعَّل من cmap-mobile.js على الشاشات الواسعة فقط) */
+.cm.cm-acts-wrap .cm-acts{flex-wrap:wrap;overflow:visible}

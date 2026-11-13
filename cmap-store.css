@@ -1,0 +1,84 @@
+/* ==========================================================================
+   cmap-store.css — «منشئ الخرائط المفاهيمية» (المرحلة 4): حالة الحفظ + صفحة «خرائطي» + نوافذ التأكيد
+   - بادئة cm- كباقي الأداة، وتستعمل متغيرات المنصة: --bg --card --line --text --muted --p --p2 --g
+   ========================================================================== */
+
+/* ---- حالة الحفظ (شارة عائمة داخل مساحة الرسم) ---- */
+.cm-save{position:absolute;top:10px;inset-inline-start:10px;z-index:6;display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:99px;background:var(--cm-panel);border:1px solid var(--line);color:var(--muted);font-size:12.5px;font-weight:600;pointer-events:none;user-select:none;-webkit-user-select:none}
+.cm-save[hidden]{display:none}
+.cm-sd{width:9px;height:9px;border-radius:50%;background:#34D399;flex:none}
+.cm-save[data-state="saving"] .cm-sd{background:var(--g);animation:cmPulse 1s ease-in-out infinite}
+.cm-save[data-state="error"]{border-color:#F87171;color:#F87171}
+.cm-save[data-state="error"] .cm-sd{background:#F87171}
+:root[data-theme="light"] .cm-save[data-state="error"]{border-color:#DC2626;color:#DC2626}
+@keyframes cmPulse{50%{opacity:.3}}
+
+/* ---- شريط رسالة تعذّر الحفظ ---- */
+.cm-sbanner{position:absolute;inset-inline:10px;top:120px;z-index:11;margin-inline:auto;max-width:680px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border-radius:14px;background:var(--cm-panel);border:1px solid #F87171;color:var(--text);font-size:13.5px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.cm-sbanner[hidden]{display:none}
+.cm-sbmsg{flex:1 1 220px;min-width:0;line-height:1.6}
+.cm-sbact{display:flex;gap:6px;flex-wrap:wrap}
+.cm-sbact .cm-btn{min-height:36px;font-size:13px}
+
+/* ---- شاشة استعادة الخريطة عند البدء ---- */
+.cm-boot{position:absolute;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--bg);color:var(--muted);font-size:15px}
+.cm-boot[hidden]{display:none}
+.cm-spin{width:22px;height:22px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--g);animation:cmSpin .8s linear infinite}
+@keyframes cmSpin{to{transform:rotate(360deg)}}
+
+/* ---- صفحة «خرائطي» ---- */
+.cm-mm{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;min-height:0;background:var(--bg);color:var(--text)}
+.cm-mm[hidden]{display:none}
+.cm-mmh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--cm-panel);border-bottom:1px solid var(--line)}
+.cm-mmt{flex:1 1 140px;min-width:0}
+.cm-mmt h2{margin:0;font-size:20px;color:var(--g);line-height:1.3}
+.cm-mmc{display:block;color:var(--muted);font-size:12.5px}
+.cm-mma{display:flex;gap:8px;flex-wrap:wrap}
+.cm-pri{background:var(--p);border-color:var(--p);color:#fff}
+@media(hover:hover){.cm-btn.cm-pri:not(:disabled):hover{border-color:var(--g)}}
+.cm-mmmsg{margin:10px 14px 0;padding:10px 14px;border-radius:12px;border:1px solid #F87171;background:color-mix(in srgb,#F87171 12%,var(--bg));font-size:13.5px;line-height:1.6}
+.cm-mmmsg[hidden]{display:none}
+.cm-mmb{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px))}
+.cm-mmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;max-width:1200px;margin-inline:auto}
+.cm-busy .cm-mmb{opacity:.6;pointer-events:none}
+
+.cm-mc{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:16px;border:1px solid var(--line);background:var(--card);min-width:0;transition:border-color .2s,box-shadow .3s}
+.cm-mc.cur{border-color:var(--g)}
+.cm-mc.flash{box-shadow:0 0 0 3px color-mix(in srgb,var(--g) 55%,transparent)}
+.cm-mcp{display:block;width:100%;height:150px;padding:0;border-radius:12px;border:1px solid var(--line);background:none;overflow:hidden;cursor:pointer;color:var(--muted);-webkit-tap-highlight-color:transparent}
+.cm-mcpv{display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:var(--cm-canvas)}
+.cm-mcpv svg{width:100%;height:100%;display:block}
+.cm-mcp:focus-visible,.cm-mm .cm-btn:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+@media(hover:hover){.cm-mcp:hover{border-color:var(--g)}}
+.cm-mci{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cm-mcn{margin:0;font-size:16px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cm-badge{align-self:flex-start;padding:1px 10px;border-radius:99px;border:1px solid var(--g);color:var(--g);font-size:12px;font-weight:700}
+.cm-mcd,.cm-mcs{display:flex;flex-wrap:wrap;gap:2px 12px;margin:0;color:var(--muted);font-size:12.5px;line-height:1.6}
+.cm-mca{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.cm-mca .cm-btn{min-height:36px;padding:0 10px;font-size:13px}
+.cm-mca .cm-btn svg{width:16px;height:16px}
+.cm-mmempty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:34px 14px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:16px}
+.cm-mmempty b{color:var(--text);font-size:16px}
+.cm-mmempty p{margin:0;max-width:520px;line-height:1.7}
+
+/* ---- نوافذ التأكيد والتسمية ---- */
+.cm-dlg{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.55)}
+.cm-dlg[hidden]{display:none}
+.cm-dlgbox{width:min(460px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--cm-panel);border:1px solid var(--g);box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.cm-dlgbox h3{margin:0;font-size:17px;color:var(--g);line-height:1.5}
+.cm-dlgbox p{margin:0;font-size:14px;line-height:1.7}
+.cm-dlgbox .cm-f{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.cm-dlgin{height:42px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px}
+.cm-dlgin:focus{outline:none;border-color:var(--g)}
+.cm-dlga{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:4px}
+
+@media(max-width:820px){
+  .cm-mmh{gap:8px;padding-inline:10px}
+  .cm-mmb{padding-inline:10px}
+  .cm-mmgrid{grid-template-columns:minmax(0,1fr)}
+  .cm-mcp{height:130px}
+  .cm-mma{width:100%}
+  .cm-mma .cm-btn{flex:1}
+  .cm-sbanner{inset-inline:8px}
+}
+@media(prefers-reduced-motion:reduce){.cm-sd,.cm-spin{animation:none!important}}

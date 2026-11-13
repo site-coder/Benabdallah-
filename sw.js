@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.14.0';
+const VERSION = 'v1.19.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -56,6 +56,19 @@ const PRECACHE = [
   './refs-export.js',
   './refs-fetch.js',
   './refs.css',
+  './cmap.css',
+  './cmap-core.js',
+  './cmap-ui.js',
+  './cmap-templates.js',
+  './cmap-ext.js',
+  './cmap-ext.css',
+  './cmap-store.js',
+  './cmap-store.css',
+  './cmap-export.js',
+  './cmap-export.css',
+  './cmap-mobile.js',
+  './cmap-mobile.css',
+  './offline.html',
   './home.js',
   './home.css',
   './theme.css',
@@ -273,7 +286,8 @@ async function handleNavigation(event) {
     const hit =
       (await cache.match(request, { ignoreSearch: true, ignoreVary: true })) ||
       (await cache.match(INDEX_URL, { ignoreSearch: true })) ||
-      (await cache.match(SCOPE, { ignoreSearch: true }));
+      (await cache.match(SCOPE, { ignoreSearch: true })) ||
+      (await cache.match(new URL('./offline.html', SCOPE).href));
     return hit || new Response(OFFLINE_HTML, {
       status: 503,
       headers: { 'Content-Type': 'text/html; charset=utf-8' }

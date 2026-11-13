@@ -1,0 +1,80 @@
+/* ==========================================================================
+   cmap-ext.css — «منشئ الخرائط المفاهيمية» (المرحلة 3): معرض القوالب ولوحة المظهر والتنسيق
+   - يُحمَّل بعد cmap.css ويستعمل نفس البادئة cm- ونفس متغيرات المنصة
+   ========================================================================== */
+
+/* ---- خلفية مساحة العمل: ألوان النص تتبع لون الخلفية المخصّصة ---- */
+.cm-label{color:var(--cm-ink,var(--text))}
+.cm-empty{color:var(--cm-ink-m,var(--muted))}
+.cm-canvas.cm-bgtransp{background-color:#fff;background-image:linear-gradient(45deg,#d9dde3 25%,transparent 25%,transparent 75%,#d9dde3 75%),linear-gradient(45deg,#d9dde3 25%,transparent 25%,transparent 75%,#d9dde3 75%);background-size:20px 20px;background-position:0 0,10px 10px}
+.cm-empty .cm-tplcta{pointer-events:auto;margin-top:8px;min-height:44px;padding:0 20px;border-color:var(--g);color:var(--text);background:color-mix(in srgb,var(--g) 14%,var(--card))}
+.cm-empty .cm-tplcta svg{color:var(--g)}
+.cm-bgtransp .cm-empty{background:rgba(255,255,255,.55)}
+
+/* ---- حقول التنسيق (لوحة العقدة / التحديد المتعدد / المظهر) ---- */
+.cm-fmt{display:flex;flex-direction:column;gap:12px}
+.cm-fmt.cm-off{opacity:.45;pointer-events:none}
+.cm-xsec{margin-top:4px;padding-top:10px;border-top:1px solid var(--line);color:var(--g);font-size:13.5px}
+.cm-pq{display:contents}
+.cm-fv{color:var(--g);font-weight:700}
+.cm-fmt .cm-seg small,.cm-scope .cm-seg small,.cm-style .cm-seg small{font-size:12.5px;font-weight:600}
+.cm-fmt .cm-seg button,.cm-style .cm-seg button{min-height:36px;justify-content:center}
+.cm-seg button:disabled{opacity:.4;cursor:default}
+.cm-dim{opacity:.5}
+.cm-lkscope{font-style:normal;color:var(--g);font-size:11.5px}
+
+/* ---- لوحة المظهر: تشغل مكان لوحة الخصائص وتغطيها ---- */
+.cm-style{grid-area:props;z-index:4;display:flex;flex-direction:column;align-self:stretch;min-height:0;background:var(--cm-panel);border-inline-start:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain}
+.cm-style[hidden]{display:none}
+.cm-style-open .cm-props{display:none!important}
+.cm-sbody{display:flex;flex-direction:column;padding:0 14px 18px}
+.cm-ssec{display:flex;flex-direction:column;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.cm-ssec:first-child{border-top:0}
+.cm-ssec h4{margin:0;color:var(--g);font-size:14px}
+.cm-snote{margin:0;font-size:12px;color:var(--muted);line-height:1.6}
+.cm-pals{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cm-pc{display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
+.cm-pc b{font-size:12.5px}
+.cm-pcd{display:flex;align-items:center;justify-content:center;gap:3px;height:30px;border-radius:8px;border:1px solid var(--line)}
+.cm-pcd i{display:block;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
+.cm-pc[aria-pressed="true"]{border-color:var(--g);box-shadow:0 0 12px rgba(245,158,11,.3)}
+@media(hover:hover){.cm-pc:hover{border-color:var(--g)}}
+.cm-scope{display:flex;flex-direction:column;gap:8px}
+.cm-scope .cm-note{margin:0}
+.cm-bgrow.cm-dim{opacity:.55}
+.cm-style .cm-btn[aria-pressed="true"]{border-color:var(--g)}
+
+/* ---- معرض القوالب ---- */
+.cm-tpl{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.55)}
+.cm-tpl[hidden]{display:none}
+.cm-tplbox{display:flex;flex-direction:column;gap:10px;width:min(1040px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;padding:0 0 16px;border-radius:18px;background:var(--cm-panel);border:1px solid var(--g);box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.cm-tplbox>.cm-ph{position:sticky;top:0;z-index:2;background:var(--cm-panel);padding:14px 16px 8px;font-size:18px}
+.cm-tplbox>.cm-note{margin:0 16px}
+.cm-tplpal{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:0 16px}
+.cm-tplpal>span{font-size:13px;color:var(--muted);font-weight:600}
+.cm-tplgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding:4px 16px 0}
+.cm-tc{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--text);text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .2s,box-shadow .2s,transform .15s}
+.cm-tc:active{transform:scale(.985)}
+@media(hover:hover){.cm-tc:hover{border-color:var(--g);box-shadow:0 0 18px rgba(245,158,11,.28)}}
+.cm-tc:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.cm-tcp{display:flex;align-items:center;justify-content:center;height:150px;border-radius:12px;border:1px solid var(--line);background:var(--cm-canvas);overflow:hidden;color:var(--muted)}
+.cm-tcp svg{width:100%;height:100%;display:block}
+.cm-tc-blank .cm-tcp{border-style:dashed}
+.cm-tc b{font-size:15.5px}
+.cm-tc small{font-size:12.5px;line-height:1.6;color:var(--muted);flex:1}
+.cm-tcgo{align-self:flex-start;padding:5px 12px;border-radius:99px;border:1px solid var(--g);color:var(--g);font-size:12.5px;font-weight:700}
+
+@media(max-width:820px){
+  .cm-style{max-height:36vh;border-inline-start:0;border-top:1px solid var(--line)}
+  .cm-style .cm-ph{position:sticky;top:0;z-index:2;background:var(--cm-panel);padding:8px 12px 2px}
+  .cm-tpl{padding:0;align-items:stretch}
+  .cm-tplbox{width:100%;max-height:100%;border-radius:0;border-width:0}
+  .cm-tplgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:4px 10px 0}
+  .cm-tplpal{padding:0 10px}
+  .cm-tplbox>.cm-ph{padding:10px 12px 6px}
+  .cm-tplbox>.cm-note{margin:0 10px}
+  .cm-tcp{height:110px}
+  .cm-tc{padding:8px}
+  .cm-tc small{font-size:11.5px;line-height:1.55}
+  .cm-tc b{font-size:14.5px}
+}
