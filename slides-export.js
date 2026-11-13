@@ -475,80 +475,262 @@
     });
   }
 
-  /* ---------- 3) محوّل PowerPoint (PPTX Adapter جاهز لتكامل PptxGenJS محلياً) ---------- */
+  /* ---------- 3) التصدير الحقيقي إلى PowerPoint (PPTX عبر PptxGenJS المحلي) ---------- */
   var PPTX_SHAPE_MAP = {
     rect: 'rect', rrect: 'roundRect', square: 'rect', circle: 'ellipse',
-    line: 'line', arrow: 'rightArrow', darrow: 'leftRightArrow',
+    line: 'line', arrow: 'line', darrow: 'line',
     triangle: 'triangle', diamond: 'diamond', pentagon: 'pentagon',
     hexagon: 'hexagon', star: 'star5', callout: 'wedgeRoundRectCallout'
   };
+
+  function round3(v) { return Math.round((parseFloat(v) || 0) * 1000) / 1000; }
+  function cleanHex(hex, fallback) {
+    var s = String(hex || '').trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(s)) s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+    if (/^[0-9a-f]{6}$/i.test(s)) return s.toUpperCase();
+    return fallback || '000000';
+  }
+  function alphaPct(op) {
+    var v = op == null ? 1 : parseFloat(op);
+    if (!isFinite(v)) v = 1;
+    return Math.max(0, Math.min(100, Math.round((1 - Math.max(0, Math.min(1, v))) * 100)));
+  }
+  function mapFontFace(name) {
+    var f = String(name || 'Alexandria').trim();
+    if (f === 'sans-serif') return 'Arial';
+    if (f === 'serif') return 'Times New Roman';
+    if (f === 'monospace') return 'Courier New';
+    return f || 'Alexandria';
+  }
+
+  function ensurePptxGen() {
+    if (typeof root.PptxGenJS === 'function') return Promise.resolve(root.PptxGenJS);
+    if (typeof document === 'undefined') return Promise.reject(new Error('مكتبة PptxGenJS غير محمّلة'));
+    return new Promise(function (resolve, reject) {
+      var existing = document.querySelector('script[data-pptxgen-loader]');
+      if (existing) {
+        existing.addEventListener('load', function () {
+          if (typeof root.PptxGenJS === 'function') resolve(root.PptxGenJS);
+          else reject(new Error('تعذّر تهيئة مكتبة PptxGenJS'));
+        });
+        existing.addEventListener('error', function () { reject(new Error('تعذّر تحميل مكتبة PptxGenJS المحلية')); });
+        return;
+      }
+      var sc = document.createElement('script');
+      sc.src = 'vendor/pptxgen.bundle.js';
+      sc.async = true;
+      sc.setAttribute('data-pptxgen-loader', '1');
+      sc.onload = function () {
+        if (typeof root.PptxGenJS === 'function') resolve(root.PptxGenJS);
+        else reject(new Error('تعذّر تهيئة مكتبة PptxGenJS'));
+      };
+      sc.onerror = function () { reject(new Error('ملف مكتبة PptxGenJS المحلي غير متوفر')); };
+      document.head.appendChild(sc);
+    });
+  }
+
+  function prepareImageForPptx(it) {
+    var src = String(it && it.src || '');
+    if (!src) return Promise.resolve(null);
+    var cr = it.crop || { x: 0, y: 0, w: 1, h: 1 };
+    var hasCrop = Math.abs(cr.x || 0) > 0.002 || Math.abs(cr.y || 0) > 0.002 || Math.abs((cr.w == null ? 1 : cr.w) - 1) > 0.002 || Math.abs((cr.h == null ? 1 : cr.h) - 1) > 0.002;
+    var hasStyle = (it.radius > 0) || (it.borderWidth > 0) || (it.op != null && it.op < 0.995);
+    var isNativeFmt = /^data:image\/(png|jpe?g);base64,/i.test(src);
+    if (isNativeFmt && !hasCrop && !hasStyle) return Promise.resolve(src);
+
+    return loadImg(src).then(function (im) {
+      if (!im || !im.naturalWidth || !im.naturalHeight) return isNativeFmt ? src : null;
+      var sx = (cr.x || 0) * im.naturalWidth;
+      var sy = (cr.y || 0) * im.naturalHeight;
+      var sw = Math.max(1, (cr.w == null ? 1 : cr.w) * im.naturalWidth);
+      var sh = Math.max(1, (cr.h == null ? 1 : cr.h) * im.naturalHeight);
+      var targetScale = Math.max(2, Math.min(3, sw / Math.max(1, it.w)));
+      var cw = Math.min(2048, Math.max(2, Math.round(it.w * targetScale)));
+      var ch = Math.min(2048, Math.max(2, Math.round(it.h * targetScale)));
+      var cv = document.createElement('canvas');
+      cv.width = cw;
+      cv.height = ch;
+      var ctx = cv.getContext('2d');
+      var rScale = cw / Math.max(1, it.w);
+      ctx.globalAlpha = it.op != null ? Math.max(0, Math.min(1, it.op)) : 1;
+      ctx.save();
+      roundRectPath(ctx, 0, 0, cw, ch, (it.radius || 0) * rScale);
+      ctx.clip();
+      ctx.drawImage(im, sx, sy, sw, sh, 0, 0, cw, ch);
+      ctx.restore();
+      if (it.borderWidth > 0) {
+        var bw = it.borderWidth * rScale;
+        roundRectPath(ctx, bw / 2, bw / 2, Math.max(1, cw - bw), Math.max(1, ch - bw), (it.radius || 0) * rScale);
+        ctx.strokeStyle = it.borderColor || '#7C3AED';
+        ctx.lineWidth = bw;
+        ctx.stroke();
+      }
+      return cv.toDataURL('image/png');
+    });
+  }
+
+  function buildTextRuns(it, ptScale) {
+    var raw = String(it.text == null ? '' : it.text).replace(/\r\n/g, '\n');
+    var lines = raw.split('\n');
+    if (!lines.length) lines = [''];
+    var fallbackDir = dirOf(raw, it.dir || 'auto');
+    var fontFace = mapFontFace(it.font);
+    var fontSize = Math.max(6, Math.round((it.size || 24) * ptScale));
+    var col = cleanHex(it.color, '1B0E3A');
+    var align = it.align === 'justify' ? 'justify' : (it.align || (fallbackDir === 'rtl' ? 'right' : 'left'));
+    var baseTr = alphaPct(it.op);
+
+    return lines.map(function (ln, idx) {
+      var pDir;
+      if (it.dir === 'rtl' || it.dir === 'ltr') {
+        pDir = it.dir;
+      } else {
+        pDir = '';
+        for (var k = 0; k < ln.length; k++) {
+          var ch = ln.charAt(k);
+          if (RE_RTL.test(ch)) { pDir = 'rtl'; break; }
+          if (RE_LTR.test(ch)) { pDir = 'ltr'; break; }
+        }
+        if (!pDir) pDir = fallbackDir;
+      }
+      var isRtl = pDir === 'rtl';
+      var runOpts = {
+        breakLine: idx < lines.length - 1,
+        fontFace: fontFace,
+        fontSize: fontSize,
+        color: col,
+        bold: !!it.bold,
+        italic: !!it.italic,
+        underline: it.underline ? { style: 'sng' } : undefined,
+        align: align,
+        rtlMode: isRtl,
+        lang: isRtl ? 'ar-SA' : 'en-US'
+      };
+      if (baseTr > 0 && baseTr < 100) runOpts.transparency = baseTr;
+      return { text: ln === '' && lines.length > 1 ? ' ' : ln, options: runOpts };
+    });
+  }
+
   function buildPptxSpec(proj) {
     var sz = E.size(proj.ratio);
     var inW = 10, inH = proj.ratio === '4:3' ? 7.5 : 5.625;
     var sx = inW / sz.w, sy = inH / sz.h, ptScale = 72 / 96;
     var counts = { slides: proj.slides.length, text: 0, image: 0, shape: 0, table: 0, chart: 0 };
+    var hasAnyRtl = false;
 
     var slidesSpec = proj.slides.map(function (s, idx) {
-      var objs = s.items.map(function (it) {
-        var box = { x: +(it.x * sx).toFixed(3), y: +(it.y * sy).toFixed(3), w: +(it.w * sx).toFixed(3), h: +(it.h * sy).toFixed(3), rotate: it.rot || 0 };
+      var objs = (s.items || []).map(function (it) {
+        var box = {
+          x: round3(it.x * sx),
+          y: round3(it.y * sy),
+          w: Math.max(0.05, round3(it.w * sx)),
+          h: Math.max(0.05, round3(it.h * sy)),
+          rotate: it.rot || 0
+        };
         if (it.type === 'text') {
           counts.text++;
+          var isBoxRtl = it.dir === 'rtl' || (it.dir !== 'ltr' && dirOf(it.text || '', 'rtl') === 'rtl');
+          if (isBoxRtl) hasAnyRtl = true;
+          var padPt = Math.max(0, Math.round((it.pad != null ? it.pad : 8) * ptScale));
+          var boxOp = (it.op != null ? it.op : 1) * (it.bgOp != null ? it.bgOp : 1);
+          var opts = {
+            x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate,
+            fontFace: mapFontFace(it.font),
+            fontSize: Math.max(6, Math.round((it.size || 24) * ptScale)),
+            color: cleanHex(it.color, '1B0E3A'),
+            bold: !!it.bold, italic: !!it.italic,
+            underline: it.underline ? { style: 'sng' } : undefined,
+            align: it.align === 'justify' ? 'justify' : (it.align || 'right'),
+            valign: 'top',
+            wrap: true,
+            rtlMode: isBoxRtl,
+            lang: isBoxRtl ? 'ar-SA' : 'en-US',
+            lineSpacingMultiple: Math.max(0.8, Math.min(3, parseFloat(it.lh) || 1.35)),
+            margin: [padPt, padPt, padPt, padPt],
+            fill: it.bg && it.bg !== 'none' ? { color: cleanHex(it.bg, 'FFFFFF'), transparency: alphaPct(boxOp) } : { type: 'none' }
+          };
+          if (it.borderWidth > 0) {
+            opts.line = { color: cleanHex(it.borderColor, '7C3AED'), width: Math.max(0.5, round3(it.borderWidth * ptScale)), transparency: alphaPct(it.op) };
+          }
           return {
             kind: 'text',
-            text: it.text || '',
-            options: {
-              x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate,
-              fontFace: it.font || 'Alexandria',
-              fontSize: Math.round((it.size || 24) * ptScale),
-              color: (it.color || '#1B0E3A').replace('#', ''),
-              bold: !!it.bold, italic: !!it.italic, underline: it.underline ? { style: 'sng' } : undefined,
-              align: it.align === 'justify' ? 'justify' : (it.align || 'right'),
-              rtlMode: (it.dir === 'rtl' || (it.dir !== 'ltr' && RE_RTL.test(it.text || ''))),
-              fill: it.bg && it.bg !== 'none' ? { color: it.bg.replace('#', ''), transparency: Math.round((1 - (it.bgOp != null ? it.bgOp : 1)) * 100) } : undefined,
-              line: it.borderWidth > 0 ? { color: (it.borderColor || '#7C3AED').replace('#', ''), pt: it.borderWidth } : undefined,
-              margin: Math.round((it.pad != null ? it.pad : 8) * ptScale)
-            }
+            runs: buildTextRuns(it, ptScale),
+            options: opts
           };
         }
         if (it.type === 'image') {
           counts.image++;
           return {
             kind: 'image',
-            data: it.src,
-            options: {
-              x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate,
-              rounding: it.radius > 20,
-              crop: it.crop || { x: 0, y: 0, w: 1, h: 1 }
-            }
+            item: it,
+            options: { x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate }
           };
         }
         if (it.type === 'shape') {
           counts.shape++;
+          if (it.kind === 'line' || it.kind === 'arrow' || it.kind === 'darrow') {
+            return {
+              kind: 'shape',
+              shapeType: 'line',
+              options: {
+                x: box.x,
+                y: round3(box.y + box.h / 2),
+                w: box.w,
+                h: 0,
+                rotate: box.rotate,
+                line: {
+                  color: cleanHex(it.stroke, '7C3AED'),
+                  width: Math.max(1, round3((it.sw || 6) * ptScale)),
+                  beginArrowType: it.kind === 'darrow' ? 'triangle' : 'none',
+                  endArrowType: (it.kind === 'arrow' || it.kind === 'darrow') ? 'triangle' : 'none',
+                  transparency: alphaPct(it.op)
+                }
+              }
+            };
+          }
+          var shOpts = {
+            x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate,
+            fill: (it.fill && it.fill !== 'none') ? { color: cleanHex(it.fill, '7C3AED'), transparency: alphaPct(it.op) } : { type: 'none' }
+          };
+          if (it.sw > 0 && it.stroke) {
+            shOpts.line = { color: cleanHex(it.stroke, '1B0E3A'), width: Math.max(0.5, round3(it.sw * ptScale)), transparency: alphaPct(it.op) };
+          }
+          if (it.kind === 'rrect') {
+            shOpts.rectRadius = Math.min(box.w / 2, box.h / 2, Math.max(0.02, round3((it.radius || 20) * sx)));
+          }
           return {
             kind: 'shape',
             shapeType: PPTX_SHAPE_MAP[it.kind] || 'rect',
-            options: {
-              x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate,
-              fill: it.fill && it.fill !== 'none' ? { color: it.fill.replace('#', ''), transparency: Math.round((1 - (it.op != null ? it.op : 1)) * 100) } : undefined,
-              line: it.sw > 0 ? { color: (it.stroke || '#7C3AED').replace('#', ''), pt: it.sw } : undefined
-            }
+            options: shOpts
           };
         }
         if (it.type === 'table') {
           counts.table++;
           var rows = [];
+          var colW = [];
+          for (var ci = 0; ci < it.cols; ci++) colW.push(round3(box.w / Math.max(1, it.cols)));
+          var rowH = [];
+          for (var ri = 0; ri < it.rows; ri++) rowH.push(round3(box.h / Math.max(1, it.rows)));
+
           for (var r = 0; r < it.rows; r++) {
             var row = [];
             for (var c = 0; c < it.cols; c++) {
               var cell = it.cells[r] && it.cells[r][c];
               if (!cell || cell.mergedTo) continue;
+              var cellRtl = dirOf(cell.text || '', it.dir || 'auto') === 'rtl';
+              if (cellRtl) hasAnyRtl = true;
               row.push({
                 text: cell.text || '',
                 options: {
-                  fill: cell.bg && cell.bg !== 'none' ? { color: cell.bg.replace('#', '') } : undefined,
-                  color: (cell.color || '#1B0E3A').replace('#', ''),
+                  fill: cell.bg && cell.bg !== 'none' ? { color: cleanHex(cell.bg, 'FFFFFF') } : undefined,
+                  color: cleanHex(cell.color, '1B0E3A'),
                   bold: !!cell.bold,
-                  align: cell.align || 'center',
+                  align: cell.align === 'justify' ? 'justify' : (cell.align || 'center'),
+                  valign: 'middle',
+                  fontFace: 'Alexandria',
+                  fontSize: Math.max(6, Math.round((it.fontSize || 16) * ptScale)),
+                  rtlMode: cellRtl,
+                  lang: cellRtl ? 'ar-SA' : 'en-US',
                   rowspan: cell.rowSpan > 1 ? cell.rowSpan : undefined,
                   colspan: cell.colSpan > 1 ? cell.colSpan : undefined
                 }
@@ -561,39 +743,89 @@
             rows: rows,
             options: {
               x: box.x, y: box.y, w: box.w, h: box.h,
-              fontSize: Math.round((it.fontSize || 16) * ptScale),
-              border: { pt: it.borderWidth != null ? it.borderWidth : 1, color: (it.borderColor || '#CBD5E1').replace('#', '') }
+              colW: colW,
+              rowH: rowH,
+              fontFace: 'Alexandria',
+              fontSize: Math.max(6, Math.round((it.fontSize || 16) * ptScale)),
+              border: it.borderWidth > 0 ? { type: 'solid', pt: Math.max(0.5, round3(it.borderWidth * ptScale)), color: cleanHex(it.borderColor, 'CBD5E1') } : { type: 'none' }
             }
           };
         }
         if (it.type === 'chart') {
           counts.chart++;
-          var s0 = (it.series && it.series[0]) || { name: 'البيانات', values: [] };
+          var cats = (it.categories && it.categories.length) ? it.categories.map(String) : ['الفئة 1', 'الفئة 2'];
+          var rawSeries = (it.series && it.series.length) ? it.series : [{ name: 'البيانات', color: '#7C3AED', values: [10, 20] }];
+          var pal = ((it.palette && it.palette.length) ? it.palette : E.DEFAULT_PALETTE).map(function (c) { return cleanHex(c, '7C3AED'); });
+          var chType = (it.chartType === 'pie' || it.chartType === 'line') ? it.chartType : 'bar';
+          var seriesData = (chType === 'pie' ? [rawSeries[0]] : rawSeries).map(function (sr) {
+            return {
+              name: sr.name || 'السلسلة',
+              labels: cats,
+              values: cats.map(function (_, vi) { var val = parseFloat(sr.values && sr.values[vi]); return isFinite(val) ? val : 0; })
+            };
+          });
+          var chartColors;
+          if (chType === 'pie' || rawSeries.length === 1) {
+            chartColors = chType === 'pie' ? pal : [cleanHex(rawSeries[0].color || ('#' + pal[0]), pal[0])];
+          } else {
+            chartColors = rawSeries.map(function (sr, si) { return cleanHex(sr.color || ('#' + pal[si % pal.length]), pal[si % pal.length]); });
+          }
+          var tcHex = cleanHex(it.textColor, '1B0E3A');
+          var bgHex = it.bg && it.bg !== 'none' ? cleanHex(it.bg, 'FFFFFF') : null;
+          if (RE_RTL.test(it.title || '') || cats.some(function (c) { return RE_RTL.test(c); })) hasAnyRtl = true;
+          var chOpts = {
+            x: box.x, y: box.y, w: box.w, h: box.h,
+            title: it.title || '',
+            showTitle: !!it.title,
+            titleColor: tcHex,
+            titleFontFace: 'Alexandria',
+            titleFontSize: 12,
+            showLegend: !!it.showLegend,
+            legendColor: tcHex,
+            legendFontFace: 'Alexandria',
+            legendFontSize: 10,
+            legendPos: 'b',
+            showValue: !!it.showValues,
+            showPercent: chType === 'pie' ? !!it.showValues : false,
+            dataLabelColor: chType === 'pie' ? 'FFFFFF' : tcHex,
+            dataLabelFontFace: 'Alexandria',
+            dataLabelFontSize: 9,
+            catAxisLabelColor: tcHex,
+            valAxisLabelColor: tcHex,
+            catAxisLabelFontFace: 'Alexandria',
+            valAxisLabelFontFace: 'Alexandria',
+            catAxisLabelFontSize: 9,
+            valAxisLabelFontSize: 9,
+            chartColors: chartColors
+          };
+          if (chType === 'bar') {
+            chOpts.barDir = 'col';
+            chOpts.barGrouping = 'clustered';
+          }
           return {
             kind: 'chart',
-            chartType: it.chartType || 'bar',
-            data: (it.series || [s0]).map(function (sr) {
-              return { name: sr.name || 'السلسلة', labels: it.categories || [], values: sr.values || [] };
-            }),
-            options: {
-              x: box.x, y: box.y, w: box.w, h: box.h,
-              title: it.title || '',
-              showTitle: !!it.title,
-              showLegend: !!it.showLegend,
-              showValue: !!it.showValues,
-              chartColors: (it.palette || E.DEFAULT_PALETTE).map(function (c) { return c.replace('#', ''); })
-            }
+            chartType: chType,
+            bgHex: bgHex,
+            box: box,
+            data: seriesData,
+            options: chOpts
           };
         }
         return null;
       }).filter(Boolean);
-      return { index: idx + 1, background: { color: (s.bg || '#FFFFFF').replace('#', '') }, objects: objs };
+      return {
+        index: idx + 1,
+        background: { color: cleanHex(s.bg, 'FFFFFF') },
+        notes: s.notes || '',
+        objects: objs
+      };
     });
 
     return {
-      format: 'pptxgenjs-adapter-v1',
-      title: proj.name,
+      format: 'pptxgenjs-v4',
+      title: proj.name || 'presentation',
       layout: proj.ratio === '4:3' ? 'LAYOUT_4x3' : 'LAYOUT_16x9',
+      rtlMode: hasAnyRtl,
       dimensionsInches: { w: inW, h: inH },
       counts: counts,
       slides: slidesSpec
@@ -601,32 +833,71 @@
   }
 
   function exportPptx(proj) {
-    var spec = buildPptxSpec(proj);
-    var Pptx = root.PptxGenJS;
-    if (typeof Pptx !== 'function') {
-      return Promise.resolve({ ready: false, spec: spec });
+    if (!proj || !proj.slides || !proj.slides.length) {
+      return Promise.resolve({ ready: false, error: 'لا توجد شرائح في العرض للتصدير' });
     }
-    try {
-      var pres = new Pptx();
-      pres.layout = spec.layout;
-      pres.title = spec.title;
+    var spec = buildPptxSpec(proj);
+    return ensurePptxGen().then(function (Pptx) {
+      var imgTasks = [];
       spec.slides.forEach(function (sp) {
-        var sl = pres.addSlide();
-        sl.background = sp.background;
         sp.objects.forEach(function (obj) {
-          if (obj.kind === 'text') sl.addText(obj.text, obj.options);
-          else if (obj.kind === 'image') sl.addImage({ data: obj.data, x: obj.options.x, y: obj.options.y, w: obj.options.w, h: obj.options.h, rotate: obj.options.rotate });
-          else if (obj.kind === 'shape') sl.addShape(pres.ShapeType[obj.shapeType] || obj.shapeType, obj.options);
-          else if (obj.kind === 'table') sl.addTable(obj.rows, obj.options);
-          else if (obj.kind === 'chart') sl.addChart(pres.ChartType[obj.chartType] || obj.chartType, obj.data, obj.options);
+          if (obj.kind === 'image') {
+            imgTasks.push(prepareImageForPptx(obj.item).then(function (dataUri) { obj.data = dataUri; }));
+          }
         });
       });
-      return pres.writeFile({ fileName: safeName(proj.name) + '.pptx' }).then(function () {
-        return { ready: true, spec: spec };
+      return Promise.all(imgTasks).then(function () {
+        var pres = new Pptx();
+        pres.layout = spec.layout;
+        pres.title = spec.title;
+        if (spec.rtlMode) pres.rtlMode = true;
+
+        spec.slides.forEach(function (sp) {
+          var sl = pres.addSlide();
+          sl.background = sp.background;
+          if (sp.notes) sl.addNotes(sp.notes);
+
+          sp.objects.forEach(function (obj) {
+            if (obj.kind === 'text') {
+              sl.addText(obj.runs, obj.options);
+            } else if (obj.kind === 'image') {
+              if (obj.data) {
+                sl.addImage({
+                  data: obj.data,
+                  x: obj.options.x,
+                  y: obj.options.y,
+                  w: obj.options.w,
+                  h: obj.options.h,
+                  rotate: obj.options.rotate
+                });
+              }
+            } else if (obj.kind === 'shape') {
+              var st = (pres.ShapeType && pres.ShapeType[obj.shapeType]) || obj.shapeType;
+              sl.addShape(st, obj.options);
+            } else if (obj.kind === 'table') {
+              if (obj.rows && obj.rows.length) sl.addTable(obj.rows, obj.options);
+            } else if (obj.kind === 'chart') {
+              if (obj.bgHex) {
+                sl.addShape((pres.ShapeType && pres.ShapeType.roundRect) || 'roundRect', {
+                  x: obj.box.x, y: obj.box.y, w: obj.box.w, h: obj.box.h,
+                  rectRadius: 0.08,
+                  fill: { color: obj.bgHex }
+                });
+              }
+              var ct = (pres.ChartType && pres.ChartType[obj.chartType]) || obj.chartType;
+              sl.addChart(ct, obj.data, obj.options);
+            }
+          });
+        });
+
+        var fileName = safeName(proj.name) + '.pptx';
+        return pres.writeFile({ fileName: fileName }).then(function () {
+          return { ready: true, fileName: fileName, spec: spec };
+        });
       });
-    } catch (e) {
-      return Promise.resolve({ ready: false, error: e.message, spec: spec });
-    }
+    }).catch(function (err) {
+      return { ready: false, error: (err && err.message) ? err.message : 'تعذّر إنشاء ملف PowerPoint', spec: spec };
+    });
   }
 
   root.SLX = {

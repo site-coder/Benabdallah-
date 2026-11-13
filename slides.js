@@ -404,8 +404,9 @@
       '<div class="sl-exp-sec"><h4>تصدير PDF للطباعة</h4><p class="sl-muted">تُطبع كل شريحة في صفحة مستقلة بمقاس العرض الحقيقي ودعم العربية، دون ملاحظات المتحدث أو واجهة الموقع.</p>' +
       '<button type="button" class="sl-btn pri" data-exp="pdf">تصدير PDF</button></div>' +
       '<div class="sl-exp-sec"><h4>تصدير PowerPoint (PPTX)</h4>' +
-      '<p class="sl-muted">' + (X.pptx.isAvailable() ? 'مكتبة PptxGenJS متاحة محلياً وجاهزة لإنشاء ملف PPTX قابل للتحرير.' : 'محوّل PPTX جاهز (Export Adapter) ويحافظ على النصوص والصور والأشكال والجداول والمخططات العربية. يتطلب تفعيله وضع مكتبة PptxGenJS محلياً.') + '</p>' +
-      '<button type="button" class="sl-btn" data-exp="pptx">' + (X.pptx.isAvailable() ? 'تصدير PPTX' : 'فحص وتجهيز PPTX') + '</button></div>' +
+      '<p class="sl-muted">يُنشئ ملف PowerPoint (<code>.pptx</code>) حقيقياً وقابلاً للتحرير يعمل محلياً دون إنترنت، مع دعم النصوص العربية واتجاه RTL والإنجليزية والصور والأشكال والجداول والمخططات.</p>' +
+      '<button type="button" class="sl-btn pri" data-exp="pptx">تصدير PowerPoint</button>' +
+      '<p id="slPptxErr" class="sl-muted" style="color:#EF4444;margin-top:8px" hidden></p></div>' +
       '</div>';
 
     openModal('تصدير العرض التقديمي', body, function (m) {
@@ -423,24 +424,21 @@
           closeModal();
           X.pdf.exportPdf(cur);
         } else if (kind === 'pptx') {
+          var errEl = m.querySelector('#slPptxErr');
+          if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+          b.disabled = true;
+          b.textContent = 'جارٍ إنشاء ملف PowerPoint…';
           X.pptx.exportPptx(cur).then(function (res) {
-            if (res.ready) { closeModal(); toast('تم تصدير ملف PPTX بنجاح'); return; }
-            var c = res.spec.counts;
-            var info = '<p class="sl-muted">لم يتم إنشاء ملف PPTX لأن مكتبة <b>PptxGenJS</b> غير مضافة محلياً بعد (لا نُنشئ ملفات وهمية لا تفتح).</p>' +
-              '<div class="sl-kv"><span>الشرائح الجاهزة للتحويل</span><b>' + c.slides + '</b></div>' +
-              '<div class="sl-kv"><span>نصوص قابلة للتحرير</span><b>' + c.text + '</b></div>' +
-              '<div class="sl-kv"><span>صور · أشكال · جداول · مخططات</span><b>' + c.image + ' · ' + c.shape + ' · ' + c.table + ' · ' + c.chart + '</b></div>' +
-              '<p class="sl-muted" style="margin-top:10px">لتفعيل التصدير الفعلي دون تعديل محرر الشرائح: ضع ملف <code>pptxgen.bundle.js</code> محلياً وأدرجه في <code>index.html</code> قبل <code>slides-export.js</code>.</p>' +
-              '<div class="sl-actions"><button type="button" class="sl-btn" id="slDlSpec">تنزيل مواصفات PPTX (JSON)</button></div>';
-            var m2 = openModal('محوّل PowerPoint (Export Adapter)', info, function (modal2) {
-              modal2.querySelector('#slDlSpec').onclick = function () {
-                var blob = new Blob([JSON.stringify(res.spec, null, 2)], { type: 'application/json;charset=utf-8' });
-                var u = URL.createObjectURL(blob), a = document.createElement('a');
-                a.href = u; a.download = 'pptx-adapter-spec.json'; document.body.appendChild(a); a.click();
-                setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(u); }, 200);
-              };
-            });
-            return m2;
+            b.disabled = false;
+            b.textContent = 'تصدير PowerPoint';
+            if (res && res.ready) {
+              closeModal();
+              toast('تم تصدير عرض PowerPoint (.pptx) بنجاح');
+              return;
+            }
+            var msg = (res && res.error) ? res.error : 'تعذّر إنشاء ملف PowerPoint (.pptx). تأكد من توفر مكتبة PptxGenJS المحلية.';
+            if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+            toast(msg);
           });
         }
       });
