@@ -1,0 +1,692 @@
+/* ==========================================================================
+   ocr.css — أداة «محوّل الصور إلى نصوص (OCR)»
+   تستخدم متغيرات المنصة (--bg --card --line --text --muted --p --p2 --g --r)
+   ومعزولة تماماً بالبادئة .ocr- لضمان عدم التأثير على بقية المنصة.
+   ========================================================================== */
+
+#tl-ocr {
+  --ocr-ok: #34D399;
+  --ocr-bad: #F87171;
+  --ocr-warn: #FBBF24;
+}
+:root[data-theme="light"] #tl-ocr {
+  --ocr-ok: #059669;
+  --ocr-bad: #DC2626;
+  --ocr-warn: #B45309;
+}
+
+.ocr-shell {
+  max-width: 1120px;
+  margin-inline: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.ocr-header {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.ocr-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ocr-lead {
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.8;
+  margin: 4px 0 0;
+  max-width: 62ch;
+}
+
+.ocr-disclaimer {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--p) 9%, var(--bg));
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+/* ---- Offline Readiness Strip ---- */
+.ocr-offline-bar {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ocr-res-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  min-width: 0;
+}
+
+.ocr-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--ocr-warn);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ocr-warn) 55%, transparent);
+}
+.ocr-res-state.ready .ocr-dot {
+  background: var(--ocr-ok);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ocr-ok) 55%, transparent);
+}
+.ocr-res-state.busy .ocr-dot {
+  background: var(--p2);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--p2) 60%, transparent);
+}
+.ocr-res-state.error .ocr-dot {
+  background: var(--ocr-bad);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ocr-bad) 55%, transparent);
+}
+
+.ocr-res-text strong {
+  color: var(--text);
+  font-weight: 700;
+}
+.ocr-res-text span {
+  color: var(--muted);
+  font-size: 12.5px;
+  display: block;
+}
+
+/* ---- Main Workspace Grid ---- */
+.ocr-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (min-width: 920px) {
+  .ocr-grid {
+    grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
+  }
+}
+
+.ocr-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  min-width: 0;
+}
+
+.ocr-sec-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--g);
+}
+
+.ocr-sec-meta {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ---- Dropzone ---- */
+.ocr-drop {
+  position: relative;
+  border: 2px dashed color-mix(in srgb, var(--p2) 55%, var(--line));
+  border-radius: 16px;
+  padding: 20px 14px;
+  text-align: center;
+  background: color-mix(in srgb, var(--p) 7%, var(--bg));
+  transition: border-color .2s, background .2s, transform .15s;
+  cursor: pointer;
+}
+
+.ocr-drop.drag {
+  border-color: var(--g);
+  background: color-mix(in srgb, var(--g) 12%, var(--bg));
+  transform: scale(.995);
+}
+
+.ocr-drop-ic {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 8px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--p) 18%, transparent);
+  color: var(--p2);
+}
+
+.ocr-drop-ic svg {
+  width: 24px;
+  height: 24px;
+}
+
+.ocr-drop h4 {
+  margin: 0 0 4px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ocr-drop p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.ocr-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- Controls & Language ---- */
+.ocr-controls {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.ocr-lang-row {
+  display: grid;
+  gap: 6px;
+}
+
+.ocr-lang-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ocr-lang-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.ocr-lang-btn {
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  line-height: 1.4;
+}
+
+.ocr-lang-btn[aria-pressed="true"] {
+  border-color: var(--g);
+  color: var(--g);
+  background: color-mix(in srgb, var(--g) 11%, var(--bg));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--g) 22%, transparent);
+}
+
+.ocr-run-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ocr-run-row .tl-btn {
+  flex: 1 1 150px;
+}
+
+/* ---- Batch Progress ---- */
+.ocr-batch-prog {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  display: grid;
+  gap: 6px;
+}
+
+.ocr-prog-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ocr-prog-head small {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Image Queue Cards ---- */
+.ocr-queue {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.ocr-q-item {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.ocr-q-item.is-active {
+  border-color: var(--p2);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--p) 25%, transparent);
+}
+
+.ocr-q-item.is-selected {
+  border-color: var(--g);
+}
+
+.ocr-q-item.is-dragover {
+  border-color: var(--g);
+  border-style: dashed;
+}
+
+.ocr-thumb-btn {
+  width: 64px;
+  height: 76px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--p) 10%, var(--bg));
+  cursor: pointer;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.ocr-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ocr-q-body {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ocr-q-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.ocr-q-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ocr-q-meta {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ocr-q-meta .st-done { color: var(--ocr-ok); font-weight: 600; }
+.ocr-q-meta .st-work { color: var(--p2); font-weight: 600; }
+.ocr-q-meta .st-err { color: var(--ocr-bad); font-weight: 600; }
+
+.ocr-q-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ocr-icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.ocr-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.ocr-icon-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.ocr-icon-btn.del {
+  color: var(--ocr-bad);
+  border-color: color-mix(in srgb, var(--ocr-bad) 45%, transparent);
+}
+
+@media (hover: hover) {
+  .ocr-icon-btn:not(:disabled):hover {
+    border-color: var(--g);
+  }
+}
+
+/* ---- Results / Merged Tabs ---- */
+.ocr-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ocr-tab-btn {
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ocr-tab-btn[aria-selected="true"] {
+  border-color: var(--g);
+  color: var(--g);
+  background: color-mix(in srgb, var(--g) 10%, var(--bg));
+}
+
+/* ---- Text Result Cards ---- */
+.ocr-results-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ocr-res-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.ocr-res-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ocr-res-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ocr-res-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--p) 18%, transparent);
+  color: var(--p2);
+  font-size: 13px;
+  font-weight: 800;
+  flex: none;
+}
+
+.ocr-res-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ocr-res-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.ocr-dir-group {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.ocr-dir-btn {
+  min-height: 38px;
+  min-width: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-inline-start: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ocr-dir-btn:first-child { border-inline-start: 0; }
+.ocr-dir-btn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--g) 16%, transparent);
+  color: var(--g);
+}
+
+.ocr-ta {
+  width: 100%;
+  min-height: 170px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 82%, var(--card));
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.85;
+  resize: vertical;
+  unicode-bidi: plaintext;
+}
+
+.ocr-ta:focus {
+  outline: none;
+  border-color: var(--g);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--g) 20%, transparent);
+}
+
+.ocr-ta.merged {
+  min-height: 360px;
+}
+
+.ocr-res-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ocr-res-actions .tl-btn {
+  min-height: 44px;
+  padding: 6px 12px;
+  font-size: 13.5px;
+}
+
+/* ---- Export Toolbar (Merged View) ---- */
+.ocr-export-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ---- Preprocessing Modal ---- */
+.ocr-prep-modal {
+  width: min(760px, 100%) !important;
+}
+
+.ocr-prep-stage {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #07040e;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  max-height: 52vh;
+  margin: 10px 0;
+  touch-action: none;
+}
+
+.ocr-prep-stage canvas {
+  max-width: 100%;
+  max-height: 50vh;
+  display: block;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.ocr-prep-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (min-width: 600px) {
+  .ocr-prep-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ocr-prep-ctrl {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.ocr-prep-ctrl label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.ocr-prep-ctrl label b {
+  color: var(--text);
+  direction: ltr;
+}
+
+.ocr-prep-ctrl input[type="range"] {
+  width: 100%;
+  accent-color: var(--g);
+}
+
+.ocr-prep-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ocr-prep-chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ocr-prep-chk input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--g);
+}
+
+.ocr-empty-state {
+  text-align: center;
+  padding: 34px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.ocr-footer-danger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}

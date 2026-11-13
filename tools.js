@@ -42,7 +42,8 @@
     doc: ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/>'),
     list: ic('<path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>'),
     maps: ic('<rect x="9" y="9" width="6" height="6" rx="1.5"/><rect x="2" y="3" width="6" height="5" rx="1.5"/><rect x="16" y="3" width="6" height="5" rx="1.5"/><rect x="9" y="17" width="6" height="5" rx="1.5"/><path d="M5 8v1.5a1.5 1.5 0 0 0 1.5 1.5H9"/><path d="M19 8v1.5a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M12 15v2"/>'),
-    refs: ic('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7"/><path d="M9 11h5"/>')
+    refs: ic('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7"/><path d="M9 11h5"/>'),
+    ocr: ic('<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/>')
   };
 
   /* ---------- إشعار صغير ---------- */
@@ -208,9 +209,10 @@
     research: { title: 'إنشاء بحث جامعي', desc: 'اكتب بحثك بفصوله ومراجعه وغلافه، واحفظه على جهازك وصدّره PDF وWord وTXT', icon: I.doc },
     maps: { title: 'منشئ الخرائط المفاهيمية', desc: 'ارسم خريطتك بعقد وأشكال قابلة للتحريك والتعديل على مساحة عمل واسعة', icon: I.maps },
     slides: { title: 'استوديو العروض التقديمية', desc: 'أنشئ عروضك التقديمية بشرائح وخصائص منظمة، وتُحفظ مشاريعك على جهازك', icon: I.slides },
-    refs: { title: 'مولّد المراجع الأكاديمية', desc: 'وثّق مراجعك بنمط APA وHarvard وMLA وChicago، واحفظ قائمتك على جهازك', icon: I.refs }
+    refs: { title: 'مولّد المراجع الأكاديمية', desc: 'وثّق مراجعك بنمط APA وHarvard وMLA وChicago، واحفظ قائمتك على جهازك', icon: I.refs },
+    ocr: { title: 'محوّل الصور إلى نصوص (OCR)', desc: 'استخرج النصوص العربية والإنجليزية من صور المحاضرات والكتب محلياً وصدّرها Word وTXT وPDF', icon: I.ocr }
   };
-  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit', 'research', 'refs', 'maps', 'slides'];
+  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit', 'research', 'refs', 'maps', 'slides', 'ocr'];
   var curTool = null, hub, views = {};
 
   function buildShell() {
@@ -289,6 +291,14 @@
     else v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><div class="tl-box"><p class="tl-empty">تعذّر تحميل أداة الخرائط المفاهيمية. حدّث الصفحة وحاول مجدداً.</p></div>';
   };
   REFRESH.maps = function () { if (window.CM && CM.ui && CM.ui.refresh) CM.ui.refresh(); };
+
+  /* أداة «محوّل الصور إلى نصوص (OCR)»: الشيفرة في ocr*.js وتُحمَّل مع الصفحة (تعمل محلياً ودون إنترنت) */
+  INIT.ocr = function () {
+    var v = views.ocr;
+    if (window.OCR && OCR.init) OCR.init(v);
+    else v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><div class="tl-box"><p class="tl-empty">تعذّر تحميل أداة استخراج النصوص. حدّث الصفحة وأعد المحاولة.</p></div>';
+  };
+  REFRESH.ocr = function () { if (window.OCR && OCR.refresh) OCR.refresh(); };
 
   /* ==========================================================================
      1) أداة إنشاء جدول دراسي أسبوعي

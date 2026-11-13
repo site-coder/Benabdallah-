@@ -6,16 +6,17 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.19.0';
+const VERSION = 'v1.20.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
 const CACHE_STATIC = PREFIX + '-static-' + VERSION;
-/* أسماء ثابتة (غير مرقّمة) كي لا يُعاد تنزيل الصور والصوتيات عند كل تحديث */
+/* أسماء ثابتة (غير مرقّمة) كي لا يُعاد تنزيل الصور والصوتيات وملفات OCR عند كل تحديث */
 const CACHE_IMAGES = PREFIX + '-images';
 const CACHE_MEDIA = PREFIX + '-media';
 const CACHE_FONTS = PREFIX + '-fonts';
-const KEEP = [CACHE_STATIC, CACHE_IMAGES, CACHE_MEDIA, CACHE_FONTS];
+const CACHE_OCR = PREFIX + '-ocr-v1';
+const KEEP = [CACHE_STATIC, CACHE_IMAGES, CACHE_MEDIA, CACHE_FONTS, CACHE_OCR];
 
 const MAX_IMAGES = 150;
 const MAX_MEDIA = 60;
@@ -71,6 +72,12 @@ const PRECACHE = [
   './offline.html',
   './home.js',
   './home.css',
+  './ocr.css',
+  './ocr-store.js',
+  './ocr-export.js',
+  './ocr.js',
+  './vendor/tesseract/tesseract.min.js',
+  './vendor/tesseract/worker.min.js',
   './theme.css',
   './icon-192.png',
   './icon-512.png',
@@ -127,6 +134,7 @@ function isDocumentRequest(request, url) {
 
 function classify(request, url) {
   const path = url.pathname;
+  if (url.origin === ORIGIN && path.indexOf('/vendor/tesseract/') !== -1) return 'ocr';
   if (request.destination === 'audio' || request.destination === 'video' || MEDIA_EXT.test(path)) return 'media';
   if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' || request.destination === 'font') return 'fonts';
   if (request.destination === 'image' || IMAGE_EXT.test(path)) return 'images';
@@ -134,6 +142,7 @@ function classify(request, url) {
 }
 
 function cacheNameFor(kind) {
+  if (kind === 'ocr') return CACHE_OCR;
   if (kind === 'media') return CACHE_MEDIA;
   if (kind === 'fonts') return CACHE_FONTS;
   if (kind === 'images') return CACHE_IMAGES;
@@ -381,7 +390,7 @@ self.addEventListener('fetch', function (event) {
   const kind = classify(request, url);
   if (kind === 'media') {
     event.respondWith(handleMedia(event));
-  } else if (kind === 'images' || (kind === 'fonts' && url.hostname === 'fonts.gstatic.com')) {
+  } else if (kind === 'ocr' || kind === 'images' || (kind === 'fonts' && url.hostname === 'fonts.gstatic.com')) {
     event.respondWith(cacheFirst(request, kind));
   } else {
     event.respondWith(staleWhileRevalidate(event, kind));
