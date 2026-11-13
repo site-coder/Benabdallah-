@@ -1,0 +1,6 @@
+{
+  "name": "Presentation Studio — استوديو العروض التقديمية",
+  "description": "استوديو العروض التقديمية الاحترافي داخل المنصة التعليمية الجامعية",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
