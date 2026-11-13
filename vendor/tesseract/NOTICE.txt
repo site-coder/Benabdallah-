@@ -1,0 +1,24 @@
+Local OCR Runtime & Language Data Bundle
+======================================
+All files in this directory are bundled locally for 100% offline, client-side
+Arabic + English OCR without external CDNs, backend servers, or AI APIs.
+
+Included Packages:
+1. tesseract.js v7.0.0
+   - Files: tesseract.min.js, worker.min.js, tesseract.min.js.LICENSE.txt, worker.min.js.LICENSE.txt
+   - License: Apache-2.0 (see LICENSE-tesseract.js.md)
+
+2. tesseract.js-core v7.0.0
+   - Files:
+     * tesseract-core-lstm.wasm.js
+     * tesseract-core-simd-lstm.wasm.js
+     * tesseract-core-relaxedsimd-lstm.wasm.js
+   - License: Apache-2.0 (see LICENSE-tesseract-core.txt)
+
+3. @tesseract.js-data/ara v1.0.0 (4.0.0_best_int LSTM traineddata)
+   - File: lang/ara.traineddata.gz
+   - License: Apache-2.0
+
+4. @tesseract.js-data/eng v1.0.0 (4.0.0_best_int LSTM traineddata)
+   - File: lang/eng.traineddata.gz
+   - License: Apache-2.0
