@@ -1,0 +1,110 @@
+/* ==========================================================================
+   slides-ext.css — تنسيقات المراحل 3–6 لـ «استوديو العروض التقديمية»
+   تعمل جنباً إلى جنب مع slides.css دون التأثير على بقية صفحات المنصة
+   ========================================================================== */
+.sl-pthumb{position:relative;overflow:hidden;display:block;flex:none;width:96px;border-radius:8px;border:1px solid var(--line)}
+.sl-pthumb .sl-cv{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+.sl-proj{flex-wrap:wrap}
+.sl-proj-acts{display:flex;align-items:center;gap:4px;flex:none}
+
+/* حالة الحفظ */
+.sl-save-st{flex:none;font-size:12px;font-weight:600;padding:3px 9px;border-radius:8px;color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.sl-save-st[data-state="saved"]{color:var(--sl-ok);border-color:color-mix(in srgb,var(--sl-ok) 35%,transparent)}
+.sl-save-st[data-state="dirty"],.sl-save-st[data-state="saving"]{color:var(--g);border-color:color-mix(in srgb,var(--g) 35%,transparent)}
+.sl-save-st[data-state="error"]{color:var(--sl-bad);border-color:color-mix(in srgb,var(--sl-bad) 40%,transparent)}
+
+/* تخطيط الوسط: المساحة + ملاحظات المتحدث والتكبير */
+.sl-center{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.sl-center>.sl-stage{flex:1;min-height:0}
+.sl-slide{flex:none;margin:auto;transition:none}
+.sl-notes{border-top:1px solid var(--line);background:var(--face);flex:none}
+.sl-notes-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 10px;min-height:38px}
+.sl-notes-tog{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:8px}
+.sl-notes-tog svg{width:16px;height:16px;color:var(--p2)}
+@media(hover:hover){.sl-notes-tog:hover{background:color-mix(in srgb,var(--p) 15%,transparent)}}
+.sl-zoom-bar{display:inline-flex;align-items:center;gap:4px;direction:ltr}
+.sl-zbtn{min-width:32px;height:30px;padding:0 8px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+@media(hover:hover){.sl-zbtn:hover{border-color:var(--g)}}
+.sl-notes-bd{padding:0 10px 10px}
+.sl-notes-bd[hidden]{display:none}
+.sl-notes-in{width:100%;min-height:76px;max-height:150px;resize:vertical;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 55%,transparent);color:var(--text);font:inherit;font-size:13.5px;line-height:1.6}
+
+/* التحديد المتعدد والخطوط الإرشادية ومربع التحديد */
+.sl-sel.sub{border-style:dashed;border-width:calc(1.5px / var(--sl-k,1));opacity:.85}
+.sl-sel.grp-box{border-style:solid;border-color:var(--p2)}
+.sl-sel.crop{border-color:#FBBF24;border-style:dashed}
+.sl-h.crop-h{background:#FBBF24;border-color:#1B0E3A;border-radius:3px}
+.sl-marquee{position:absolute;border:calc(1.5px / var(--sl-k,1)) dashed var(--g);background:color-mix(in srgb,var(--g) 12%,transparent);pointer-events:none}
+.sl-guide{position:absolute;pointer-events:none;z-index:2}
+.sl-guide-v{top:0;bottom:0;height:2000px;width:0;border-left:calc(1.5px / var(--sl-k,1)) dashed #EC4899}
+.sl-guide-h{left:0;right:0;width:2000px;height:0;border-top:calc(1.5px / var(--sl-k,1)) dashed #EC4899}
+.sl-img-miss{width:100%;height:100%;display:grid;place-items:center;background:#F1F5F9;color:#DC2626;font-size:14px;font-weight:700;border:2px dashed #DC2626}
+
+/* الجداول داخل الشريحة */
+.sl-tbl{user-select:none}
+.sl-it.ed .sl-tbl{user-select:text}
+.sl-td{padding:4px 6px;vertical-align:middle;word-break:break-word;cursor:pointer;position:relative}
+.sl-td.on{outline:calc(2px / var(--sl-k,1)) solid var(--g);outline-offset:calc(-2px / var(--sl-k,1))}
+.sl-td-in{width:100%;outline:none;min-height:1.2em;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* أدوات لوحة الخصائص والقوائم */
+.sl-btn-sm{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.sl-btn-sm svg{width:15px;height:15px}
+.sl-btn-sm.pri{border-color:var(--g);color:var(--g)}
+.sl-btn-sm.wide{width:100%}
+.sl-btn-sm:disabled{opacity:.4;pointer-events:none}
+@media(hover:hover){.sl-btn-sm:hover{border-color:var(--g)}}
+.sl-bg-pick{width:36px;height:36px;padding:2px;border-radius:50%}
+.sl-ch-rows{display:grid;gap:6px;margin-bottom:8px}
+.sl-ch-row{display:grid;grid-template-columns:34px 1fr 62px 34px;gap:4px;align-items:center}
+.sl-ch-row .sl-in{min-height:34px;padding:4px 6px;font-size:13px}
+.sl-ch-row .sl-iconbtn{width:34px;height:34px;border-radius:8px}
+.sl-pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;min-width:220px}
+.sl-pop-pad{padding:6px;min-width:200px}
+
+/* النوافذ المنبثقة (التصدير، فاحص الجودة، التأكيد) */
+.sl-modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:16px}
+.sl-modal-bg{position:absolute;inset:0;background:rgba(6,1,20,.68);backdrop-filter:blur(4px)}
+.sl-modal-card{position:relative;width:min(520px,100%);max-height:86vh;display:flex;flex-direction:column;border-radius:18px;background:var(--face);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden;direction:rtl}
+.sl-modal-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.sl-modal-hd b{color:var(--g);font-size:16px}
+.sl-modal-bd{padding:16px;overflow-y:auto}
+.sl-exp-grid{display:grid;gap:14px}
+.sl-exp-sec{padding:12px;border-radius:12px;border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 40%,transparent)}
+.sl-exp-sec h4{margin:0 0 8px;font-size:15px;color:var(--text)}
+.sl-exp-sec .sl-btn{margin-top:8px;min-height:42px;font-size:14px}
+.sl-qa-ok{text-align:center;padding:14px 8px}
+.sl-qa-ok b{display:block;color:var(--sl-ok);font-size:16px;margin-bottom:6px}
+.sl-qa-list{display:grid;gap:8px}
+.sl-qa-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line)}
+.sl-qa-item.err{border-color:color-mix(in srgb,var(--sl-bad) 55%,transparent)}
+.sl-qa-item.warn{border-color:color-mix(in srgb,var(--g) 45%,transparent)}
+.sl-qa-item b{display:block;font-size:13.5px;color:var(--text);margin-bottom:2px}
+.sl-qa-item p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
+
+/* وضع تقديم العرض بملء الشاشة */
+.sl-pres-overlay{position:fixed;inset:0;z-index:200;background:#05020D;display:flex;flex-direction:column;user-select:none}
+.sl-pres-stage{flex:1;min-height:0;display:grid;place-items:center;padding:8px;cursor:pointer;overflow:hidden}
+.sl-pres-frame{position:relative;overflow:hidden;border-radius:4px;box-shadow:0 20px 70px rgba(0,0,0,.8);direction:ltr}
+.sl-pres-frame .sl-cv{position:absolute;left:0;top:0;transform-origin:0 0}
+.sl-pres-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:202;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:14px;background:rgba(18,10,36,.88);border:1px solid rgba(196,140,255,.3);backdrop-filter:blur(10px);color:#fff}
+.sl-pres-btn{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:10px;border:0;background:transparent;color:#fff;cursor:pointer}
+.sl-pres-btn:disabled{opacity:.35;pointer-events:none}
+.sl-pres-btn.dng{color:#F87171}
+.sl-pres-btn svg{width:20px;height:20px}
+.sl-pres-count{font-size:13.5px;font-weight:700;padding-inline:8px;font-variant-numeric:tabular-nums}
+.sl-pres-sep{width:1px;height:22px;background:rgba(255,255,255,.2)}
+
+/* تحسين تجربة الهاتف والوضع الأفقي */
+@media(max-width:699px){
+  .sl-proj-acts{width:100%;justify-content:flex-end;border-top:1px solid var(--line);padding-top:6px}
+  .sl-tbtn,.sl-iconbtn,.sl-cbtn,.sl-pb,.sl-btn-sm{min-height:44px}
+  .sl-save-st{display:none}
+  .sl-notes-hd{padding:4px 8px}
+}
+@media(max-height:540px) and (orientation:landscape){
+  .sl-bar{padding:4px 8px}
+  .sl-tbtn{min-height:36px}
+  .sl-stage{padding:6px}
+  .sl-notes-in{min-height:52px}
+}

@@ -26,6 +26,7 @@
   function fmtDateTime(t) { try { return new Date(t).toLocaleDateString('ar-DZ-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return ''; } }
   function ic(path) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>'; }
   var I = {
+    slides: ic('<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>'),
     plus: ic('<path d="M12 5v14"/><path d="M5 12h14"/>'),
     trash: ic('<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
     edit: ic('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
@@ -206,9 +207,10 @@
     fit: { title: 'الحاسبات الرياضية والتغذوية', desc: 'BMI والسعرات والبروتين والمغذيات وغيرها: 9 حاسبات لطالب التربية البدنية', icon: I.dumb },
     research: { title: 'إنشاء بحث جامعي', desc: 'اكتب بحثك بفصوله ومراجعه وغلافه، واحفظه على جهازك وصدّره PDF وWord وTXT', icon: I.doc },
     maps: { title: 'منشئ الخرائط المفاهيمية', desc: 'ارسم خريطتك بعقد وأشكال قابلة للتحريك والتعديل على مساحة عمل واسعة', icon: I.maps },
+    slides: { title: 'استوديو العروض التقديمية', desc: 'أنشئ عروضك التقديمية بشرائح وخصائص منظمة، وتُحفظ مشاريعك على جهازك', icon: I.slides },
     refs: { title: 'مولّد المراجع الأكاديمية', desc: 'وثّق مراجعك بنمط APA وHarvard وMLA وChicago، واحفظ قائمتك على جهازك', icon: I.refs }
   };
-  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit', 'research', 'refs', 'maps'];
+  var ORDER = ['sched', 'pomo', 'gpa', 'todo', 'fit', 'research', 'refs', 'maps', 'slides'];
   var curTool = null, hub, views = {};
 
   function buildShell() {
@@ -271,6 +273,14 @@
     else v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><div class="tl-box"><p class="tl-empty">تعذّر تحميل أداة المراجع. حدّث الصفحة وأعد المحاولة.</p></div>';
   };
   REFRESH.refs = function () { if (window.RF && RF.ui && RF.ui.refresh) RF.ui.refresh(); };
+
+  /* أداة «استوديو العروض التقديمية»: الشيفرة في slides.js + slides.css (تعمل دون إنترنت) */
+  INIT.slides = function () {
+    var v = views.slides;
+    if (window.SL && SL.init) SL.init(v);
+    else v.innerHTML = '<div class="tl-top"><button type="button" class="back tl-back">العودة للأدوات</button></div><div class="tl-box"><p class="tl-empty">تعذّر تحميل استوديو العروض. حدّث الصفحة وأعد المحاولة.</p></div>';
+  };
+  REFRESH.slides = function () { if (window.SL && SL.refresh) SL.refresh(); };
 
   /* أداة «منشئ الخرائط المفاهيمية»: الشيفرة في cmap-core.js + cmap-ui.js وتُحمَّل مع الصفحة (تعمل دون إنترنت) */
   INIT.maps = function () {
