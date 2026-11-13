@@ -233,6 +233,10 @@
   gap: 6px;
 }
 
+.ocr-lang-group.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .ocr-lang-btn {
   min-height: 44px;
   padding: 6px 8px;
@@ -547,6 +551,10 @@
   font-size: 15px;
   line-height: 1.85;
   resize: vertical;
+  unicode-bidi: embed;
+}
+
+.ocr-ta[dir="auto"] {
   unicode-bidi: plaintext;
 }
 

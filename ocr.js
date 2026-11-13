@@ -17,9 +17,15 @@
     { id: 'ara+eng', label: 'العربية + الإنجليزية', short: 'ara+eng' }
   ];
 
+  var PSMS = [
+    { id: '6', label: 'صفحة / فقرة موحّدة (الأدق للكتب)' },
+    { id: '3', label: 'تخطيط تلقائي متعدد الأعمدة' }
+  ];
+
   var ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
   var ALLOWED_MIME = /^image\/(jpeg|jpg|png|webp)$/i;
-  var MAX_OCR_EDGE = 2600;
+  var MAX_OCR_EDGE = 1850;
+  var MAX_OCR_EDGE_MOBILE = 1550;
   var MERGE_DIV_RE = /^---\s*الصفحة\s+\d+(?:\s*:\s*.*?)?\s*---$/m;
 
   function esc(t) {
@@ -74,7 +80,8 @@
   var state = {
     root: null,
     items: [],
-    lang: 'ara+eng',
+    lang: 'ara',
+    psm: '6',
     activeTab: 'cards', /* cards | merged */
     selectedId: null,
     mergedDirty: false,
@@ -90,6 +97,7 @@
     offlineDetail: 'جارٍ فحص الموارد المحلية…',
     activeWorker: null,
     activeWorkerLang: null,
+    activeWorkerPsm: null,
     dragIndex: -1
   };
 
@@ -161,6 +169,54 @@
     return v < 0 ? 0 : (v > 255 ? 255 : v);
   }
 
+  function isConstrainedDevice() {
+    var mem = navigator.deviceMemory;
+    var cores = navigator.hardwareConcurrency;
+    var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    return !!(coarse || (mem && mem <= 4) || (cores && cores <= 4));
+  }
+
+  function computeOcrScale(sw, sh) {
+    var maxSide = Math.max(sw, sh);
+    var minSide = Math.min(sw, sh);
+    if (!maxSide || !minSide) return 1;
+
+    var constrained = isConstrainedDevice();
+    var capMax = constrained ? MAX_OCR_EDGE_MOBILE : MAX_OCR_EDGE;
+    var maxPixels = constrained ? 2800000 : 3800000;
+    var scale = 1;
+
+    if (maxSide > capMax) {
+      scale = capMax / maxSide;
+      /* الحفاظ على وضوح السطور العربية في الصور الطولية أو الشرائط الضيقة */
+      if (minSide >= 650 && minSide * scale < 1050) {
+        scale = Math.min(1, 1050 / minSide, 2400 / maxSide);
+      }
+    } else if (maxSide < 780 && minSide < 650) {
+      /* تكبير لطيف للقطات الشاشة والقصاصات صغيرة الأبعاد كي لا تتشوه الحروف */
+      scale = Math.min(2.0, 1050 / maxSide);
+    }
+
+    var scaledPixels = (sw * scale) * (sh * scale);
+    if (scaledPixels > maxPixels) {
+      scale *= Math.sqrt(maxPixels / scaledPixels);
+    }
+    return scale;
+  }
+
+  function buildBrightnessContrastLut(brightness, contrast) {
+    var lut = new Uint8Array(256);
+    var bOff = (brightness || 0) * 2.1;
+    var cVal = (contrast || 0) * 2.55;
+    var cFactor = contrast ? (259 * (cVal + 255)) / (255 * (259 - cVal)) : 1;
+    for (var v = 0; v < 256; v++) {
+      var val = v + bOff;
+      if (contrast) val = cFactor * (val - 128) + 128;
+      lut[v] = val < 0 ? 0 : (val > 255 ? 255 : (val + 0.5) | 0);
+    }
+    return lut;
+  }
+
   function applyConvolution3x3(data, w, h, kernel, divisor, bias) {
     var src = new Uint8ClampedArray(data);
     for (var y = 1; y < h - 1; y++) {
@@ -183,13 +239,29 @@
     }
   }
 
-  function renderPreprocessedCanvas(img, prep, maxEdge, skipCropBox) {
+  function renderPreprocessedCanvas(img, prep, maxEdge, skipCropBox, forOcr) {
     prep = prep || defaultPrep();
     var sw = img.naturalWidth || img.width;
     var sh = img.naturalHeight || img.height;
+    var rot90 = ((prep.rot90 || 0) % 360 + 360) % 360;
     var scale = 1;
-    var cap = maxEdge || MAX_OCR_EDGE;
-    if (Math.max(sw, sh) > cap) scale = cap / Math.max(sw, sh);
+
+    if (forOcr && !maxEdge) {
+      if (!skipCropBox && prep.crop && prep.crop.w > 0.02 && prep.crop.h > 0.02) {
+        var effW = (rot90 === 90 || rot90 === 270) ? sh : sw;
+        var effH = (rot90 === 90 || rot90 === 270) ? sw : sh;
+        var cropW = Math.max(16, effW * prep.crop.w);
+        var cropH = Math.max(16, effH * prep.crop.h);
+        scale = Math.min(2.0, computeOcrScale(cropW, cropH));
+        var prePixels = (sw * scale) * (sh * scale);
+        if (prePixels > 12000000) scale *= Math.sqrt(12000000 / prePixels);
+      } else {
+        scale = computeOcrScale(sw, sh);
+      }
+    } else {
+      var cap = maxEdge || MAX_OCR_EDGE;
+      if (Math.max(sw, sh) > cap) scale = cap / Math.max(sw, sh);
+    }
 
     var rw = Math.max(1, Math.round(sw * scale));
     var rh = Math.max(1, Math.round(sh * scale));
@@ -206,6 +278,8 @@
     var rctx = rotCanvas.getContext('2d', { willReadFrequently: true });
     rctx.fillStyle = '#ffffff';
     rctx.fillRect(0, 0, rotW, rotH);
+    rctx.imageSmoothingEnabled = true;
+    rctx.imageSmoothingQuality = 'high';
     rctx.save();
     rctx.translate(rotW / 2, rotH / 2);
     rctx.rotate(angleRad);
@@ -225,7 +299,8 @@
       outCanvas = cropCanvas;
     }
 
-    var needPixels = !!(prep.brightness || prep.contrast || prep.grayscale || prep.sharpen || prep.denoise);
+    var needLut = !!(prep.brightness || prep.contrast || prep.grayscale);
+    var needPixels = needLut || !!prep.sharpen || !!prep.denoise;
     if (needPixels) {
       var ctx = outCanvas.getContext('2d', { willReadFrequently: true });
       var w = outCanvas.width;
@@ -237,27 +312,23 @@
         applyConvolution3x3(d, w, h, [1, 2, 1, 2, 4, 2, 1, 2, 1], 16, 0);
       }
 
-      var bOff = (prep.brightness || 0) * 2.1;
-      var cVal = (prep.contrast || 0) * 2.55;
-      var cFactor = (259 * (cVal + 255)) / (255 * (259 - cVal));
-
-      for (var i = 0; i < d.length; i += 4) {
-        var r = d[i] + bOff;
-        var g = d[i + 1] + bOff;
-        var b = d[i + 2] + bOff;
-
-        if (prep.contrast) {
-          r = cFactor * (r - 128) + 128;
-          g = cFactor * (g - 128) + 128;
-          b = cFactor * (b - 128) + 128;
-        }
+      if (needLut) {
+        var lut = buildBrightnessContrastLut(prep.brightness, prep.contrast);
         if (prep.grayscale) {
-          var lum = 0.299 * r + 0.587 * g + 0.114 * b;
-          r = g = b = lum;
+          for (var i = 0; i < d.length; i += 4) {
+            var r = lut[d[i]];
+            var g = lut[d[i + 1]];
+            var b = lut[d[i + 2]];
+            var lum = (77 * r + 150 * g + 29 * b) >> 8;
+            d[i] = d[i + 1] = d[i + 2] = lum;
+          }
+        } else {
+          for (var j = 0; j < d.length; j += 4) {
+            d[j] = lut[d[j]];
+            d[j + 1] = lut[d[j + 1]];
+            d[j + 2] = lut[d[j + 2]];
+          }
         }
-        d[i] = clampByte(r);
-        d[i + 1] = clampByte(g);
-        d[i + 2] = clampByte(b);
       }
 
       if (prep.sharpen) {
@@ -270,8 +341,176 @@
     return outCanvas;
   }
 
+  /* تقييم سريع للإضاءة وتوحيد الخلفية الورقية موضعياً دون تشويه النقط والحروف العربية */
+  function analyzeLightingQuick(canvas) {
+    var sw = 48;
+    var sh = 48;
+    var sc = document.createElement('canvas');
+    sc.width = sw;
+    sc.height = sh;
+    var sctx = sc.getContext('2d', { willReadFrequently: true });
+    sctx.drawImage(canvas, 0, 0, sw, sh);
+    var sd = sctx.getImageData(0, 0, sw, sh).data;
+    var lums = new Uint8Array(sw * sh);
+    for (var i = 0, p = 0; i < sd.length; i += 4, p++) {
+      lums[p] = (77 * sd[i] + 150 * sd[i + 1] + 29 * sd[i + 2]) >> 8;
+    }
+    var sorted = Array.prototype.slice.call(lums).sort(function (a, b) { return a - b; });
+    var n = sorted.length;
+    var p40 = sorted[Math.floor(n * 0.40)];
+    var p65 = sorted[Math.floor(n * 0.65)];
+    var p85 = sorted[Math.floor(n * 0.85)];
+    var p95 = sorted[Math.floor(n * 0.95)];
+    var isDarkMode = p65 < 72 && (p95 - p65) > 65;
+    var isCleanWhite = !isDarkMode && p85 >= 238 && (p95 - p40) <= 18;
+    return { isDarkMode: isDarkMode, isCleanWhite: isCleanWhite };
+  }
+
+  function flattenPaperLightingInPlace(canvas, isDarkMode) {
+    var w = canvas.width;
+    var h = canvas.height;
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+    var imgData = ctx.getImageData(0, 0, w, h);
+    var d = imgData.data;
+
+    if (isDarkMode) {
+      for (var k = 0; k < d.length; k += 4) {
+        var dlum = (77 * d[k] + 150 * d[k + 1] + 29 * d[k + 2]) >> 8;
+        var inv = 255 - dlum;
+        d[k] = d[k + 1] = d[k + 2] = inv;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      return;
+    }
+
+    var STEP = 20;
+    var gw = Math.max(1, Math.ceil(w / STEP));
+    var gh = Math.max(1, Math.ceil(h / STEP));
+    var bgRaw = new Uint8Array(gw * gh);
+
+    for (var gy = 0; gy < gh; gy++) {
+      var y0 = gy * STEP;
+      var y1 = Math.min(h, y0 + STEP);
+      for (var gx = 0; gx < gw; gx++) {
+        var x0 = gx * STEP;
+        var x1 = Math.min(w, x0 + STEP);
+        var maxL = 0;
+        for (var yy = y0; yy < y1; yy += 2) {
+          var rowOff = yy * w;
+          for (var xx = x0; xx < x1; xx += 2) {
+            var idx = (rowOff + xx) * 4;
+            var l = (77 * d[idx] + 150 * d[idx + 1] + 29 * d[idx + 2]) >> 8;
+            if (l > maxL) maxL = l;
+          }
+        }
+        bgRaw[gy * gw + gx] = maxL;
+      }
+    }
+
+    /* توسيع حد الخلفية 3x3 ثم تنعيم سريع لتلافي الهالات حول العناوين العريضة */
+    var bgDil = new Uint8Array(gw * gh);
+    var gy2, gx2, dy, dx;
+    for (gy2 = 0; gy2 < gh; gy2++) {
+      for (gx2 = 0; gx2 < gw; gx2++) {
+        var m = 0;
+        for (dy = -1; dy <= 1; dy++) {
+          var ny = gy2 + dy;
+          if (ny < 0 || ny >= gh) continue;
+          for (dx = -1; dx <= 1; dx++) {
+            var nx = gx2 + dx;
+            if (nx < 0 || nx >= gw) continue;
+            var v = bgRaw[ny * gw + nx];
+            if (v > m) m = v;
+          }
+        }
+        bgDil[gy2 * gw + gx2] = m;
+      }
+    }
+
+    var bgSmooth = new Uint8Array(gw * gh);
+    for (gy2 = 0; gy2 < gh; gy2++) {
+      for (gx2 = 0; gx2 < gw; gx2++) {
+        var sum = 0;
+        var cnt = 0;
+        for (dy = -1; dy <= 1; dy++) {
+          var sy = gy2 + dy;
+          if (sy < 0 || sy >= gh) continue;
+          for (dx = -1; dx <= 1; dx++) {
+            var sx = gx2 + dx;
+            if (sx < 0 || sx >= gw) continue;
+            sum += bgDil[sy * gw + sx];
+            cnt++;
+          }
+        }
+        bgSmooth[gy2 * gw + gx2] = Math.max(48, Math.round(sum / cnt));
+      }
+    }
+
+    var invStep = 1 / STEP;
+    for (var y = 0; y < h; y++) {
+      var fy = y * invStep - 0.5;
+      var iy0 = fy < 0 ? 0 : Math.floor(fy);
+      var iy1 = iy0 + 1 < gh ? iy0 + 1 : iy0;
+      var ty = fy - iy0;
+      if (ty < 0) ty = 0;
+      var row0 = iy0 * gw;
+      var row1 = iy1 * gw;
+      var rowPix = y * w;
+
+      for (var x = 0; x < w; x++) {
+        var fx = x * invStep - 0.5;
+        var ix0 = fx < 0 ? 0 : Math.floor(fx);
+        var ix1 = ix0 + 1 < gw ? ix0 + 1 : ix0;
+        var tx = fx - ix0;
+        if (tx < 0) tx = 0;
+
+        var b00 = bgSmooth[row0 + ix0];
+        var b10 = bgSmooth[row0 + ix1];
+        var b01 = bgSmooth[row1 + ix0];
+        var b11 = bgSmooth[row1 + ix1];
+        var bg = (b00 + (b10 - b00) * tx) + ((b01 + (b11 - b01) * tx) - (b00 + (b10 - b00) * tx)) * ty;
+
+        var pi = (rowPix + x) * 4;
+        var plum = (77 * d[pi] + 150 * d[pi + 1] + 29 * d[pi + 2]) >> 8;
+        var norm = (plum * 255) / bg;
+        var outVal;
+        if (norm >= 222) {
+          outVal = 255;
+        } else if (norm <= 85) {
+          outVal = (norm * 0.72) | 0;
+        } else {
+          outVal = Math.min(255, Math.round(61 + ((norm - 85) * 194) / 137));
+        }
+        d[pi] = d[pi + 1] = d[pi + 2] = outVal;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  function prepareOcrCanvas(img, prep) {
+    prep = prep || defaultPrep();
+    var canvas = renderPreprocessedCanvas(img, prep, null, false, true);
+
+    var light = analyzeLightingQuick(canvas);
+    if (light.isDarkMode || (!light.isCleanWhite && !prep.brightness && !prep.contrast)) {
+      flattenPaperLightingInPlace(canvas, light.isDarkMode);
+    }
+
+    /* إضافة هامش أبيض آمن لتجنب قص الحروف القريبة من حافة الصورة */
+    var pad = 22;
+    var padded = document.createElement('canvas');
+    padded.width = canvas.width + pad * 2;
+    padded.height = canvas.height + pad * 2;
+    var pctx = padded.getContext('2d');
+    pctx.fillStyle = '#ffffff';
+    pctx.fillRect(0, 0, padded.width, padded.height);
+    pctx.drawImage(canvas, pad, pad);
+    return padded;
+  }
+
   function makeThumbDataUrl(img, prep) {
-    var c = renderPreprocessedCanvas(img, prep, 240, false);
+    var c = renderPreprocessedCanvas(img, prep, 240, false, false);
     return c.toDataURL('image/jpeg', 0.8);
   }
 
@@ -390,84 +629,116 @@
     });
   }
 
+  function cleanExtractedText(raw) {
+    return String(raw || '')
+      .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
   async function terminateActiveWorker() {
     var w = state.activeWorker;
     state.activeWorker = null;
     state.activeWorkerLang = null;
+    state.activeWorkerPsm = null;
     if (w) {
       try { await w.terminate(); } catch (e) {}
     }
   }
 
-  async function getWorkerForLang(lang) {
-    if (state.activeWorker && state.activeWorkerLang === lang) {
-      return state.activeWorker;
-    }
-    await terminateActiveWorker();
+  async function getWorkerForLang(lang, psm) {
+    var targetPsm = psm || '6';
+    var worker = state.activeWorker;
 
-    var Tess = await ensureTesseractLoaded();
-    var coreDir = ST.baseUrl('./vendor/tesseract');
-    var langDir = ST.baseUrl('./vendor/tesseract/lang');
-    var workerPath = ST.baseUrl('./vendor/tesseract/worker.min.js');
+    if (!worker) {
+      var Tess = await ensureTesseractLoaded();
+      var coreDir = ST.baseUrl('./vendor/tesseract');
+      var langDir = ST.baseUrl('./vendor/tesseract/lang');
+      var workerPath = ST.baseUrl('./vendor/tesseract/worker.min.js');
 
-    var worker = await Tess.createWorker(lang, 1 /* OEM.LSTM_ONLY */, {
-      workerPath: workerPath,
-      corePath: coreDir,
-      langPath: langDir,
-      workerBlobURL: false,
-      gzip: true,
-      cacheMethod: 'write',
-      errorHandler: function (err) {
-        if (state.stopRequested) return;
-        console.error('[OCR worker error]', err);
-      },
-      logger: function (m) {
-        if (!state.running || state.stopRequested) return;
-        state.currentStage = translateStage(m.status);
-        if (typeof m.progress === 'number') {
-          state.currentItemPct = Math.round(Math.max(0, Math.min(1, m.progress)) * 100);
+      worker = await Tess.createWorker(lang, 1 /* OEM.LSTM_ONLY */, {
+        workerPath: workerPath,
+        corePath: coreDir,
+        langPath: langDir,
+        workerBlobURL: false,
+        gzip: true,
+        cacheMethod: 'write',
+        errorHandler: function (err) {
+          if (state.stopRequested) return;
+          console.error('[OCR worker error]', err);
+        },
+        logger: function (m) {
+          if (!state.running || state.stopRequested) return;
+          state.currentStage = translateStage(m.status);
+          if (typeof m.progress === 'number') {
+            state.currentItemPct = Math.round(Math.max(0, Math.min(1, m.progress)) * 100);
+          }
+          updateProgressUI();
         }
-        updateProgressUI();
-      }
-    });
+      });
 
-    if (state.stopRequested) {
-      try { await worker.terminate(); } catch (e) {}
-      throw new Error('STOPPED');
+      if (state.stopRequested) {
+        try { await worker.terminate(); } catch (e) {}
+        throw new Error('STOPPED');
+      }
+
+      state.activeWorker = worker;
+      state.activeWorkerLang = lang;
+      state.activeWorkerPsm = null;
+    } else if (state.activeWorkerLang !== lang) {
+      /* إعادة استخدام نفس الـ Worker ونواة WASM عند تبديل اللغة دون إعادة إنشاء أو تحميل */
+      state.currentStage = 'تغيير بيانات اللغة…';
+      updateProgressUI();
+      await worker.reinitialize(lang, 1);
+      if (state.stopRequested) throw new Error('STOPPED');
+      state.activeWorkerLang = lang;
+      state.activeWorkerPsm = null;
     }
 
-    state.activeWorker = worker;
-    state.activeWorkerLang = lang;
+    if (state.activeWorkerPsm !== targetPsm) {
+      await worker.setParameters({
+        tessedit_pageseg_mode: targetPsm,
+        user_defined_dpi: '300',
+        preserve_interword_spaces: '0',
+        tessedit_char_blacklist: lang === 'ara+eng' ? '|' : ''
+      });
+      if (state.stopRequested) throw new Error('STOPPED');
+      state.activeWorkerPsm = targetPsm;
+    }
+
     return worker;
   }
 
-  async function processSingleItem(item, lang) {
+  async function processSingleItem(item, lang, psm) {
     item.status = 'processing';
     item.errorMsg = '';
     item.noText = false;
     state.currentItemId = item.id;
     state.currentItemPct = 5;
-    state.currentStage = 'تجهيز الصورة…';
+    state.currentStage = 'تجهيز الصورة وتحسينها…';
     updateQueueItemUI(item);
     updateProgressUI();
 
     var img = await loadImageFromBlob(item.blob);
-    var prepCanvas = renderPreprocessedCanvas(img, item.prep, MAX_OCR_EDGE, false);
+    var prepCanvas = prepareOcrCanvas(img, item.prep);
     var pngBlob = await canvasToPngBlob(prepCanvas);
+    await new Promise(function (r) { setTimeout(r, 0); });
 
     if (state.stopRequested) throw new Error('STOPPED');
 
-    var worker = await getWorkerForLang(lang);
+    var worker = await getWorkerForLang(lang, psm);
     if (state.stopRequested) throw new Error('STOPPED');
 
     var res = await worker.recognize(pngBlob);
     if (state.stopRequested) throw new Error('STOPPED');
 
-    var extracted = (res && res.data && res.data.text ? res.data.text : '').replace(/\n{3,}/g, '\n\n').trim();
+    var extracted = cleanExtractedText(res && res.data ? res.data.text : '');
     item.text = extracted;
     item.noText = !extracted;
     item.confidence = res && res.data && typeof res.data.confidence === 'number' ? Math.round(res.data.confidence) : null;
     item.langUsed = lang;
+    item.psmUsed = psm || '6';
     item.status = 'done';
     item.editedByUser = false;
     item.errorMsg = '';
@@ -512,7 +783,7 @@
         if (state.stopRequested) break;
         var item = queue[i];
         try {
-          await processSingleItem(item, state.lang);
+          await processSingleItem(item, state.lang, state.psm);
           successCount++;
         } catch (err) {
           if (state.stopRequested || (err && err.message === 'STOPPED')) {
@@ -715,7 +986,7 @@
 
     function drawPreview() {
       syncLabels();
-      var preview = renderPreprocessedCanvas(img, draft, 900, true);
+      var preview = renderPreprocessedCanvas(img, draft, 900, true, false);
       canvas.width = preview.width;
       canvas.height = preview.height;
       var ctx = canvas.getContext('2d');
@@ -835,7 +1106,8 @@
       state.selectedId = null;
       state.mergedDirty = false;
       state.mergedText = '';
-      state.lang = 'ara+eng';
+      state.lang = 'ara';
+      state.psm = '6';
       renderAll();
       toast('تم مسح جميع بيانات العمل المحفوظة');
     };
@@ -992,6 +1264,10 @@
       return '<button type="button" class="ocr-lang-btn" data-lang="' + lg.id + '" aria-pressed="' + (state.lang === lg.id ? 'true' : 'false') + '"' + (state.running ? ' disabled' : '') + '>' + lg.label + '</button>';
     }).join('');
 
+    var psmButtons = PSMS.map(function (pm) {
+      return '<button type="button" class="ocr-lang-btn ocr-psm-btn" data-psm="' + pm.id + '" aria-pressed="' + (state.psm === pm.id ? 'true' : 'false') + '"' + (state.running ? ' disabled' : '') + '>' + pm.label + '</button>';
+    }).join('');
+
     var pct = state.batchTotal > 0
       ? Math.min(100, Math.round(((state.batchDone + (state.running ? state.currentItemPct / 100 : 0)) / state.batchTotal) * 100))
       : 0;
@@ -1001,6 +1277,10 @@
       '<div class="ocr-lang-row">' +
         '<span class="ocr-lang-label">لغة استخراج النص:</span>' +
         '<div class="ocr-lang-group">' + langButtons + '</div>' +
+      '</div>' +
+      '<div class="ocr-lang-row">' +
+        '<span class="ocr-lang-label">تخطيط الصفحة (PSM):</span>' +
+        '<div class="ocr-lang-group cols-2">' + psmButtons + '</div>' +
       '</div>' +
       '<div class="ocr-run-row">' +
         '<button type="button" class="tl-btn pri" id="ocrStartBtn"' + (canStart ? '' : ' disabled') + '>' + I.play + ' بدء استخراج النصوص</button>' +
@@ -1118,7 +1398,9 @@
 
   function effectiveDir(it) {
     if (it.dir === 'rtl' || it.dir === 'ltr') return it.dir;
-    return EX.detectTextDir(it.text || '', 'auto');
+    var t = String(it.text || '').trim();
+    if (!t) return state.lang === 'eng' ? 'ltr' : 'rtl';
+    return EX.detectTextDir(t, 'auto');
   }
 
   function renderResults() {
@@ -1139,6 +1421,7 @@
     if (state.activeTab === 'merged') {
       var mergedVal = getMergedText();
       var totalWords = countWords(mergedVal);
+      var mergedDir = mergedVal.trim() ? EX.detectTextDir(mergedVal, 'auto') : (state.lang === 'eng' ? 'ltr' : 'rtl');
       area.innerHTML =
         '<div class="ocr-res-card">' +
           '<div class="ocr-res-head">' +
@@ -1148,7 +1431,7 @@
             '</div>' +
             '<button type="button" class="tl-btn sm" id="ocrRebuildMergedBtn">' + I.refresh + ' تحديث التجميع من الصفحات</button>' +
           '</div>' +
-          '<textarea class="ocr-ta merged" id="ocrMergedTa" dir="auto" placeholder="سيُجمّع النص المستخرج من جميع الصور هنا تلقائياً…">' + esc(mergedVal) + '</textarea>' +
+          '<textarea class="ocr-ta merged" id="ocrMergedTa" dir="' + mergedDir + '" placeholder="سيُجمّع النص المستخرج من جميع الصور هنا تلقائياً…">' + esc(mergedVal) + '</textarea>' +
           '<div class="ocr-export-bar">' +
             '<button type="button" class="tl-btn sm" id="ocrCopyAllBtn">' + I.copy + ' نسخ الكل</button>' +
             '<button type="button" class="tl-btn sm" id="ocrExpTxtAll">' + I.download + ' تصدير TXT</button>' +
@@ -1296,6 +1579,14 @@
       if (langBtn && !state.running) {
         state.lang = langBtn.dataset.lang;
         ST.setMeta('lang', state.lang).catch(function () {});
+        renderAll();
+        return;
+      }
+
+      var psmBtn = e.target.closest('.ocr-psm-btn[data-psm]');
+      if (psmBtn && !state.running) {
+        state.psm = psmBtn.dataset.psm;
+        ST.setMeta('psm', state.psm).catch(function () {});
         renderControls();
         return;
       }
@@ -1425,9 +1716,13 @@
     bindEvents();
 
     try {
-      var savedLang = await ST.getMeta('lang', 'ara+eng');
+      var savedLang = await ST.getMeta('lang', 'ara');
       if (savedLang && LANGS.some(function (l) { return l.id === savedLang; })) {
         state.lang = savedLang;
+      }
+      var savedPsm = await ST.getMeta('psm', '6');
+      if (savedPsm && PSMS.some(function (p) { return p.id === savedPsm; })) {
+        state.psm = savedPsm;
       }
       var items = await ST.getAllItems();
       state.items = (items || []).map(function (it) {
