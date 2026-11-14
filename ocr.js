@@ -17,15 +17,27 @@
     { id: 'ara+eng', label: 'العربية + الإنجليزية', short: 'ara+eng' }
   ];
 
+  /* auto: يكتشف الأعمدة من الصورة نفسها ويختار 3 للصفحات متعددة الأعمدة و6 لسواها (مختبَر: PSM 6 يخلط الأعمدة فينتج نصاً مشوشاً) */
   var PSMS = [
-    { id: '6', label: 'صفحة / فقرة موحّدة (الأدق للكتب)' },
-    { id: '3', label: 'تخطيط تلقائي متعدد الأعمدة' }
+    { id: 'auto', label: 'تلقائي (موصى به)' },
+    { id: '6', label: 'عمود واحد / فقرة' },
+    { id: '3', label: 'أعمدة متعددة' }
   ];
 
   var ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
   var ALLOWED_MIME = /^image\/(jpeg|jpg|png|webp)$/i;
   var MAX_OCR_EDGE = 1850;
   var MAX_OCR_EDGE_MOBILE = 1550;
+  /* ارتفاع «جسم الكلمة» الأمثل للتعرف (بكسل). داخل [LOW,HIGH] لا نعيد التحجيم؛ خارجه نقرّبه إلى TARGET (قِيس تجريبياً) */
+  var TEXT_H_LOW = 16;
+  var TEXT_H_HIGH = 28;
+  var TEXT_H_TARGET = 20;
+  var MAX_UPSCALE = 3;
+  var ANALYSIS_EDGE = 1000;
+  var ANALYSIS_EDGE_MOBILE = 900;
+  var PIXEL_BUDGET = 4000000;
+  var PIXEL_BUDGET_MOBILE = 2400000;
+  var WORKER_IDLE_MS = 240000;
   var MERGE_DIV_RE = /^---\s*الصفحة\s+\d+(?:\s*:\s*.*?)?\s*---$/m;
 
   function esc(t) {
@@ -81,7 +93,7 @@
     root: null,
     items: [],
     lang: 'ara',
-    psm: '6',
+    psm: 'auto',
     activeTab: 'cards', /* cards | merged */
     selectedId: null,
     mergedDirty: false,
@@ -98,6 +110,7 @@
     activeWorker: null,
     activeWorkerLang: null,
     activeWorkerPsm: null,
+    warming: false,
     dragIndex: -1
   };
 
@@ -239,14 +252,16 @@
     }
   }
 
-  function renderPreprocessedCanvas(img, prep, maxEdge, skipCropBox, forOcr) {
+  function renderPreprocessedCanvas(img, prep, maxEdge, skipCropBox, forOcr, opts) {
     prep = prep || defaultPrep();
     var sw = img.naturalWidth || img.width;
     var sh = img.naturalHeight || img.height;
     var rot90 = ((prep.rot90 || 0) % 360 + 360) % 360;
     var scale = 1;
 
-    if (forOcr && !maxEdge) {
+    if (opts && opts.scale > 0) {
+      scale = opts.scale;
+    } else if (forOcr && !maxEdge) {
       if (!skipCropBox && prep.crop && prep.crop.w > 0.02 && prep.crop.h > 0.02) {
         var effW = (rot90 === 90 || rot90 === 270) ? sh : sw;
         var effH = (rot90 === 90 || rot90 === 270) ? sw : sh;
@@ -266,7 +281,7 @@
     var rw = Math.max(1, Math.round(sw * scale));
     var rh = Math.max(1, Math.round(sh * scale));
 
-    var angleRad = (((prep.rot90 || 0) + (prep.fineDeg || 0)) * Math.PI) / 180;
+    var angleRad = (((prep.rot90 || 0) + (prep.fineDeg || 0) + ((opts && opts.extraDeg) || 0)) * Math.PI) / 180;
     var absCos = Math.abs(Math.cos(angleRad));
     var absSin = Math.abs(Math.sin(angleRad));
     var rotW = Math.max(1, Math.round(rw * absCos + rh * absSin));
@@ -488,9 +503,9 @@
     ctx.putImageData(imgData, 0, 0);
   }
 
-  function prepareOcrCanvas(img, prep) {
+  function prepareOcrCanvas(img, prep, opts) {
     prep = prep || defaultPrep();
-    var canvas = renderPreprocessedCanvas(img, prep, null, false, true);
+    var canvas = renderPreprocessedCanvas(img, prep, null, false, true, opts);
 
     var light = analyzeLightingQuick(canvas);
     if (light.isDarkMode || (!light.isCleanWhite && !prep.brightness && !prep.contrast)) {
@@ -507,6 +522,259 @@
     pctx.fillRect(0, 0, padded.width, padded.height);
     pctx.drawImage(canvas, pad, pad);
     return padded;
+  }
+
+
+  /* ---------- تحليل الصفحة: حجم النص الفعلي + عدد الأعمدة + ميلان السطور ----------
+     بدل تصغير الصورة حسب أبعادها فقط (ما يجعل النص في صور الهاتف الكبيرة صغيراً جداً)،
+     نقيس ارتفاع «جسم الكلمة» الفعلي عبر المكوّنات المتصلة ونختار التحجيم المناسب له.
+     كما نكتشف الأعمدة (لاختيار PSM) ونقدّر ميلان السطور (للتصحيح أثناء الرسم دون تمرير إضافي). */
+  function analyzePage(img, prep) {
+    try { return analyzePageUnsafe(img, prep); } catch (e) { return null; }
+  }
+
+  function analyzePageUnsafe(img, prep) {
+    prep = prep || defaultPrep();
+    var sw = img.naturalWidth || img.width;
+    var sh = img.naturalHeight || img.height;
+    var crop = (prep.crop && prep.crop.w > 0.02 && prep.crop.h > 0.02) ? prep.crop : null;
+    var baseEdge = isConstrainedDevice() ? ANALYSIS_EDGE_MOBILE : ANALYSIS_EDGE;
+    var edge = crop ? Math.min(4200, baseEdge / Math.max(crop.w, crop.h)) : baseEdge;
+    var wc = renderPreprocessedCanvas(img, prep, edge, false, false);
+    var w = wc.width;
+    var h = wc.height;
+    var n = w * h;
+    if (n < 40000) return null;
+
+    var ang = (((prep.rot90 || 0) + (prep.fineDeg || 0)) * Math.PI) / 180;
+    var regionW1 = (sw * Math.abs(Math.cos(ang)) + sh * Math.abs(Math.sin(ang))) * (crop ? crop.w : 1);
+    var ws = regionW1 > 0 ? w / regionW1 : 1;
+
+    var data = wc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+    var g = new Uint8Array(n);
+    var i, p, x, y;
+    for (i = 0, p = 0; p < n; i += 4, p++) g[p] = (77 * data[i] + 150 * data[i + 1] + 29 * data[i + 2]) >> 8;
+    if (analyzeLightingQuick(wc).isDarkMode) {
+      for (p = 0; p < n; p++) g[p] = 255 - g[p];
+    }
+
+    /* عتبة محلية: الحبر = أغمق من 84% من متوسط الجوار (صورة تكاملية) */
+    var W1 = w + 1;
+    var integ = new Uint32Array(W1 * (h + 1));
+    for (y = 0; y < h; y++) {
+      var rowSum = 0;
+      var io = (y + 1) * W1;
+      var ip = y * W1;
+      var go = y * w;
+      for (x = 0; x < w; x++) {
+        rowSum += g[go + x];
+        integ[io + x + 1] = integ[ip + x + 1] + rowSum;
+      }
+    }
+    var half = Math.max(4, ((Math.min(w, h) / 18) | 0) >> 1);
+    var mask = new Uint8Array(n);
+    for (y = 0; y < h; y++) {
+      var y0 = y - half < 0 ? 0 : y - half;
+      var y1 = y + half >= h ? h - 1 : y + half;
+      for (x = 0; x < w; x++) {
+        var x0 = x - half < 0 ? 0 : x - half;
+        var x1 = x + half >= w ? w - 1 : x + half;
+        var area = (x1 - x0 + 1) * (y1 - y0 + 1);
+        var sum = integ[(y1 + 1) * W1 + x1 + 1] - integ[y0 * W1 + x1 + 1] - integ[(y1 + 1) * W1 + x0] + integ[y0 * W1 + x0];
+        if (g[y * w + x] * area * 100 < sum * 84) mask[y * w + x] = 1;
+      }
+    }
+    integ = null;
+
+    /* مكوّنات متصلة (8 جيران) باتحاد-بحث */
+    var maxLabels = (n >> 1) + 2;
+    var labels = new Int32Array(n);
+    var parent = new Int32Array(maxLabels);
+    var next = 1;
+    function find(a) {
+      while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; }
+      return a;
+    }
+    function union(a, b) {
+      a = find(a); b = find(b);
+      if (a === b) return a;
+      if (a < b) { parent[b] = a; return a; }
+      parent[a] = b; return b;
+    }
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        var idx = y * w + x;
+        if (!mask[idx]) continue;
+        var best = 0;
+        var nl;
+        if (x > 0) { nl = labels[idx - 1]; if (nl) best = nl; }
+        if (y > 0) {
+          if (x > 0) { nl = labels[idx - w - 1]; if (nl) best = best ? union(best, nl) : nl; }
+          nl = labels[idx - w]; if (nl) best = best ? union(best, nl) : nl;
+          if (x < w - 1) { nl = labels[idx - w + 1]; if (nl) best = best ? union(best, nl) : nl; }
+        }
+        if (!best) {
+          if (next >= maxLabels) return null;
+          parent[next] = next;
+          best = next++;
+        }
+        labels[idx] = best;
+      }
+    }
+    var l;
+    for (l = 1; l < next; l++) parent[l] = find(l);
+    var minX = new Int32Array(next).fill(w);
+    var maxX = new Int32Array(next).fill(-1);
+    var minY = new Int32Array(next).fill(h);
+    var maxY = new Int32Array(next).fill(-1);
+    var areaArr = new Int32Array(next);
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        l = labels[y * w + x];
+        if (!l) continue;
+        var r = parent[l];
+        if (x < minX[r]) minX[r] = x;
+        if (x > maxX[r]) maxX[r] = x;
+        if (y < minY[r]) minY[r] = y;
+        if (y > maxY[r]) maxY[r] = y;
+        areaArr[r]++;
+      }
+    }
+    labels = null; mask = null;
+
+    var comps = [];
+    for (l = 1; l < next; l++) {
+      if (parent[l] !== l || !areaArr[l]) continue;
+      var ch = maxY[l] - minY[l] + 1;
+      var cw = maxX[l] - minX[l] + 1;
+      if (ch < 4 || areaArr[l] < 12 || ch > h * 0.12 || cw > w * 0.6) continue;
+      comps.push({ a: areaArr[l], x: minX[l], y: minY[l], w: cw, h: ch });
+    }
+    if (comps.length < 40) return null;
+
+    comps.sort(function (a, b) { return b.a - a.a; });
+    var topN = Math.max(10, Math.floor(comps.length * 0.4));
+    var hs = [];
+    for (i = 0; i < topN && i < comps.length; i++) hs.push(comps[i].h);
+    hs.sort(function (a, b) { return a - b; });
+    var hmed = hs[hs.length >> 1];
+    var body = comps.filter(function (c) { return c.h >= 0.45 * hmed && c.h <= 2.2 * hmed && c.w >= 0.5 * hmed; });
+    if (body.length < 30) return null;
+
+    /* الأعمدة: فجوة عمودية فارغة داخل مدى النص تفصل كتلتين وازنتين */
+    var xs0 = w, xs1 = 0;
+    body.forEach(function (c) { if (c.x < xs0) xs0 = c.x; if (c.x + c.w > xs1) xs1 = c.x + c.w; });
+    var span = xs1 - xs0;
+    var cols = 1;
+    if (span >= w * 0.4) {
+      var prof = new Float32Array(span + 2);
+      body.forEach(function (c) {
+        for (var xx = c.x; xx < c.x + c.w; xx++) prof[xx - xs0] += 1;
+      });
+      var k = Math.max(3, Math.round(hmed * 0.6));
+      var pre = new Float64Array(span + 3);
+      for (i = 0; i <= span; i++) pre[i + 1] = pre[i] + prof[i];
+      var sm = new Float32Array(span + 1);
+      var kh = k >> 1;
+      for (i = 0; i <= span; i++) {
+        var a0 = i - kh < 0 ? 0 : i - kh;
+        var a1 = i + kh > span ? span : i + kh;
+        sm[i] = (pre[a1 + 1] - pre[a0]) / k;
+      }
+      var pos = [];
+      for (i = 0; i <= span; i++) if (sm[i] > 0) pos.push(sm[i]);
+      pos.sort(function (a, b) { return a - b; });
+      var peak = pos.length ? pos[Math.floor(0.75 * (pos.length - 1))] : 0;
+      var bestRun = 0, bestStart = 0, run = 0, runStart = 0;
+      for (i = Math.floor(span * 0.2); i < Math.floor(span * 0.8); i++) {
+        if (sm[i] <= 0.08 * peak) {
+          if (run === 0) runStart = i;
+          run++;
+          if (run > bestRun) { bestRun = run; bestStart = runStart; }
+        } else {
+          run = 0;
+        }
+      }
+      var leftN = 0, rightN = 0;
+      body.forEach(function (c) {
+        var cxm = c.x + c.w / 2 - xs0;
+        if (cxm < bestStart) leftN++;
+        else if (cxm > bestStart + bestRun) rightN++;
+      });
+      if (bestRun >= 1.2 * hmed && leftN >= 0.2 * body.length && rightN >= 0.2 * body.length) cols = 2;
+    }
+
+    /* ميلان السطور: تعظيم تركّز مراكز الكلمات في صفوف بعد إزاحة y - x·tan(θ) */
+    var pts = body;
+    if (pts.length > 1200) {
+      var stp = Math.ceil(pts.length / 1200);
+      pts = pts.filter(function (c, ix) { return ix % stp === 0; });
+    }
+    var cxs = new Float32Array(pts.length);
+    var cys = new Float32Array(pts.length);
+    pts.forEach(function (c, ix) { cxs[ix] = c.x + c.w / 2; cys[ix] = c.y + c.h / 2; });
+    var binH = Math.max(2, hmed * 0.4);
+    var off = Math.ceil((w * 0.15) / binH) + 3;
+    var histLen = Math.ceil((h + w * 0.3) / binH) + 2 * off + 4;
+    function skewScore(deg) {
+      var t = Math.tan(deg * Math.PI / 180);
+      var hist = new Int32Array(histLen);
+      for (var j = 0; j < cxs.length; j++) {
+        var b = Math.floor((cys[j] - cxs[j] * t) / binH) + off;
+        if (b < 0) b = 0; else if (b >= histLen) b = histLen - 1;
+        hist[b]++;
+      }
+      var sc = 0;
+      for (var q = 0; q < histLen; q++) sc += hist[q] * hist[q];
+      return sc;
+    }
+    var s0 = skewScore(0);
+    var bestDeg = 0, bestSc = s0, d, sc2;
+    for (d = -7; d <= 7.0001; d += 0.5) {
+      sc2 = skewScore(d);
+      if (sc2 > bestSc) { bestSc = sc2; bestDeg = d; }
+    }
+    var center = bestDeg;
+    for (d = center - 0.5; d <= center + 0.5001; d += 0.1) {
+      sc2 = skewScore(d);
+      if (sc2 > bestSc) { bestSc = sc2; bestDeg = d; }
+    }
+    var deskew = 0;
+    if (Math.abs(bestDeg) >= 3 && Math.abs(bestDeg) < 6.9 && bestSc > s0 * 1.05) {
+      deskew = -Math.round(bestDeg * 10) / 10; /* نُدير بعكس ميلان المحتوى */
+    }
+
+    return { h: hmed / ws, cols: cols, deskewDeg: deskew, nWords: body.length };
+  }
+
+  function computeAdaptiveScale(img, prep, est) {
+    prep = prep || defaultPrep();
+    var sw = img.naturalWidth || img.width;
+    var sh = img.naturalHeight || img.height;
+    var ang = (((prep.rot90 || 0) + (prep.fineDeg || 0)) * Math.PI) / 180;
+    var ac = Math.abs(Math.cos(ang));
+    var as = Math.abs(Math.sin(ang));
+    var effW = sw * ac + sh * as;
+    var effH = sw * as + sh * ac;
+    var crop = (prep.crop && prep.crop.w > 0.02 && prep.crop.h > 0.02) ? prep.crop : null;
+    var regionW = effW * (crop ? crop.w : 1);
+    var regionH = effH * (crop ? crop.h : 1);
+
+    var scale = 1;
+    if (est.h > TEXT_H_HIGH) scale = TEXT_H_TARGET / est.h;
+    else if (est.h < TEXT_H_LOW) scale = Math.min(MAX_UPSCALE, TEXT_H_TARGET / est.h);
+
+    var budget = isConstrainedDevice() ? PIXEL_BUDGET_MOBILE : PIXEL_BUDGET;
+    var px = regionW * regionH * scale * scale;
+    if (px > budget) scale *= Math.sqrt(budget / px);
+    var fullPx = effW * effH * scale * scale;
+    if (fullPx > 16000000) scale *= Math.sqrt(16000000 / fullPx);
+    return Math.max(0.2, Math.min(3, scale));
+  }
+
+  function resolvePsm(psm, analysis) {
+    if (psm === '3' || psm === '6') return psm;
+    return (analysis && analysis.cols > 1) ? '3' : '6';
   }
 
   function makeThumbDataUrl(img, prep) {
@@ -637,7 +905,36 @@
       .trim();
   }
 
+  /* يُنشأ Worker واحد ويُعاد استخدامه؛ السلسلة تمنع إنشاء نسختين إذا تزامنت التهيئة المسبقة مع بدء الاستخراج */
+  var workerQueue = Promise.resolve();
+  var idleTimer = 0;
+
+  function getWorkerForLang(lang, psm) {
+    var p = workerQueue.then(function () { return getWorkerForLangUnsafe(lang, psm); });
+    workerQueue = p.catch(function () {});
+    return p;
+  }
+
+  /* تهيئة مسبقة صامتة عند إضافة أول صورة كي لا ينتظر المستخدم تحميل النواة واللغة عند الضغط على «بدء» */
+  function warmUpWorker() {
+    if (state.running || state.activeWorker || state.warming) return;
+    state.warming = true;
+    getWorkerForLang(state.lang, state.psm === '3' ? '3' : '6').catch(function () {}).then(function () {
+      state.warming = false;
+      scheduleIdleRelease();
+    });
+  }
+
+  /* تحرير ذاكرة الـ Worker بعد خمول طويل (مهم للهواتف الضعيفة) */
+  function scheduleIdleRelease() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      if (!state.running && !state.warming) terminateActiveWorker();
+    }, WORKER_IDLE_MS);
+  }
+
   async function terminateActiveWorker() {
+    clearTimeout(idleTimer);
     var w = state.activeWorker;
     state.activeWorker = null;
     state.activeWorkerLang = null;
@@ -647,7 +944,7 @@
     }
   }
 
-  async function getWorkerForLang(lang, psm) {
+  async function getWorkerForLangUnsafe(lang, psm) {
     var targetPsm = psm || '6';
     var worker = state.activeWorker;
 
@@ -721,24 +1018,41 @@
     updateProgressUI();
 
     var img = await loadImageFromBlob(item.blob);
-    var prepCanvas = prepareOcrCanvas(img, item.prep);
+    await new Promise(function (r) { setTimeout(r, 0); });
+
+    /* تحليل الصفحة (حجم النص + الأعمدة + الميلان)؛ عند الفشل نعود للسلوك القديم */
+    var analysis = analyzePage(img, item.prep);
+    var ocrOpts = analysis
+      ? { scale: computeAdaptiveScale(img, item.prep, analysis), extraDeg: analysis.deskewDeg }
+      : null;
+    var prepCanvas = prepareOcrCanvas(img, item.prep, ocrOpts);
     var pngBlob = await canvasToPngBlob(prepCanvas);
     await new Promise(function (r) { setTimeout(r, 0); });
 
     if (state.stopRequested) throw new Error('STOPPED');
 
-    var worker = await getWorkerForLang(lang, psm);
+    var usedPsm = resolvePsm(psm, analysis);
+    var worker = await getWorkerForLang(lang, usedPsm);
     if (state.stopRequested) throw new Error('STOPPED');
 
     var res = await worker.recognize(pngBlob);
     if (state.stopRequested) throw new Error('STOPPED');
 
     var extracted = cleanExtractedText(res && res.data ? res.data.text : '');
+    /* وضع «تلقائي»: إن خرج النص فارغاً بـ PSM 6 نجرّب 3 قبل الحكم بعدم وجود نص */
+    if (!extracted && psm === 'auto' && usedPsm !== '3') {
+      usedPsm = '3';
+      worker = await getWorkerForLang(lang, usedPsm);
+      if (state.stopRequested) throw new Error('STOPPED');
+      res = await worker.recognize(pngBlob);
+      if (state.stopRequested) throw new Error('STOPPED');
+      extracted = cleanExtractedText(res && res.data ? res.data.text : '');
+    }
     item.text = extracted;
     item.noText = !extracted;
     item.confidence = res && res.data && typeof res.data.confidence === 'number' ? Math.round(res.data.confidence) : null;
     item.langUsed = lang;
-    item.psmUsed = psm || '6';
+    item.psmUsed = usedPsm;
     item.status = 'done';
     item.editedByUser = false;
     item.errorMsg = '';
@@ -766,6 +1080,7 @@
       }
     }
 
+    clearTimeout(idleTimer);
     state.running = true;
     state.stopRequested = false;
     state.batchDone = 0;
@@ -811,6 +1126,7 @@
       } else {
         /* بعد انتهاء الدفعة نحدّث حالة الجاهزية دون إنترنت لأن اللغة المستخدمة قد حُمّلت */
         refreshOfflineStatus();
+        scheduleIdleRelease();
         if (failCount === 0) {
           toast('اكتملت معالجة ' + successCount + ' ' + (successCount === 1 ? 'صورة' : 'صور'));
         } else {
@@ -882,6 +1198,7 @@
       state.mergedDirty = false;
       renderAll();
       toast('تمت إضافة ' + added + (added === 1 ? ' صورة' : ' صور'));
+      warmUpWorker();
     }
     if (rejected) {
       toast('تم تجاهل ' + rejected + ' ملف غير صالح (الصيغ المدعومة: JPG وJPEG وPNG وWEBP)', 3400);
@@ -1107,7 +1424,7 @@
       state.mergedDirty = false;
       state.mergedText = '';
       state.lang = 'ara';
-      state.psm = '6';
+      state.psm = 'auto';
       renderAll();
       toast('تم مسح جميع بيانات العمل المحفوظة');
     };
@@ -1280,7 +1597,7 @@
       '</div>' +
       '<div class="ocr-lang-row">' +
         '<span class="ocr-lang-label">تخطيط الصفحة (PSM):</span>' +
-        '<div class="ocr-lang-group cols-2">' + psmButtons + '</div>' +
+        '<div class="ocr-lang-group">' + psmButtons + '</div>' +
       '</div>' +
       '<div class="ocr-run-row">' +
         '<button type="button" class="tl-btn pri" id="ocrStartBtn"' + (canStart ? '' : ' disabled') + '>' + I.play + ' بدء استخراج النصوص</button>' +
@@ -1398,9 +1715,8 @@
 
   function effectiveDir(it) {
     if (it.dir === 'rtl' || it.dir === 'ltr') return it.dir;
-    var t = String(it.text || '').trim();
-    if (!t) return state.lang === 'eng' ? 'ltr' : 'rtl';
-    return EX.detectTextDir(t, 'auto');
+    /* تلقائي: اتجاه كل سطر يُحدَّد من أول حرف قوي فيه (CSS: unicode-bidi: plaintext) فلا تنقلب علامات الترقيم في الأسطر المختلطة */
+    return 'auto';
   }
 
   function renderResults() {
@@ -1421,7 +1737,7 @@
     if (state.activeTab === 'merged') {
       var mergedVal = getMergedText();
       var totalWords = countWords(mergedVal);
-      var mergedDir = mergedVal.trim() ? EX.detectTextDir(mergedVal, 'auto') : (state.lang === 'eng' ? 'ltr' : 'rtl');
+      var mergedDir = 'auto';
       area.innerHTML =
         '<div class="ocr-res-card">' +
           '<div class="ocr-res-head">' +
@@ -1686,7 +2002,7 @@
         it.text = ta.value;
         it.editedByUser = true;
         it.noText = !it.text.trim();
-        if ((it.dir || 'auto') === 'auto') ta.dir = EX.detectTextDir(it.text, 'auto');
+        if ((it.dir || 'auto') === 'auto') ta.dir = 'auto';
         var sub = root.querySelector('[data-card-sub="' + id + '"]');
         if (sub) sub.textContent = countWords(it.text) + ' كلمة · تم التعديل يدوياً';
         clearTimeout(saveTimers[id]);
@@ -1720,7 +2036,7 @@
       if (savedLang && LANGS.some(function (l) { return l.id === savedLang; })) {
         state.lang = savedLang;
       }
-      var savedPsm = await ST.getMeta('psm', '6');
+      var savedPsm = await ST.getMeta('psm', 'auto');
       if (savedPsm && PSMS.some(function (p) { return p.id === savedPsm; })) {
         state.psm = savedPsm;
       }
