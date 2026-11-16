@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.21.1';
+const VERSION = 'v1.22.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -87,6 +87,10 @@ const PRECACHE = [
   './vendor/tesseract/tesseract.min.js',
   './vendor/tesseract/worker.min.js',
   './theme.css',
+  './vendor/chart.umd.min.js',
+  './budget.css',
+  './budget-store.js',
+  './budget.js',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png'
