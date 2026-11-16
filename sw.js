@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.20.4';
+const VERSION = 'v1.21.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -76,6 +76,14 @@ const PRECACHE = [
   './ocr-store.js',
   './ocr-export.js',
   './ocr.js',
+  './vendor/pdf-lib.min.js',
+  './pdf-shared.js',
+  './reader.css',
+  './reader-store.js',
+  './reader-export.js',
+  './reader.js',
+  './pdflab.css',
+  './pdflab.js',
   './vendor/tesseract/tesseract.min.js',
   './vendor/tesseract/worker.min.js',
   './theme.css',
