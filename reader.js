@@ -860,6 +860,10 @@
       canvas.width = Math.max(1, Math.floor(viewport.width * dpr));
       canvas.height = Math.max(1, Math.floor(viewport.height * dpr));
       var ctx = canvas.getContext('2d');
+      /* مهم: خاصية direction في Canvas قيمتها الافتراضية "inherit" فتورث rtl من .ar-ws،
+         فيعيد المتصفح ترتيب كل مقطع نصي يرسمه PDF.js ويُفسد الحروف العربية. نثبّتها LTR
+         لأن PDF.js يضع كل حرف بإحداثياته الدقيقة ولا يحتاج Bidi من المتصفح. */
+      try { ctx.direction = 'ltr'; } catch (e) {}
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       var task = page.render({ canvasContext: ctx, viewport: viewport });
@@ -1411,7 +1415,9 @@
       var cv = document.createElement('canvas');
       cv.width = Math.max(1, Math.floor(vp.width));
       cv.height = Math.max(1, Math.floor(vp.height));
-      await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+      var tctx = cv.getContext('2d');
+      try { tctx.direction = 'ltr'; } catch (e) {}
+      await page.render({ canvasContext: tctx, viewport: vp }).promise;
       if (holder.isConnected) {
         holder.innerHTML = '';
         holder.appendChild(cv);
