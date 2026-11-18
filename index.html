@@ -518,6 +518,7 @@ html[data-pwa="browser"] #installGate{position:fixed;inset:0;z-index:2147483000;
 <link rel="stylesheet" href="home.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="chat.css">
+<link rel="stylesheet" href="other-majors.css">
 </head>
 <body>
 <div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="gateT">
@@ -557,11 +558,35 @@ html[data-pwa="browser"] #installGate{position:fixed;inset:0;z-index:2147483000;
 <!-- 1. Home: «مركزك الجامعي» (يُبنى محتواها في home.js) -->
 <main class="wrap" id="v-home" aria-label="الرئيسية"></main>
 
-<!-- 2. Lectures: قائمة كل المقاييس -->
+<!-- 2. Lectures: بوابة الاختيار + مقاييس التربية البدنية والرياضية -->
 <main class="wrap" id="v-lectures" hidden>
-  <h2 class="ptitle">المحاضرات</h2>
-  <div class="grid" id="subjects"></div>
+  <div id="lecChooserWrap">
+    <h2 class="ptitle">المحاضرات</h2>
+    <p class="om-chooser-sub">اختر القسم المناسب للدخول إلى محاضراتك وأدوات المراجعة:</p>
+    <div class="om-chooser">
+      <button type="button" class="om-choice" id="goEpsBtn">
+        <span class="om-ch-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+        <h3>التربية البدنية والرياضية</h3>
+        <p>جميع المقاييس والمحاضرات الجاهزة، الملخصات، البطاقات، الاختبارات والخرائط الذهنية الخاصة بالتخصص.</p>
+        <span class="om-ch-go">الدخول للمقاييس ←</span>
+      </button>
+      <button type="button" class="om-choice alt" id="goOtherBtn">
+        <span class="om-ch-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+        <h3>باقي التخصصات الجامعية</h3>
+        <p>ارفع محاضراتك (PDF، Word، PowerPoint، نصوص أو صور) واستخرج نصها وعدّله، ثم ادرسها بسبع أدوات تفاعلية محلياً.</p>
+        <span class="om-ch-go">فتح المساحة الذاتية ←</span>
+      </button>
+    </div>
+  </div>
+  <div id="lecEpsWrap" hidden>
+    <button class="back" type="button" id="backLecChooser">← العودة لاختيار القسم</button>
+    <h2 class="ptitle">التربية البدنية والرياضية</h2>
+    <div class="grid" id="subjects"></div>
+  </div>
 </main>
+
+<!-- 2c. باقي التخصصات الجامعية -->
+<main class="wrap" id="v-other" hidden aria-label="محاضرات باقي التخصصات الجامعية"></main>
 
 <!-- 2b. محاضرات المقياس المختار -->
 <main class="wrap" id="v-list" hidden>
@@ -825,7 +850,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 /* ===== App ===== */
 (function(){
   var $=function(i){return document.getElementById(i)},root=document.documentElement;
-  var views={home:$('v-home'),lectures:$('v-lectures'),list:$('v-list'),lec:$('v-lec'),tools:$('v-tools'),notes:$('v-notes'),settings:$('v-settings'),profile:$('v-profile'),about:$('v-about'),rate:$('v-rate'),contact:$('v-contact')},S=0,L=1,T='read';
+  var views={home:$('v-home'),lectures:$('v-lectures'),list:$('v-list'),lec:$('v-lec'),other:$('v-other'),tools:$('v-tools'),notes:$('v-notes'),settings:$('v-settings'),profile:$('v-profile'),about:$('v-about'),rate:$('v-rate'),contact:$('v-contact')},S=0,L=1,T='read';
   function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
   function set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
   var th=get('theme');root.setAttribute('data-theme',th==='light'?'light':'dark');
@@ -1470,7 +1495,9 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 
   /* ===== Bottom navigation + settings =====
      لتفعيل «الأدوات» أو «ملاحظاتي» مستقبلًا: أضف <main id="v-tools" hidden> وسجّله في views ثم أضف دالة في NAV أدناه. */
-  var NAV_ACTIVE={home:'home',lectures:'lectures',list:'lectures',lec:'lectures',tools:'tools',notes:'notes',settings:'settings',profile:'settings',about:'settings',rate:'settings',contact:'settings'};
+  var NAV_ACTIVE={home:'home',lectures:'lectures',list:'lectures',lec:'lectures',other:'lectures',tools:'tools',notes:'notes',settings:'settings',profile:'settings',about:'settings',rate:'settings',contact:'settings'};
+  window._omGoOther=function(){go('other')};
+  window._omGoLectures=function(){go('lectures')};
   var NAV={
     home:function(){go('home')},
     lectures:function(){go('lectures')},
@@ -2205,5 +2232,7 @@ var CONTENT={"1-1": {"lesson": [["مقدمة", "الطب الرياضي هو أ�
 <script src="chat-pdf.js" defer></script>
 <script src="chat-data.js" defer></script>
 <script src="chat-ui.js" defer></script>
+<script src="other-engine.js" defer></script>
+<script src="other-majors.js" defer></script>
 </body>
 </html>

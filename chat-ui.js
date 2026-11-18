@@ -5,7 +5,7 @@
 (function (root) {
   'use strict';
   var E = root.ChatEngine, S = root.ChatStore, D = root.ChatData;
-  var st = { on: false, kind: 'lecture', sid: '', title: '', kicker: '', conv: null, convs: [], msgs: [], mode: 'normal', level: 'medium', busy: false, scopeP: null, info: null, lastSend: 0, filter: '', pushed: false };
+  var st = { on: false, kind: 'lecture', sid: '', title: '', kicker: '', conv: null, convs: [], msgs: [], mode: 'normal', level: 'medium', busy: false, scopeP: null, info: null, lastSend: 0, filter: '', pushed: false, customOpts: null };
   var el = {};
 
   function $(s, r) { return (r || document).querySelector(s); }
@@ -80,12 +80,18 @@
   function subjName(i) { return (root.SUBJECTS && root.SUBJECTS[i] && root.SUBJECTS[i].alt) || ('المقياس ' + (i + 1)); }
 
   function openLecture(s, l) {
-    st.kind = 'lecture'; st.sid = (s + 1) + '-' + l; st.kicker = 'شات المحاضرة'; st.title = 'محاضرة ' + l + ' · ' + subjName(s); st.pushed = false;
+    st.kind = 'lecture'; st.sid = (s + 1) + '-' + l; st.kicker = 'شات المحاضرة'; st.title = 'محاضرة ' + l + ' · ' + subjName(s); st.pushed = false; st.customOpts = null;
     start();
   }
   function openSubject(s) {
-    st.kind = 'subject'; st.sid = String(s + 1); st.kicker = 'مساعد المقياس'; st.title = subjName(s);
+    st.kind = 'subject'; st.sid = String(s + 1); st.kicker = 'مساعد المقياس'; st.title = subjName(s); st.customOpts = null;
     try { history.pushState({ v: 'list', s: s, l: 1, chat: 1 }, ''); st.pushed = true; } catch (e) { st.pushed = false; }
+    start();
+  }
+  function openCustom(opts) {
+    opts = opts || {};
+    st.kind = 'custom'; st.sid = String(opts.id || 'custom'); st.kicker = opts.kicker || 'الشات – اسأل عن محاضرتك'; st.title = opts.title || 'محاضرتي'; st.customOpts = opts;
+    try { history.pushState({ v: 'other', chat: 1 }, ''); st.pushed = true; } catch (e) { st.pushed = false; }
     start();
   }
 
@@ -94,22 +100,33 @@
     st.on = true; st.conv = null; st.msgs = []; st.busy = false; st.filter = ''; el.acSearch.value = '';
     el.root.classList.add('on'); document.body.classList.add('ac-lock');
     el.acKick.textContent = st.kicker; el.acName.textContent = st.title;
-    el.acIn.placeholder = st.kind === 'lecture' ? 'اكتب سؤالك عن هذه المحاضرة…' : 'اسأل عن أي موضوع ضمن هذا المقياس…';
+    el.acIn.placeholder = st.kind === 'subject' ? 'اسأل عن أي موضوع ضمن هذا المقياس…' : 'اكتب سؤالك عن هذه المحاضرة…';
     el.acSide.classList.remove('on');
     setStat('جارٍ التجهيز…');
-    st.scopeP = D.scopeFor(st.kind, st.sid, setStat).then(function (r) {
-      st.info = r.info;
-      var i = r.info;
-      var msg;
-      if (!i.lectures) msg = st.kind === 'lecture' ? 'لا يوجد نص مجهّز لهذه المحاضرة بعد' : 'لا توجد محاضرات مجهّزة لهذا المقياس بعد';
-      else msg = st.kind === 'lecture' ? 'المحاضرة جاهزة للبحث (تعمل دون إنترنت)' : 'جاهز: ' + i.lectures + ' محاضرة (تعمل دون إنترنت)';
-      if (i.scanned) msg += ' · ملف PDF مصوّر يحتاج معالجة OCR قبل استخدامه';
-      setStat(msg);
-      return r.scope;
-    }).catch(function () {
-      setStat('تعذّر التجهيز. اتصل بالإنترنت لتجهيز المحاضرة أولاً ثم أعد المحاولة.');
-      return null;
-    });
+    if (st.kind === 'custom') {
+      st.scopeP = Promise.resolve().then(function () {
+        var scope = st.customOpts && typeof st.customOpts.buildScope === 'function' ? st.customOpts.buildScope() : null;
+        setStat(scope && scope.N ? 'جاهز للبحث في نص محاضرتك فقط (يعمل دون إنترنت)' : 'لا يوجد نص جاهز للبحث');
+        return scope;
+      }).catch(function () {
+        setStat('تعذّر تجهيز نص المحاضرة للبحث.');
+        return null;
+      });
+    } else {
+      st.scopeP = D.scopeFor(st.kind, st.sid, setStat).then(function (r) {
+        st.info = r.info;
+        var i = r.info;
+        var msg;
+        if (!i.lectures) msg = st.kind === 'lecture' ? 'لا يوجد نص مجهّز لهذه المحاضرة بعد' : 'لا توجد محاضرات مجهّزة لهذا المقياس بعد';
+        else msg = st.kind === 'lecture' ? 'المحاضرة جاهزة للبحث (تعمل دون إنترنت)' : 'جاهز: ' + i.lectures + ' محاضرة (تعمل دون إنترنت)';
+        if (i.scanned) msg += ' · ملف PDF مصوّر يحتاج معالجة OCR قبل استخدامه';
+        setStat(msg);
+        return r.scope;
+      }).catch(function () {
+        setStat('تعذّر التجهيز. اتصل بالإنترنت لتجهيز المحاضرة أولاً ثم أعد المحاولة.');
+        return null;
+      });
+    }
     S.listConvs(scopeKey()).then(function (list) {
       st.convs = list; sortConvs();
       if (list.length) return openConv(list[0].id); 
@@ -125,12 +142,14 @@
     st.on = false; el.root.classList.remove('on'); document.body.classList.remove('ac-lock');
   }
   function close() {
+    var cb = st.kind === 'custom' && st.customOpts && st.customOpts.onClose;
     if (st.kind === 'lecture') {
       hide();
       var b = document.getElementById('backHub'); if (b) b.click();
     } else {
       var had = st.pushed; hide();
       if (had && history.state && history.state.chat) history.back();
+      if (typeof cb === 'function') cb();
     }
   }
 
@@ -242,9 +261,12 @@
   function renderLog() {
     el.acLog.innerHTML = '';
     if (!st.msgs.length) {
-      el.acLog.appendChild(mk('div', 'ac-hint', st.kind === 'lecture'
-        ? 'اكتب أي سؤال عن هذه المحاضرة، وستأتيك الإجابة من نصها وحده.'
-        : 'اكتب أي سؤال ضمن هذا المقياس، وسيبحث المساعد في محاضراته وحدها.'));
+      var hintText = st.kind === 'subject'
+        ? 'اكتب أي سؤال ضمن هذا المقياس، وسيبحث المساعد في محاضراته وحدها.'
+        : (st.kind === 'custom'
+          ? 'اسأل عن أي نقطة في محاضرتك المرفوعة، وستأتيك الإجابة من نصها وحده مع عرض المقطع المعتمد.'
+          : 'اكتب أي سؤال عن هذه المحاضرة، وستأتيك الإجابة من نصها وحده.');
+      el.acLog.appendChild(mk('div', 'ac-hint', hintText));
       return;
     }
     st.msgs.forEach(function (m) { el.acLog.appendChild(msgNode(m)); });
@@ -295,8 +317,14 @@
       /* السياق يُشتق من الرسائل قبل هذا السؤال */
       if (ctx && st.msgs.length) { /* آخر رد قبل userMsg */ }
       try {
-        res = scope && scope.N ? E.answer(scope, q, { scopeKind: st.kind, mode: st.mode, level: st.level, ctx: ctx })
-          : { found: false, blocks: [{ t: 'p', text: st.kind === 'lecture' ? 'لا يوجد نص مجهّز لهذه المحاضرة بعد. إن كنت غير متصل فاتصل بالإنترنت وأعد فتح المحاضرة لتجهيزها.' : 'لا توجد محاضرات مجهّزة لهذا المقياس بعد.' }], meta: {} };
+        if (st.kind === 'custom' && st.customOpts && typeof st.customOpts.answerFn === 'function') {
+          res = scope && scope.N
+            ? st.customOpts.answerFn(scope, q, { scopeKind: 'custom', mode: st.mode, level: st.level, ctx: ctx })
+            : { found: false, blocks: [{ t: 'p', text: 'لا يوجد نص جاهز لهذه المحاضرة بعد.' }], meta: {} };
+        } else {
+          res = scope && scope.N ? E.answer(scope, q, { scopeKind: st.kind, mode: st.mode, level: st.level, ctx: ctx })
+            : { found: false, blocks: [{ t: 'p', text: st.kind === 'lecture' ? 'لا يوجد نص مجهّز لهذه المحاضرة بعد. إن كنت غير متصل فاتصل بالإنترنت وأعد فتح المحاضرة لتجهيزها.' : 'لا توجد محاضرات مجهّزة لهذا المقياس بعد.' }], meta: {} };
+        }
       } catch (err) {
         res = { found: false, blocks: [{ t: 'p', text: 'حدث خطأ أثناء معالجة السؤال. أعد صياغته وحاول مرة أخرى.' }], meta: {} };
         if (root.console) console.error(err);
@@ -330,5 +358,5 @@
     setTimeout(function () { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(function () { f.remove(); }, 60000); }, 300);
   }
 
-  root.AcadChat = { openLecture: openLecture, openSubject: openSubject, close: close, _st: st };
+  root.AcadChat = { openLecture: openLecture, openSubject: openSubject, openCustom: openCustom, close: close, _st: st };
 })(window);

@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = 'v1.22.0';
+const VERSION = 'v1.23.0';
 const PREFIX = 'edu-hub';
 
 /* نسخة مرقّمة: ملفات الموقع نفسها (HTML / CSS / JS / PDF / JSON) */
@@ -93,7 +93,10 @@ const PRECACHE = [
   './budget.js',
   './icon-192.png',
   './icon-512.png',
-  './icon-maskable-512.png'
+  './icon-maskable-512.png',
+  './other-majors.css',
+  './other-engine.js',
+  './other-majors.js'
 ];
 
 const MEDIA_EXT = /\.(mp3|wav|ogg|oga|m4a|aac|mp4|webm|m4v)$/i;

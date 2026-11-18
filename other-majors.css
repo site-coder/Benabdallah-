@@ -1,0 +1,801 @@
+/* ==========================================================================
+   other-majors.css — قسم «باقي التخصصات الجامعية»
+   يستعمل متغيرات المنصة الأصلية (--bg, --card, --line, --text, --muted, --p, --p2, --g, --r, --face)
+   ========================================================================== */
+
+#v-lectures,
+#v-other {
+  --om-ok: #34D399;
+  --om-bad: #F87171;
+  --om-warn: #FBBF24;
+}
+:root[data-theme="light"] #v-lectures,
+:root[data-theme="light"] #v-other {
+  --om-ok: #059669;
+  --om-bad: #DC2626;
+  --om-warn: #B45309;
+}
+
+/* ---- Two-choice gate inside #v-lectures ---- */
+.om-chooser-sub {
+  text-align: center;
+  color: var(--muted);
+  font-weight: 300;
+  font-size: 15px;
+  margin: -4px auto 18px;
+  max-width: 36em;
+}
+.om-chooser {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+  margin: 10px auto 48px;
+}
+@media (min-width: 700px) {
+  .om-chooser {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.om-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 22px 20px;
+  text-align: start;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color .22s, box-shadow .22s, transform .22s;
+}
+.om-choice .om-ch-ic {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--p) 18%, transparent);
+  color: var(--p2);
+}
+.om-choice.alt .om-ch-ic {
+  background: color-mix(in srgb, var(--g) 16%, transparent);
+  color: var(--g);
+}
+.om-choice .om-ch-ic svg {
+  width: 28px;
+  height: 28px;
+}
+.om-choice h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.5;
+}
+.om-choice p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.om-choice .om-ch-go {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--g);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.om-choice:active {
+  transform: scale(.985);
+}
+@media (hover: hover) {
+  .om-choice:hover {
+    border-color: var(--g);
+    box-shadow: 0 0 28px rgba(245, 158, 11, .22);
+    transform: translateY(-2px);
+  }
+}
+
+/* ---- Main workspace layout ---- */
+#v-other {
+  padding-bottom: 48px;
+}
+.om-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  max-width: 820px;
+  margin-inline: auto;
+}
+.om-topbar .back {
+  margin: 18px 0 8px;
+}
+.om-sub {
+  text-align: center;
+  color: var(--muted);
+  font-weight: 300;
+  font-size: 14.5px;
+  margin: -4px auto 18px;
+  max-width: 42em;
+  line-height: 1.8;
+}
+.om-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px;
+  margin: 0 auto 16px;
+  max-width: 820px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.om-box-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.om-box-h h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--g);
+}
+
+/* ---- Mode selector (File vs Images - strictly separated) ---- */
+.om-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.om-seg-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .2s, color .2s, box-shadow .2s, background .2s;
+}
+.om-seg-btn svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.om-seg-btn[aria-selected="true"] {
+  border-color: var(--g);
+  color: var(--g);
+  background: color-mix(in srgb, var(--g) 10%, var(--bg));
+  box-shadow: 0 0 18px rgba(245, 158, 11, .2);
+}
+
+/* ---- Dropzone ---- */
+.om-drop {
+  border: 2px dashed color-mix(in srgb, var(--p2) 45%, var(--line));
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+  background: color-mix(in srgb, var(--p) 6%, var(--bg));
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.om-drop.drag,
+.om-drop:focus-within {
+  border-color: var(--g);
+  background: color-mix(in srgb, var(--g) 8%, var(--bg));
+}
+.om-drop-ic {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 10px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--p) 18%, transparent);
+  color: var(--p2);
+}
+.om-drop-ic svg {
+  width: 24px;
+  height: 24px;
+}
+.om-drop b {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+.om-drop small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.7;
+}
+.om-formats {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--p2);
+  font-weight: 600;
+  direction: ltr;
+}
+
+/* ---- Selected Single File Chip ---- */
+.om-file-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.om-file-badge {
+  flex: none;
+  min-width: 52px;
+  height: 42px;
+  padding: 0 8px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--p) 20%, transparent);
+  color: var(--p2);
+  font-weight: 800;
+  font-size: 13px;
+  direction: ltr;
+}
+.om-file-info {
+  flex: 1;
+  min-width: 0;
+}
+.om-file-info b {
+  display: block;
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+.om-file-info small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+/* ---- Images Preview Grid ---- */
+.om-img-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.om-img-item {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.om-img-item img {
+  display: block;
+  width: 100%;
+  height: 104px;
+  object-fit: cover;
+}
+.om-img-meta {
+  padding: 5px 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.om-img-num {
+  position: absolute;
+  top: 6px;
+  inset-inline-start: 6px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: rgba(8, 7, 12, .78);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.om-img-del {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 8px;
+  background: rgba(159, 18, 57, .88);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+/* ---- OCR Language Row & Progress ---- */
+.om-opts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.om-opts-row label {
+  font-size: 13.5px;
+  color: var(--muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.om-sel {
+  min-height: 42px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+.om-prog {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.om-prog-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+}
+.om-prog-top b {
+  color: var(--g);
+}
+
+/* ---- Editor Preview Stage ---- */
+.om-title-in {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+}
+.om-editor {
+  width: 100%;
+  min-height: 300px;
+  max-height: 62vh;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15.5px;
+  line-height: 1.95;
+  resize: vertical;
+  direction: rtl;
+  text-align: start;
+}
+.om-editor:focus,
+.om-title-in:focus {
+  outline: none;
+  border-color: var(--g);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--g) 22%, transparent);
+}
+.om-stats-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.om-stats-bar span {
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+/* ---- Saved Library ---- */
+.om-lib {
+  display: grid;
+  gap: 10px;
+}
+.om-lib-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.om-lib-info {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.om-lib-info b {
+  display: block;
+  font-size: 15.5px;
+  overflow-wrap: anywhere;
+}
+.om-lib-info small {
+  display: block;
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+.om-lib-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---- Study Hub & Question Count Bar ---- */
+.om-count-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.om-count-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.om-count-label small {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 300;
+  color: var(--muted);
+}
+.om-counts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.om-cnt-btn {
+  min-width: 56px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.om-cnt-btn[aria-pressed="true"] {
+  border-color: var(--g);
+  color: var(--g);
+  background: color-mix(in srgb, var(--g) 12%, var(--bg));
+  box-shadow: 0 0 14px rgba(245, 158, 11, .2);
+}
+
+/* ---- Source Excerpt & Notices inside Tools ---- */
+.om-notice {
+  margin: 0 auto 14px;
+  max-width: 640px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--om-warn);
+  color: var(--om-warn);
+  background: color-mix(in srgb, var(--om-warn) 10%, transparent);
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+.om-src {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--p) 8%, var(--bg));
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.om-src b {
+  color: var(--p2);
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+}
+
+/* ---- Tool 4: True / False ---- */
+.om-tf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.om-tf-btn {
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  min-height: 58px;
+}
+.om-tf-note {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  line-height: 1.8;
+  border: 1px solid var(--line);
+}
+.om-tf-note.ok {
+  border-color: var(--om-ok);
+  color: var(--om-ok);
+  background: color-mix(in srgb, var(--om-ok) 10%, transparent);
+}
+.om-tf-note.bad {
+  border-color: var(--om-bad);
+  color: var(--om-bad);
+  background: color-mix(in srgb, var(--om-bad) 10%, transparent);
+}
+
+/* ---- Tool 5: Fill in the Blank ---- */
+.om-blank-sent {
+  font-size: clamp(17px, 4.4vw, 20px);
+  font-weight: 600;
+  line-height: 2;
+  margin-bottom: 14px;
+}
+.om-blank-gap {
+  display: inline-block;
+  min-width: 96px;
+  padding: 0 10px;
+  margin: 0 4px;
+  border-bottom: 2px dashed var(--g);
+  color: var(--g);
+  text-align: center;
+}
+.om-blank-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.om-blank-form input {
+  flex: 1 1 200px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+.om-blank-form input:focus {
+  outline: none;
+  border-color: var(--g);
+}
+
+/* ---- Tool 6: Ordering ---- */
+.om-ord-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.om-ord-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--face);
+  cursor: grab;
+  transition: border-color .2s, background .2s;
+}
+.om-ord-item.ok {
+  border-color: var(--om-ok);
+  background: color-mix(in srgb, var(--om-ok) 12%, transparent);
+}
+.om-ord-item.no {
+  border-color: var(--om-bad);
+  background: color-mix(in srgb, var(--om-bad) 12%, transparent);
+}
+.om-ord-num {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--p) 20%, transparent);
+  color: var(--p2);
+  font-weight: 800;
+  font-size: 14px;
+}
+.om-ord-txt {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.om-ord-ctl {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+.om-ord-mv {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.om-ord-mv:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* ---- Tool 7: Matching ---- */
+.om-match-grid {
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .om-match-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.om-match-col {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.om-match-col-h {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--p2);
+  margin-bottom: 2px;
+}
+.om-match-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--face);
+  text-align: start;
+  font-size: 14.5px;
+  line-height: 1.65;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.om-match-card.sel {
+  border-color: var(--g);
+  box-shadow: 0 0 14px rgba(245, 158, 11, .35);
+}
+.om-match-card.paired {
+  border-color: var(--p2);
+  background: color-mix(in srgb, var(--p) 12%, var(--face));
+}
+.om-match-card.ok {
+  border-color: var(--om-ok);
+  background: color-mix(in srgb, var(--om-ok) 15%, var(--face));
+}
+.om-match-card.no {
+  border-color: var(--om-bad);
+  background: color-mix(in srgb, var(--om-bad) 15%, var(--face));
+}
+.om-pair-badge {
+  flex: none;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--p);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+/* ---- Confirm Dialog & Toast (No window.alert / window.confirm) ---- */
+.om-modal-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(5, 3, 12, .65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.om-modal {
+  width: min(440px, 100%);
+  background: var(--face);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
+}
+.om-modal h3 {
+  margin: 0 0 8px;
+  color: var(--g);
+  font-size: 18px;
+}
+.om-modal p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+.om-toast {
+  position: fixed;
+  z-index: 130;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 16px);
+  opacity: 0;
+  pointer-events: none;
+  max-width: min(440px, calc(100% - 28px));
+  padding: 10px 18px;
+  border-radius: 14px;
+  background: var(--face);
+  border: 1px solid var(--g);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  transition: opacity .22s, transform .22s;
+}
+.om-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
